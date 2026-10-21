@@ -233,3 +233,24 @@ cross join lateral (select ('11111111-0000-0000-0000-' || lpad(n::text, 12, '0')
 
 insert into public.applications (job_id, worker_id, created_at)
 select job_id, worker_id, now() - (random() * interval '3 days') from public.swipes where direction = 'like';
+
+-- Travel groups (milestone 4): the French trio and the Spanish pair are linked.
+insert into public.worker_groups (id, created_by, invite_code) values
+  ('99990000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000003', 'FRANCE'),
+  ('99990000-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000012', 'ESPANA');
+update public.worker_profiles set group_id = '99990000-0000-0000-0000-000000000001'
+ where user_id in ('11111111-0000-0000-0000-000000000003', '11111111-0000-0000-0000-000000000004', '11111111-0000-0000-0000-000000000005');
+update public.worker_profiles set group_id = '99990000-0000-0000-0000-000000000002'
+ where user_id in ('11111111-0000-0000-0000-000000000012', '11111111-0000-0000-0000-000000000013');
+
+-- The French trio also applies to the Lockyer lettuce job, so the demo farm sees a group.
+insert into public.swipes (worker_id, job_id, direction) values
+  ('11111111-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001', 'like'),
+  ('11111111-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001', 'like'),
+  ('11111111-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000001', 'like')
+on conflict do nothing;
+insert into public.applications (job_id, worker_id) values
+  ('a0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000003'),
+  ('a0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000004'),
+  ('a0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000005')
+on conflict do nothing;

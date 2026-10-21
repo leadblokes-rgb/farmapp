@@ -4,6 +4,7 @@ import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
 import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
+import { GroupCard } from '@/features/worker/GroupCard';
 import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { useSignedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
@@ -21,7 +22,10 @@ export default function WorkerProfile() {
   return (
     <>
       <Screen scroll edges={[]}>
+        <GroupCard userId={userId} />
         <WorkerProfileForm
+          // Remount when the saved profile changes (e.g. after joining a group).
+          key={profile.dataUpdatedAt}
           initial={profile.data.values}
           photoUrl={photoUrl.data}
           submitLabel="Save changes"

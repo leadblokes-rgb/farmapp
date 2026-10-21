@@ -71,6 +71,7 @@ npm test                # Vitest unit tests (packages/*)
 npm run db:reset        # re-apply all migrations + seed data from scratch
 npm run db:test         # pgTAP tests for row-level security
 npm run db:types        # regenerate packages/shared/src/database.types.ts after changing the schema
+npm run build:functions # rebuild the matching bundle used by Edge Functions
 ```
 
 ## Rules that change: keep these up to date
@@ -86,11 +87,13 @@ npm run db:types        # regenerate packages/shared/src/database.types.ts after
 All ranking logic lives in `packages/matching`. The `Ranker` interface has two methods:
 
 - `rankJobsForWorker` orders the swipe feed.
-- `rankApplicants` orders a farm's shortlist (milestone 4).
+- `rankApplicants` orders a farm's shortlist. It runs on the server in the `rank-applicants` Edge Function (`supabase/functions/rank-applicants`), so farms can't tamper with scores and never need raw worker data.
 
 Each score comes with a per-factor breakdown that the app shows ("Available for the whole job", "9 km away"…). To try a smarter model later, implement `Ranker` and swap it in `packages/matching/src/index.ts`.
 
-The database only *filters* candidates (`job_feed()`). It never ranks them.
+The database only *filters* candidates (`job_feed()`) and stores scores. It never ranks them.
+
+Edge Functions run in Deno, so `npm run build:functions` bundles `packages/matching` into `supabase/functions/_shared/matching.js`. **Re-run it after changing matching or shared code.**
 
 ## Admin tasks
 

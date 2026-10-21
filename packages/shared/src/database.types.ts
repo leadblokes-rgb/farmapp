@@ -439,6 +439,36 @@ export type Database = {
           },
         ];
       };
+      worker_groups: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          id: string;
+          invite_code: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          id?: string;
+          invite_code?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          id?: string;
+          invite_code?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'worker_groups_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       worker_private: {
         Row: {
           nationality: string;
@@ -478,6 +508,7 @@ export type Database = {
           current_postcode: string;
           experience_summary: string;
           full_name: string;
+          group_id: string | null;
           group_size: number;
           has_car: boolean;
           needs_accommodation: boolean;
@@ -494,6 +525,7 @@ export type Database = {
           current_postcode: string;
           experience_summary?: string;
           full_name: string;
+          group_id?: string | null;
           group_size?: number;
           has_car?: boolean;
           needs_accommodation?: boolean;
@@ -509,6 +541,7 @@ export type Database = {
           current_postcode?: string;
           experience_summary?: string;
           full_name?: string;
+          group_id?: string | null;
           group_size?: number;
           has_car?: boolean;
           needs_accommodation?: boolean;
@@ -520,6 +553,13 @@ export type Database = {
           years_experience?: number;
         };
         Relationships: [
+          {
+            foreignKeyName: 'worker_profiles_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'worker_groups';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'worker_profiles_user_id_fkey';
             columns: ['user_id'];
@@ -661,10 +701,24 @@ export type Database = {
       };
       admin_suspend_user: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
       admin_unsuspend_user: { Args: { p_note?: string; p_user_id: string }; Returns: undefined };
+      applicant_visa_summary: {
+        Args: { p_application_id: string };
+        Returns: {
+          visa_type: Database['public']['Enums']['visa_type'];
+          visa_valid_through_job_end: boolean;
+        }[];
+      };
+      create_group: { Args: Record<PropertyKey, never>; Returns: string };
+      decide_applications: {
+        Args: { p_application_ids: string[]; p_decision: Database['public']['Enums']['application_status'] };
+        Returns: number;
+      };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       has_applied: { Args: { p_job_id: string }; Returns: boolean };
       is_active: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_my_applicant: { Args: { p_worker_id: string }; Returns: boolean };
+      is_my_applicant_folder: { Args: { p_folder: string }; Returns: boolean };
       is_valid_abn: { Args: { abn: string }; Returns: boolean };
       is_verified_farm: { Args: { p_farm_id: string }; Returns: boolean };
       job_feed: {
@@ -704,6 +758,32 @@ export type Database = {
           workers_needed: number;
         }[];
       };
+      job_shortlist: {
+        Args: { p_job_id: string };
+        Returns: {
+          application_id: string;
+          applied_at: string;
+          experience_summary: string;
+          full_name: string;
+          group_id: string;
+          group_size: number;
+          has_car: boolean;
+          locality: string;
+          match_score: number;
+          needs_accommodation: boolean;
+          photo_path: string;
+          score_breakdown: Json;
+          skills: string[];
+          status: Database['public']['Enums']['application_status'];
+          travel_mode: Database['public']['Enums']['travel_mode'];
+          visa_type: Database['public']['Enums']['visa_type'];
+          visa_valid_through_job_end: boolean;
+          worker_id: string;
+          years_experience: number;
+        }[];
+      };
+      join_group: { Args: { p_invite_code: string }; Returns: undefined };
+      leave_group: { Args: Record<PropertyKey, never>; Returns: undefined };
       my_applications: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -719,9 +799,19 @@ export type Database = {
           title: string;
         }[];
       };
+      my_group: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          invite_code: string;
+          is_me: boolean;
+          member_id: string;
+          member_name: string;
+        }[];
+      };
       my_role: { Args: Record<PropertyKey, never>; Returns: Database['public']['Enums']['user_role'] };
       owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
+      save_match_scores: { Args: { p_ranker_version: string; p_scores: Json }; Returns: number };
       save_worker_profile: { Args: { p: Json }; Returns: undefined };
       set_my_role: {
         Args: { new_role: Database['public']['Enums']['user_role'] };
@@ -770,14 +860,13 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof (DefaultSchema['Tables'] & DefaultSchema['Views']) | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
@@ -795,13 +884,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I;
@@ -818,13 +906,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U;
@@ -841,13 +928,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
@@ -856,13 +942,12 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
