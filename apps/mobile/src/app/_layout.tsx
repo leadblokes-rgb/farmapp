@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, type Href } from 'expo-router';
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { registerForPush, useNotificationDeepLinks } from '@/lib/push';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { theme } from '@/theme';
 
@@ -37,6 +39,14 @@ export default function RootLayout() {
  */
 function RootNavigator() {
   const { loading, session, profile, onboarded } = useAuth();
+  const ready = !loading && !!session && profile?.status === 'active' && !!profile.role && onboarded;
+  const userId = session?.user.id;
+
+  // Register this device for push once the user is fully set up, and open tapped notifications.
+  useEffect(() => {
+    if (ready && userId) registerForPush(userId).catch(() => {});
+  }, [ready, userId]);
+  useNotificationDeepLinks(ready);
 
   if (loading) {
     return (

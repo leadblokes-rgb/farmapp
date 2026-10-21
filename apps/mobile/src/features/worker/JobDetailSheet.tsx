@@ -9,9 +9,10 @@ interface Props {
   item: RankedFeedJob | null;
   onDismiss: () => void;
   onDecide: (direction: SwipeDirection) => void;
+  onReport: (item: RankedFeedJob) => void;
 }
 
-export function JobDetailSheet({ item, onDismiss, onDecide }: Props) {
+export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
   return (
     <Portal>
       <Modal visible={item !== null} onDismiss={onDismiss} contentContainerStyle={styles.modal}>
@@ -33,6 +34,15 @@ export function JobDetailSheet({ item, onDismiss, onDecide }: Props) {
                   • {b.note}
                 </Text>
               ))}
+              <Button
+                mode="text"
+                icon="flag-outline"
+                textColor="#B00020"
+                onPress={() => onReport(item)}
+                style={styles.report}
+              >
+                Report this job
+              </Button>
             </ScrollView>
             <View style={styles.actions}>
               <Button
@@ -66,6 +76,7 @@ const styles = StyleSheet.create({
   modal: { backgroundColor: 'white', margin: 12, borderRadius: 16, maxHeight: '92%', overflow: 'hidden' },
   body: { padding: 20, gap: 12 },
   bold: { fontWeight: '700' },
+  report: { alignSelf: 'flex-start' },
   actions: {
     flexDirection: 'row',
     gap: 12,

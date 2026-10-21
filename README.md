@@ -97,7 +97,7 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 
 ## Admin tasks
 
-Approving farms, suspending users and (from milestone 5) handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).
+Approving farms, suspending users and handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).
 
 ## Security model (summary)
 
@@ -110,9 +110,39 @@ Approving farms, suspending users and (from milestone 5) handling reports are do
 - No passport numbers, dates of birth or street addresses are collected. "Use my location" keeps only the postcode.
 - Users can delete their account in the app (Profile → Delete my account).
 
+## Push notifications
+
+Croppr sends push notifications in these cases:
+
+- **New applicant:** sent to the farm.
+- **Accepted / not this time:** sent to the worker.
+- **New chat message:** sent to the other person.
+
+Tapping a notification opens the right screen.
+
+How it works:
+
+1. Triggers on `applications` and `messages` call `public.notify()`.
+2. `public.notify()` makes an async HTTP call (`pg_net`) to the `send-push` Edge Function.
+3. `send-push` sends the message through the Expo Push API.
+
+Every attempt is logged in `notification_log` (`select * from notification_log order by id desc`).
+
+**To receive pushes on a phone:**
+
+1. Run `cd apps/mobile && npx eas-cli init` once. This adds the EAS project id to `app.json`; without it the app skips push registration.
+2. Build a development build: `npx eas-cli build --profile development`, or `npx expo run:android` / `run:ios`. Expo Go doesn't support remote push on Android, so use a development build.
+3. Sign in on a physical device and allow notifications.
+
+Locally, `seed.sql` stores the function URL and service key in Supabase Vault.
+
 ## Going to production (later)
 
 - Create a Supabase project and run `npx supabase link`, then `npx supabase db push`.
 - In the dashboard, under **Auth → Email Templates**, make the *Confirm signup* and *Magic Link* templates show `{{ .Token }}` (see `supabase/templates/otp.html`). Otherwise users get a link instead of a code.
 - Configure a real SMTP provider. Supabase's built-in email sender is heavily rate-limited.
+- Push notifications need two Vault secrets in production. In the SQL editor, run:
+  `select vault.create_secret('https://<project-ref>.supabase.co/functions/v1', 'functions_url');`
+  `select vault.create_secret('<service role key>', 'service_role_key');`
+  Then deploy the functions with `npx supabase functions deploy rank-applicants` and `npx supabase functions deploy send-push --no-verify-jwt`.
 - The `postcodes` table only has a Queensland subset. Load the full Australian postcode list before launch, otherwise distance ranking won't work outside QLD.

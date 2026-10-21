@@ -1,11 +1,12 @@
 import { SKILLS } from '@croppr/shared';
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Button, Divider, Snackbar, Text } from 'react-native-paper';
 import { Meter } from '@/components/Meter';
 import { LoadError, Loading } from '@/components/Loading';
+import { useStartConversation } from '@/features/chat/api';
 import { Screen } from '@/components/Screen';
 import { initials, VisaBadge } from '@/features/farm/ApplicantCard';
 import {
@@ -31,6 +32,7 @@ export default function ApplicantDetail() {
   const a = shortlist.data?.applicants.find((x) => x.application_id === id);
   const availability = useApplicantAvailability(a?.worker_id);
   const decide = useDecide(jobId);
+  const startChat = useStartConversation();
   const [message, setMessage] = useState<string | null>(null);
 
   if (shortlist.isPending) return <Loading />;
@@ -118,6 +120,22 @@ export default function ApplicantDetail() {
         </Text>
         {a.experience_summary ? <Text variant="bodyLarge">“{a.experience_summary}”</Text> : null}
 
+        {a.status === 'applied' || a.status === 'accepted' ? (
+          <Button
+            mode="outlined"
+            icon="chat"
+            contentStyle={styles.tall}
+            loading={startChat.isPending}
+            onPress={() =>
+              startChat.mutate(a.application_id, {
+                onSuccess: (convId) => router.push(`/farm/chat/${convId}`),
+                onError: (e) => setMessage(e.message),
+              })
+            }
+          >
+            Message {a.full_name.split(' ')[0]}
+          </Button>
+        ) : null}
         <View style={styles.actions}>
           {a.status === 'applied' ? (
             <>

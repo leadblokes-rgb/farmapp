@@ -89,7 +89,43 @@ To suspend a whole farm business, suspend its owner (`farms.owner_id`).
 
 ## 3. Handle reports
 
-In-app reporting arrives in **milestone 5** (chat). This section will then cover `admin_open_reports` and `admin_resolve_report()`.
+Workers and farms can report the other person from any chat (flag icon), and workers can report a job from its detail sheet. The person reported is **not** told. Reasons are: unsafe, underpaid, harassment, scam, no-show, fake profile, other.
+
+### See the queue
+
+```sql
+select * from admin_open_reports;   -- oldest first
+```
+
+| Column | What it tells you |
+|---|---|
+| `reporter_email`, `reporter_role` | Who reported |
+| `target_email`, `target_role`, `target_status` | Who was reported, and whether they're already suspended |
+| `job_title`, `farm_name` | The job involved, if any |
+| `reports_against_target` | How many reports this person has in total; repeated reports matter most |
+| `conversation_id` | The chat the report came from, if any |
+
+To read a chat (only when a report needs it), run:
+
+```sql
+select sender_id, body, created_at from messages where conversation_id = '<conversation_id>' order by created_at;
+```
+
+### Decide
+
+- **Unsafe / scam / harassment.** Act fast. Suspend the target (section 2), then resolve:
+  ```sql
+  select admin_suspend_user('<target_user_id>', 'Report #12: asked workers for a bond payment');
+  select admin_resolve_report(12, 'actioned', 'Suspended farm owner');
+  ```
+- **Underpaid.** Check the job's pay (`select pay_type, pay_rate_cents, min_hourly_guarantee_cents from jobs where id = '<target_job_id>'`). Contact the farm. Point workers to the Fair Work Ombudsman (13 13 94). Suspend if it's repeated.
+- **No-show.** Usually just record it: `admin_resolve_report(<id>, 'actioned', 'Noted no-show')`. After the MVP, ratings will capture this.
+- **Not a real problem:**
+  ```sql
+  select admin_resolve_report(12, 'dismissed', 'Misunderstanding about start time');
+  ```
+
+Every resolution is recorded in `admin_actions`.
 
 ---
 

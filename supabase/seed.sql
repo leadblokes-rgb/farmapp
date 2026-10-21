@@ -4,6 +4,9 @@
 --
 -- Farms, workers and (from milestone 3) jobs are spread across QLD growing regions.
 
+-- Don't send push notifications for seeded applications/messages.
+select set_config('croppr.skip_notifications', 'on', false);
+
 create or replace function pg_temp.seed_user(uid uuid, email text, role text)
 returns void
 language plpgsql
@@ -254,3 +257,35 @@ insert into public.applications (job_id, worker_id) values
   ('a0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000004'),
   ('a0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000005')
 on conflict do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Chat (milestone 5): the demo farm has accepted Sam (the demo worker) for the tractor job
+-- and they've exchanged a couple of messages.
+-- ---------------------------------------------------------------------------
+
+insert into public.swipes (worker_id, job_id, direction)
+values ('11111111-1111-1111-1111-111111111111', 'a0000000-0000-0000-0000-000000000003', 'like');
+insert into public.applications (id, job_id, worker_id)
+values ('ab000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111');
+update public.applications set status = 'accepted', decided_at = now()
+ where id = 'ab000000-0000-0000-0000-000000000001';  -- trigger opens the conversation
+insert into public.messages (conversation_id, sender_id, body, created_at)
+select c.id, m.sender, m.body, now() - m.ago
+from public.conversations c,
+  (values ('22222222-2222-2222-2222-222222222222'::uuid, 'Hi Sam, thanks for applying! Can you start on the 4th? We meet at the shed at 6am.', interval '2 hours'),
+          ('11111111-1111-1111-1111-111111111111'::uuid, 'Yes, I can! Do I need steel-capped boots?', interval '90 minutes'),
+          ('22222222-2222-2222-2222-222222222222'::uuid, 'Yes please. Hi-vis is supplied.', interval '80 minutes')) as m(sender, body, ago)
+where c.application_id = 'ab000000-0000-0000-0000-000000000001';
+
+-- A sample report for the admin queue.
+insert into public.reports (reporter_id, target_job_id, target_user_id, reason, details)
+values ('11111111-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-00000000000e',
+        public.job_owner('a0000000-0000-0000-0000-00000000000e'), 'underpaid',
+        'Weekend weeding pays $29/hr, below the award.');
+
+-- Local push notification wiring: the database calls send-push through the API gateway.
+-- These are the standard, public local-development values; production sets its own (see README).
+select vault.create_secret('http://kong:8000/functions/v1', 'functions_url');
+select vault.create_secret(
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
+  'service_role_key');

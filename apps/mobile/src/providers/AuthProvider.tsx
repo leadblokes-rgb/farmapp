@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import type { Database } from '@croppr/shared';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { unregisterPush } from '@/lib/push';
 import { supabase } from '@/lib/supabase';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(() => loadProfile(session), [loadProfile, session]);
   const signOut = useCallback(async () => {
+    await unregisterPush().catch(() => {});
     await supabase.auth.signOut();
   }, []);
 

@@ -106,6 +106,80 @@ export type Database = {
           },
         ];
       };
+      conversations: {
+        Row: {
+          application_id: string;
+          created_at: string;
+          farm_id: string;
+          id: string;
+          last_message_at: string | null;
+          started_by: string | null;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          created_at?: string;
+          farm_id: string;
+          id?: string;
+          last_message_at?: string | null;
+          started_by?: string | null;
+          worker_id: string;
+        };
+        Update: {
+          application_id?: string;
+          created_at?: string;
+          farm_id?: string;
+          id?: string;
+          last_message_at?: string | null;
+          started_by?: string | null;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversations_application_id_fkey';
+            columns: ['application_id'];
+            isOneToOne: true;
+            referencedRelation: 'applications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_pending_farms';
+            referencedColumns: ['farm_id'];
+          },
+          {
+            foreignKeyName: 'conversations_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms_public';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_started_by_fkey';
+            columns: ['started_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversations_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       farms: {
         Row: {
           abn: string;
@@ -286,6 +360,86 @@ export type Database = {
           },
         ];
       };
+      messages: {
+        Row: {
+          body: string;
+          conversation_id: string;
+          created_at: string;
+          id: string;
+          read_at: string | null;
+          sender_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          conversation_id: string;
+          created_at?: string;
+          id?: string;
+          read_at?: string | null;
+          sender_id: string;
+        };
+        Update: {
+          body?: string;
+          conversation_id?: string;
+          created_at?: string;
+          id?: string;
+          read_at?: string | null;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'messages_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'messages_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_log: {
+        Row: {
+          body: string | null;
+          created_at: string;
+          event: string;
+          id: number;
+          outcome: string;
+          recipient_id: string | null;
+          title: string | null;
+          tokens: number;
+          url: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string | null;
+          created_at?: string;
+          event: string;
+          id?: never;
+          outcome: string;
+          recipient_id?: string | null;
+          title?: string | null;
+          tokens?: number;
+          url?: string | null;
+        };
+        Update: {
+          body?: string | null;
+          created_at?: string;
+          event?: string;
+          id?: never;
+          outcome?: string;
+          recipient_id?: string | null;
+          title?: string | null;
+          tokens?: number;
+          url?: string | null;
+        };
+        Relationships: [];
+      };
       postcodes: {
         Row: {
           lat: number;
@@ -347,6 +501,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_tokens: {
+        Row: {
+          expo_token: string;
+          platform: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          expo_token: string;
+          platform: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          expo_token?: string;
+          platform?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_tokens_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       regions: {
         Row: {
           centroid_lat: number;
@@ -371,6 +555,78 @@ export type Database = {
           state?: string;
         };
         Relationships: [];
+      };
+      reports: {
+        Row: {
+          conversation_id: string | null;
+          created_at: string;
+          details: string;
+          id: number;
+          reason: Database['public']['Enums']['report_reason'];
+          reporter_id: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          status: Database['public']['Enums']['report_status'];
+          target_job_id: string | null;
+          target_user_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          conversation_id?: string | null;
+          created_at?: string;
+          details?: string;
+          id?: never;
+          reason: Database['public']['Enums']['report_reason'];
+          reporter_id: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          status?: Database['public']['Enums']['report_status'];
+          target_job_id?: string | null;
+          target_user_id?: string | null;
+        };
+        Update: {
+          conversation_id?: string | null;
+          created_at?: string;
+          details?: string;
+          id?: never;
+          reason?: Database['public']['Enums']['report_reason'];
+          reporter_id?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          status?: Database['public']['Enums']['report_status'];
+          target_job_id?: string | null;
+          target_user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_target_job_id_fkey';
+            columns: ['target_job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_target_user_id_fkey';
+            columns: ['target_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       swipes: {
         Row: {
@@ -602,6 +858,49 @@ export type Database = {
       };
     };
     Views: {
+      admin_open_reports: {
+        Row: {
+          conversation_id: string | null;
+          created_at: string | null;
+          details: string | null;
+          farm_name: string | null;
+          job_title: string | null;
+          reason: Database['public']['Enums']['report_reason'] | null;
+          report_id: number | null;
+          reporter_email: string | null;
+          reporter_role: Database['public']['Enums']['user_role'] | null;
+          reports_against_target: number | null;
+          target_email: string | null;
+          target_job_id: string | null;
+          target_role: Database['public']['Enums']['user_role'] | null;
+          target_status: Database['public']['Enums']['account_status'] | null;
+          target_user_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: 'reports_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_target_job_id_fkey';
+            columns: ['target_job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_target_user_id_fkey';
+            columns: ['target_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       admin_pending_farms: {
         Row: {
           abn: string | null;
@@ -699,6 +998,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      admin_resolve_report: {
+        Args: { p_note: string; p_report_id: number; p_status: Database['public']['Enums']['report_status'] };
+        Returns: undefined;
+      };
       admin_suspend_user: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
       admin_unsuspend_user: { Args: { p_note?: string; p_user_id: string }; Returns: undefined };
       applicant_visa_summary: {
@@ -717,6 +1020,7 @@ export type Database = {
       has_applied: { Args: { p_job_id: string }; Returns: boolean };
       is_active: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_conversation_participant: { Args: { p_conversation_id: string }; Returns: boolean };
       is_my_applicant: { Args: { p_worker_id: string }; Returns: boolean };
       is_my_applicant_folder: { Args: { p_folder: string }; Returns: boolean };
       is_valid_abn: { Args: { abn: string }; Returns: boolean };
@@ -758,6 +1062,7 @@ export type Database = {
           workers_needed: number;
         }[];
       };
+      job_owner: { Args: { p_job_id: string }; Returns: string };
       job_shortlist: {
         Args: { p_job_id: string };
         Returns: {
@@ -784,6 +1089,7 @@ export type Database = {
       };
       join_group: { Args: { p_invite_code: string }; Returns: undefined };
       leave_group: { Args: Record<PropertyKey, never>; Returns: undefined };
+      mark_conversation_read: { Args: { p_conversation_id: string }; Returns: undefined };
       my_applications: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -799,6 +1105,19 @@ export type Database = {
           title: string;
         }[];
       };
+      my_conversations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          application_id: string;
+          application_status: Database['public']['Enums']['application_status'];
+          conversation_id: string;
+          job_title: string;
+          last_message: string;
+          last_message_at: string;
+          other_name: string;
+          unread: number;
+        }[];
+      };
       my_group: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -809,6 +1128,7 @@ export type Database = {
         }[];
       };
       my_role: { Args: Record<PropertyKey, never>; Returns: Database['public']['Enums']['user_role'] };
+      notify: { Args: { p_event: string; p_payload: Json }; Returns: undefined };
       owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
       save_match_scores: { Args: { p_ranker_version: string; p_scores: Json }; Returns: number };
@@ -829,6 +1149,16 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      start_conversation: { Args: { p_application_id: string }; Returns: string };
+      submit_report: {
+        Args: {
+          p_conversation_id?: string;
+          p_details?: string;
+          p_job_id?: string;
+          p_reason: Database['public']['Enums']['report_reason'];
+        };
+        Returns: number;
+      };
       swipe_job: {
         Args: { p_direction: Database['public']['Enums']['swipe_direction']; p_job_id: string };
         Returns: string;
@@ -842,6 +1172,8 @@ export type Database = {
       job_role_type: 'picking' | 'packing' | 'pruning' | 'planting' | 'machinery' | 'livestock' | 'general';
       job_status: 'open' | 'filled' | 'closed';
       pay_type: 'hourly' | 'piece_rate';
+      report_reason: 'unsafe' | 'harassment' | 'scam' | 'underpaid' | 'no_show' | 'fake_profile' | 'other';
+      report_status: 'open' | 'actioned' | 'dismissed';
       swipe_direction: 'like' | 'pass';
       travel_mode: 'solo' | 'group';
       user_role: 'worker' | 'farm' | 'admin';
@@ -965,6 +1297,8 @@ export const Constants = {
       job_role_type: ['picking', 'packing', 'pruning', 'planting', 'machinery', 'livestock', 'general'],
       job_status: ['open', 'filled', 'closed'],
       pay_type: ['hourly', 'piece_rate'],
+      report_reason: ['unsafe', 'harassment', 'scam', 'underpaid', 'no_show', 'fake_profile', 'other'],
+      report_status: ['open', 'actioned', 'dismissed'],
       swipe_direction: ['like', 'pass'],
       travel_mode: ['solo', 'group'],
       user_role: ['worker', 'farm', 'admin'],

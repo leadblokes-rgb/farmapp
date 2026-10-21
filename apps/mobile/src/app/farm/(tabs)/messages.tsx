@@ -1,11 +1,10 @@
-import { ComingSoon } from '@/components/ComingSoon';
+import { ConversationList } from '@/features/chat/ConversationList';
 
 export default function Messages() {
   return (
-    <ComingSoon
-      title="Messages"
-      milestone={5}
-      description="Chat with applicants and the workers you've hired."
+    <ConversationList
+      basePath="/farm/chat"
+      emptyText="No conversations yet. Message an applicant from your shortlist, or accept them to start a chat."
     />
   );
 }

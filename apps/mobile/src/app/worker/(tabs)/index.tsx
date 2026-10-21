@@ -13,6 +13,7 @@ import {
   type RankedFeedJob,
 } from '@/features/worker/feedApi';
 import { FiltersSheet } from '@/features/worker/FiltersSheet';
+import { ReportDialog } from '@/features/chat/ReportDialog';
 import { JobDetailSheet } from '@/features/worker/JobDetailSheet';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDirection } from '@/features/worker/SwipeDeck';
 import { useUserId } from '@/providers/AuthProvider';
@@ -22,6 +23,7 @@ export default function Discover() {
   const [filters, setFilters] = useState<FeedFilters>(NO_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [detail, setDetail] = useState<RankedFeedJob | null>(null);
+  const [reporting, setReporting] = useState<RankedFeedJob | null>(null);
   // Jobs swiped this session, hidden locally while the server catches up.
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [last, setLast] = useState<{ item: RankedFeedJob; direction: SwipeDirection } | null>(null);
@@ -161,9 +163,23 @@ export default function Discover() {
       <JobDetailSheet
         item={detail}
         onDismiss={() => setDetail(null)}
+        onReport={(item) => {
+          setDetail(null);
+          setReporting(item);
+        }}
         onDecide={(direction) => {
           setDetail(null);
           deck.current?.swipe(direction);
+        }}
+      />
+      <ReportDialog
+        visible={reporting !== null}
+        subject={reporting ? `“${reporting.job.title}”` : 'job'}
+        jobId={reporting?.job.id}
+        onDismiss={() => setReporting(null)}
+        onDone={() => {
+          setReporting(null);
+          setMessage('Thanks. The Croppr team will review your report.');
         }}
       />
       <Snackbar visible={message !== null} onDismiss={() => setMessage(null)} duration={2500}>

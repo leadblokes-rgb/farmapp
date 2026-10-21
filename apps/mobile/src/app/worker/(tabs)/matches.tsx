@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, Text } from 'react-native-paper';
+import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { LoadError, Loading } from '@/components/Loading';
+import { useConversations } from '@/features/chat/api';
+import { ConversationList } from '@/features/chat/ConversationList';
 import { Screen } from '@/components/Screen';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { useMyApplications, useWithdrawApplication } from '@/features/worker/feedApi';
@@ -13,9 +17,39 @@ const STATUS = {
   completed: { label: 'Completed', color: '#C8E6C9' },
 } as const;
 
+type View_ = 'messages' | 'applications';
+
 export default function Matches() {
   const apps = useMyApplications();
   const withdraw = useWithdrawApplication();
+  const conversations = useConversations();
+  const unread = (conversations.data ?? []).reduce((n, c) => n + c.unread, 0);
+  const [view, setView] = useState<View_>('messages');
+
+  const switcher = (
+    <View style={styles.switcher}>
+      <SingleChoiceChips<View_>
+        value={view}
+        onChange={setView}
+        options={[
+          { key: 'messages', label: unread ? `Messages (${unread} new)` : 'Messages' },
+          { key: 'applications', label: `Applications (${apps.data?.length ?? 0})` },
+        ]}
+      />
+    </View>
+  );
+
+  if (view === 'messages') {
+    return (
+      <Screen edges={[]}>
+        <ConversationList
+          basePath="/worker/chat"
+          header={switcher}
+          emptyText="No messages yet. When a farm messages you or accepts your application, the chat appears here."
+        />
+      </Screen>
+    );
+  }
 
   if (apps.isPending) return <Loading />;
   if (apps.isError) return <LoadError onRetry={() => apps.refetch()} />;
@@ -28,6 +62,7 @@ export default function Matches() {
         contentContainerStyle={styles.list}
         refreshing={apps.isRefetching}
         onRefresh={() => apps.refetch()}
+        ListHeaderComponent={switcher}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text variant="headlineSmall">No applications yet</Text>
@@ -76,6 +111,7 @@ export default function Matches() {
 
 const styles = StyleSheet.create({
   list: { gap: 12, flexGrow: 1 },
+  switcher: { paddingBottom: 8 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8, paddingVertical: 48 },
   center: { textAlign: 'center' },
   card: { gap: 4 },
