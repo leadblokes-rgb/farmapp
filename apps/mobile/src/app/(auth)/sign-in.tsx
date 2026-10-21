@@ -2,15 +2,17 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { HelperText, Text, TextInput } from 'react-native-paper';
-import { isSelfServeRole, isValidEmail, normaliseEmail } from '@farmmatch/shared';
+import { isSelfServeRole, isValidEmail, normaliseEmail } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { supabase } from '@/lib/supabase';
 
 const DEMO_ACCOUNTS = [
-  { label: 'Demo worker', email: 'worker@demo.farmmatch.test' },
-  { label: 'Demo farm', email: 'farm@demo.farmmatch.test' },
-  { label: 'Demo new user (no role)', email: 'newuser@demo.farmmatch.test' },
+  { label: 'Demo worker', email: 'worker@demo.croppr.test' },
+  { label: 'Demo farm (verified)', email: 'farm@demo.croppr.test' },
+  { label: 'Demo farm (pending)', email: 'pending-farm@demo.croppr.test' },
+  { label: 'Demo farm (rejected)', email: 'rejected-farm@demo.croppr.test' },
+  { label: 'Demo new user (no role)', email: 'newuser@demo.croppr.test' },
 ];
 
 export default function SignIn() {
@@ -43,7 +45,10 @@ export default function SignIn() {
 
   async function demoSignIn(demoEmail: string) {
     setError(null);
-    const { error: err } = await supabase.auth.signInWithPassword({ email: demoEmail, password: 'farmmatch-demo' });
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: demoEmail,
+      password: 'croppr-demo',
+    });
     if (err) setError(err.message);
   }
 

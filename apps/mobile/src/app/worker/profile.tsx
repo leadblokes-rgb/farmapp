@@ -1,1 +1,40 @@
-export { AccountScreen as default } from '@/components/AccountScreen';
+import { useState } from 'react';
+import { Snackbar } from 'react-native-paper';
+import { LoadError, Loading } from '@/components/Loading';
+import { Screen } from '@/components/Screen';
+import { DangerZone } from '@/features/common/DangerZone';
+import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
+import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
+import { useSignedUrl } from '@/lib/storage';
+import { useUserId } from '@/providers/AuthProvider';
+
+export default function WorkerProfile() {
+  const userId = useUserId();
+  const profile = useMyWorkerProfile(userId);
+  const photoUrl = useSignedUrl('avatars', profile.data?.photoPath);
+  const save = useSaveWorkerProfile(userId);
+  const [saved, setSaved] = useState(false);
+
+  if (profile.isPending) return <Loading />;
+  if (profile.isError || !profile.data) return <LoadError onRetry={() => profile.refetch()} />;
+
+  return (
+    <>
+      <Screen scroll edges={[]}>
+        <WorkerProfileForm
+          initial={profile.data.values}
+          photoUrl={photoUrl.data}
+          submitLabel="Save changes"
+          onSubmit={async (values, photo) => {
+            await save.mutateAsync({ values, photo });
+            setSaved(true);
+          }}
+        />
+        <DangerZone />
+      </Screen>
+      <Snackbar visible={saved} onDismiss={() => setSaved(false)} duration={3000}>
+        Profile saved
+      </Snackbar>
+    </>
+  );
+}

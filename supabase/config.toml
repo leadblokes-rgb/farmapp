@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "farmmatch"
+project_id = "croppr"
 
 [api]
 enabled = true
@@ -247,11 +247,11 @@ otp_expiry = 3600
 # Sign-in is by 6-digit email code. New users get the "confirmation" email, returning users
 # get "magic_link"; both templates show the code ({{ .Token }}) instead of a link.
 [auth.email.template.confirmation]
-subject = "Your FarmMatch code"
+subject = "Your Croppr code"
 content_path = "./supabase/templates/otp.html"
 
 [auth.email.template.magic_link]
-subject = "Your FarmMatch code"
+subject = "Your Croppr code"
 content_path = "./supabase/templates/otp.html"
 
 # Uncomment to customize email template

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import type { SelfServeRole } from '@farmmatch/shared';
+import type { SelfServeRole } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 
@@ -11,7 +11,9 @@ export default function Welcome() {
   return (
     <Screen>
       <View style={styles.hero}>
-        <Text variant="displaySmall" style={styles.title}>FarmMatch</Text>
+        <Text variant="displaySmall" style={styles.title}>
+          Croppr
+        </Text>
         <Text variant="titleMedium" style={styles.center}>
           Farm work across Australia, matched to your dates and your visa days.
         </Text>

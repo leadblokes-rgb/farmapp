@@ -9,8 +9,8 @@ export default function Suspended() {
     <Screen>
       <Text variant="headlineMedium">Account suspended</Text>
       <Text variant="bodyLarge">
-        Your account has been suspended by the FarmMatch team. If you think this is a mistake, contact
-        support@farmmatch.example.
+        Your account has been suspended by the Croppr team. If you think this is a mistake, contact
+        support@croppr.example.
       </Text>
       <BigButton mode="outlined" onPress={signOut}>
         Sign out

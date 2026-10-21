@@ -6,7 +6,13 @@ export const MIN_TAP = 56;
 const fonts = configureFonts({
   config: {
     bodyLarge: { fontSize: 18, lineHeight: 26, letterSpacing: 0.15, fontWeight: '400', fontFamily: 'System' },
-    bodyMedium: { fontSize: 16, lineHeight: 24, letterSpacing: 0.25, fontWeight: '400', fontFamily: 'System' },
+    bodyMedium: {
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0.25,
+      fontWeight: '400',
+      fontFamily: 'System',
+    },
     labelLarge: { fontSize: 18, lineHeight: 24, letterSpacing: 0.1, fontWeight: '600', fontFamily: 'System' },
   },
 });

@@ -1,6 +1,6 @@
-# FarmMatch
+# Croppr
 
-FarmMatch is a mobile app that matches Australian farms with agricultural workers, especially Working Holiday Makers (subclass 417/462) who need regional "specified work" days.
+Croppr is a mobile app that matches Australian farms with agricultural workers, especially Working Holiday Makers (subclass 417/462) who need regional "specified work" days.
 
 - **Workers** swipe through jobs, chat with farms, and track their visa days.
 - **Farms** post jobs, then accept or decline applicants from a ranked shortlist.
@@ -46,14 +46,19 @@ Press `i` or `a` in the Expo terminal to open a simulator or emulator, or `w` to
 
 ## Demo accounts (local only)
 
-Seeded by `supabase/seed.sql`. The password for all of them is `farmmatch-demo`. In a development build, the sign-in screen shows one-tap buttons for these accounts.
+Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In a development build, the sign-in screen shows one-tap buttons for these accounts.
 
-| Email | Role |
+| Email | What you'll see |
 |---|---|
-| `worker@demo.farmmatch.test` | Worker |
-| `farm@demo.farmmatch.test` | Farm |
-| `newuser@demo.farmmatch.test` | No role yet, so it shows the "choose your role" screen |
-| `admin@demo.farmmatch.test` | Admin |
+| `worker@demo.croppr.test` | Worker "Sam Taylor" with a complete profile |
+| `worker1@demo.croppr.test` … `worker24@demo.croppr.test` | More workers (mixed visas, cars, groups) across QLD |
+| `farm@demo.croppr.test` | Verified farm: Lockyer Fresh Farms (Gatton) |
+| `bundaberg-farm@` / `stanthorpe-farm@demo.croppr.test` | Verified farms in Bundaberg / Stanthorpe |
+| `labourhire@demo.croppr.test` | Verified labour hire provider (Bowen) |
+| `pending-farm@demo.croppr.test` | Farm waiting for verification (can't post jobs) |
+| `rejected-farm@demo.croppr.test` | Rejected farm: shows the reason and can resubmit |
+| `newuser@demo.croppr.test` | No role yet, so it shows the "choose your role" screen |
+| `admin@demo.croppr.test` | Admin |
 
 You can also sign up with any email address. The 6-digit code arrives in Mailpit.
 
@@ -68,15 +73,24 @@ npm run db:test         # pgTAP tests for row-level security
 npm run db:types        # regenerate packages/shared/src/database.types.ts after changing the schema
 ```
 
+## Admin tasks
+
+Approving farms, suspending users and (from milestone 5) handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).
+
 ## Security model (summary)
 
 - Every table has row-level security (RLS). Users can only read their own rows unless a policy explicitly allows more.
 - `profiles.role` is chosen once (worker or farm). Nobody can make themselves an admin, through sign-up data, direct updates, or `set_my_role()`; admin is granted only from the dashboard. Suspended users lose access everywhere through the `is_active()` helper.
 - The auth session is stored in the iOS Keychain or Android Keystore (`expo-secure-store`), never in plain AsyncStorage.
-- No passport numbers are collected.
+- Visa type, visa expiry and nationality live in `worker_private`, which only the worker can read. Farms will only ever get a yes/no answer to "does the visa cover the job dates?".
+- Farms start as `pending`. Only admin functions (dashboard only) can verify them. Changing legal details sends a verified farm back for review.
+- Worker photos are in a private storage bucket, served through short-lived signed URLs.
+- No passport numbers, dates of birth or street addresses are collected. "Use my location" keeps only the postcode.
+- Users can delete their account in the app (Profile → Delete my account).
 
 ## Going to production (later)
 
 - Create a Supabase project and run `npx supabase link`, then `npx supabase db push`.
 - In the dashboard, under **Auth → Email Templates**, make the *Confirm signup* and *Magic Link* templates show `{{ .Token }}` (see `supabase/templates/otp.html`). Otherwise users get a link instead of a code.
 - Configure a real SMTP provider. Supabase's built-in email sender is heavily rate-limited.
+- The `postcodes` table only has a Queensland subset. Load the full Australian postcode list before launch, otherwise distance ranking won't work outside QLD.

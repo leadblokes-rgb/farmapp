@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { HelperText, Text, TextInput } from 'react-native-paper';
-import { OTP_LENGTH, isValidOtp } from '@farmmatch/shared';
+import { OTP_LENGTH, isValidOtp } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { supabase } from '@/lib/supabase';
@@ -44,7 +44,9 @@ export default function Verify() {
   return (
     <Screen scroll edges={['bottom']}>
       <Text variant="headlineMedium">Check your email</Text>
-      <Text variant="bodyLarge">We sent a {OTP_LENGTH}-digit code to {email}.</Text>
+      <Text variant="bodyLarge">
+        We sent a {OTP_LENGTH}-digit code to {email}.
+      </Text>
       <TextInput
         mode="outlined"
         label="Code"

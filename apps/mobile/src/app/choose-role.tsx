@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { HelperText, Text } from 'react-native-paper';
-import type { SelfServeRole } from '@farmmatch/shared';
+import type { SelfServeRole } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { supabase } from '@/lib/supabase';
@@ -26,12 +26,23 @@ export default function ChooseRole() {
 
   return (
     <Screen>
-      <Text variant="headlineMedium">How will you use FarmMatch?</Text>
+      <Text variant="headlineMedium">How will you use Croppr?</Text>
       <Text variant="bodyLarge">You can&apos;t change this later, so pick the one that fits.</Text>
-      <BigButton icon="account-search" onPress={() => choose('worker')} loading={saving === 'worker'} disabled={saving !== null}>
+      <BigButton
+        icon="account-search"
+        onPress={() => choose('worker')}
+        loading={saving === 'worker'}
+        disabled={saving !== null}
+      >
         I&apos;m looking for farm work
       </BigButton>
-      <BigButton icon="barn" mode="outlined" onPress={() => choose('farm')} loading={saving === 'farm'} disabled={saving !== null}>
+      <BigButton
+        icon="barn"
+        mode="outlined"
+        onPress={() => choose('farm')}
+        loading={saving === 'farm'}
+        disabled={saving !== null}
+      >
         I&apos;m a farm or employer
       </BigButton>
       <HelperText type="error" visible={error !== null}>

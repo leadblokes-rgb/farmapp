@@ -13,7 +13,13 @@ export function Screen({ children, scroll = false, edges = ['top', 'bottom'] }: 
   const body = <View style={styles.body}>{children}</View>;
   return (
     <SafeAreaView style={styles.safe} edges={edges}>
-      {scroll ? <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
+      {scroll ? (
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          {body}
+        </ScrollView>
+      ) : (
+        body
+      )}
     </SafeAreaView>
   );
 }

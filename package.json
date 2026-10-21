@@ -1,5 +1,5 @@
 {
-  "name": "farmmatch",
+  "name": "croppr",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -14,7 +14,9 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
-    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts && prettier --write packages/shared/src/database.types.ts"
+    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts && prettier --write packages/shared/src/database.types.ts",
+    "format": "prettier --write \"apps/mobile/src/**/*.{ts,tsx}\" \"packages/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"apps/mobile/src/**/*.{ts,tsx}\" \"packages/*/src/**/*.ts\""
   },
   "devDependencies": {
     "supabase": "^2.121.0",

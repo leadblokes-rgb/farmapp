@@ -34,7 +34,7 @@ export default function RootLayout() {
  * to the right place automatically whenever their session or role changes.
  */
 function RootNavigator() {
-  const { loading, session, profile } = useAuth();
+  const { loading, session, profile, onboarded } = useAuth();
 
   if (loading) {
     return (
@@ -57,9 +57,13 @@ function RootNavigator() {
       : role == null
         ? '/choose-role'
         : role === 'worker'
-          ? '/worker'
+          ? onboarded
+            ? '/worker'
+            : '/worker-onboarding'
           : role === 'farm'
-            ? '/farm'
+            ? onboarded
+              ? '/farm'
+              : '/farm-onboarding'
             : '/admin';
 
   return (
@@ -73,10 +77,16 @@ function RootNavigator() {
       <Stack.Protected guard={signedIn && active && role == null} redirectTo={home}>
         <Stack.Screen name="choose-role" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'worker'} redirectTo={home}>
+      <Stack.Protected guard={role === 'worker' && !onboarded} redirectTo={home}>
+        <Stack.Screen name="worker-onboarding" />
+      </Stack.Protected>
+      <Stack.Protected guard={role === 'worker' && onboarded} redirectTo={home}>
         <Stack.Screen name="worker" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'farm'} redirectTo={home}>
+      <Stack.Protected guard={role === 'farm' && !onboarded} redirectTo={home}>
+        <Stack.Screen name="farm-onboarding" />
+      </Stack.Protected>
+      <Stack.Protected guard={role === 'farm' && onboarded} redirectTo={home}>
         <Stack.Screen name="farm" />
       </Stack.Protected>
       <Stack.Protected guard={role === 'admin'} redirectTo={home}>

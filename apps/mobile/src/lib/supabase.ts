@@ -1,14 +1,16 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
-import type { Database } from '@farmmatch/shared';
+import type { Database } from '@croppr/shared';
 import { secureStorage } from './secureStorage';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const key = process.env.EXPO_PUBLIC_SUPABASE_KEY;
 
 if (!url || !key) {
-  throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_KEY. Copy apps/mobile/.env.example to .env.local.');
+  throw new Error(
+    'Missing EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_KEY. Copy apps/mobile/.env.example to .env.local.',
+  );
 }
 
 export const supabase = createClient<Database>(url, key, {

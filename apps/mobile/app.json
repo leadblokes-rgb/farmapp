@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "FarmMatch",
-    "slug": "farmmatch",
+    "name": "Croppr",
+    "slug": "croppr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "au.farmmatch.app"
+      "bundleIdentifier": "au.croppr.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "au.farmmatch.app"
+      "package": "au.croppr.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -26,8 +26,21 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Croppr uses your photos so you can add a profile picture.",
+          "cameraPermission": "Croppr uses your camera so you can take a profile picture."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Croppr uses your location once to fill in your current postcode. It is not stored or tracked."
+        }
+      ]
     ],
-    "scheme": "farmmatch"
+    "scheme": "croppr"
   }
 }
