@@ -8,4 +8,6 @@ export * from './config/skills';
 export * from './config/jobRoles';
 export * from './config/payRules';
 export * from './money';
+export * from './config/visaRules';
+export * from './dayCounter';
 export type { Database, Json } from './database.types';

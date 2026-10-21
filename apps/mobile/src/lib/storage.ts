@@ -27,7 +27,39 @@ export async function uploadUserImage(opts: {
 }
 
 /** Deletes every file in the user's folder of a bucket (used when replacing a photo or deleting the account). */
-export async function removeUserFiles(bucket: 'avatars' | 'farm-logos', userId: string, keep?: string) {
+/** Uploads a picked file by its local URI (file:// on native, blob:/data: on web). */
+export async function uploadUserFileFromUri(opts: {
+  bucket: 'payslips';
+  userId: string;
+  uri: string;
+  name: string;
+  mimeType: string;
+}): Promise<string> {
+  const safeName = opts.name.replace(/[^\w.-]+/g, '_').slice(-60);
+  const path = `${opts.userId}/${Date.now()}-${safeName}`;
+  const bytes = await (await fetch(opts.uri)).arrayBuffer();
+  const { error } = await supabase.storage
+    .from(opts.bucket)
+    .upload(path, bytes, { contentType: opts.mimeType });
+  if (error) throw error;
+  return path;
+}
+
+export async function signedUrl(
+  bucket: 'avatars' | 'payslips',
+  path: string,
+  seconds = 600,
+): Promise<string> {
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, seconds);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function removeUserFiles(
+  bucket: 'avatars' | 'farm-logos' | 'payslips',
+  userId: string,
+  keep?: string,
+) {
   const { data } = await supabase.storage.from(bucket).list(userId);
   const paths = (data ?? []).map((f) => `${userId}/${f.name}`).filter((p) => p !== keep);
   if (paths.length) await supabase.storage.from(bucket).remove(paths);

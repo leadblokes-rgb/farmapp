@@ -180,6 +180,79 @@ export type Database = {
           },
         ];
       };
+      employers_worked: {
+        Row: {
+          abn: string | null;
+          counts_as_specified: boolean;
+          created_at: string;
+          farm_id: string | null;
+          id: string;
+          job_id: string | null;
+          name: string;
+          postcode: string | null;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          abn?: string | null;
+          counts_as_specified?: boolean;
+          created_at?: string;
+          farm_id?: string | null;
+          id?: string;
+          job_id?: string | null;
+          name: string;
+          postcode?: string | null;
+          worker_id: string;
+        };
+        Update: {
+          abn?: string | null;
+          counts_as_specified?: boolean;
+          created_at?: string;
+          farm_id?: string | null;
+          id?: string;
+          job_id?: string | null;
+          name?: string;
+          postcode?: string | null;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'employers_worked_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_pending_farms';
+            referencedColumns: ['farm_id'];
+          },
+          {
+            foreignKeyName: 'employers_worked_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'employers_worked_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms_public';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'employers_worked_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'employers_worked_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       farms: {
         Row: {
           abn: string;
@@ -440,6 +513,58 @@ export type Database = {
         };
         Relationships: [];
       };
+      payslips: {
+        Row: {
+          created_at: string;
+          days_worked: number;
+          employer_id: string;
+          file_path: string | null;
+          hours_total: number;
+          id: string;
+          period_end: string;
+          period_start: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          days_worked: number;
+          employer_id: string;
+          file_path?: string | null;
+          hours_total: number;
+          id?: string;
+          period_end: string;
+          period_start: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          days_worked?: number;
+          employer_id?: string;
+          file_path?: string | null;
+          hours_total?: number;
+          id?: string;
+          period_end?: string;
+          period_start?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'payslips_employer_id_fkey';
+            columns: ['employer_id'];
+            isOneToOne: false;
+            referencedRelation: 'employers_worked';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payslips_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       postcodes: {
         Row: {
           lat: number;
@@ -628,6 +753,52 @@ export type Database = {
           },
         ];
       };
+      shift_logs: {
+        Row: {
+          created_at: string;
+          employer_id: string;
+          hours: number;
+          id: string;
+          notes: string;
+          work_date: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          employer_id: string;
+          hours: number;
+          id?: string;
+          notes?: string;
+          work_date: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          employer_id?: string;
+          hours?: number;
+          id?: string;
+          notes?: string;
+          work_date?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'shift_logs_employer_id_fkey';
+            columns: ['employer_id'];
+            isOneToOne: false;
+            referencedRelation: 'employers_worked';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'shift_logs_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       swipes: {
         Row: {
           created_at: string;
@@ -728,6 +899,7 @@ export type Database = {
       worker_private: {
         Row: {
           nationality: string;
+          tracker_goal: string;
           updated_at: string;
           user_id: string;
           visa_expiry: string | null;
@@ -736,6 +908,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           nationality: string;
+          tracker_goal?: string;
           updated_at?: string;
           user_id: string;
           visa_expiry?: string | null;
@@ -743,6 +916,7 @@ export type Database = {
         };
         Update: {
           nationality?: string;
+          tracker_goal?: string;
           updated_at?: string;
           user_id?: string;
           visa_expiry?: string | null;
@@ -1017,6 +1191,17 @@ export type Database = {
         Returns: number;
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      employer_suggestions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          business_name: string;
+          farm_id: string;
+          job_id: string;
+          job_title: string;
+          likely_specified_work: boolean;
+          postcode: string;
+        }[];
+      };
       has_applied: { Args: { p_job_id: string }; Returns: boolean };
       is_active: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
@@ -1129,6 +1314,7 @@ export type Database = {
       };
       my_role: { Args: Record<PropertyKey, never>; Returns: Database['public']['Enums']['user_role'] };
       notify: { Args: { p_event: string; p_payload: Json }; Returns: undefined };
+      owns_employer: { Args: { p_employer_id: string }; Returns: boolean };
       owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
       save_match_scores: { Args: { p_ranker_version: string; p_scores: Json }; Returns: number };

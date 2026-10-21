@@ -72,6 +72,7 @@ npm run db:reset        # re-apply all migrations + seed data from scratch
 npm run db:test         # pgTAP tests for row-level security
 npm run db:types        # regenerate packages/shared/src/database.types.ts after changing the schema
 npm run build:functions # rebuild the matching bundle used by Edge Functions
+npm run test:e2e        # browser end-to-end suites (see e2e/README.md)
 ```
 
 ## Rules that change: keep these up to date
@@ -79,7 +80,7 @@ npm run build:functions # rebuild the matching bundle used by Edge Functions
 | File | What | Review |
 |---|---|---|
 | `packages/shared/src/config/payRules.ts` | Horticulture Award casual minimum, used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
-| `packages/shared/src/config/visaRules.ts` (milestone 6) | Specified-work day counting rules | Whenever Home Affairs changes the rules |
+| `packages/shared/src/config/visaRules.ts` | Specified-work day counting: 88/179 targets, full-time week = 7 days, full-day hours, short-shift handling, disclaimer text | Whenever Home Affairs changes its guidance |
 | `packages/matching/src/weights.ts` | How much each factor counts in match scores | As you learn what farms value |
 
 ## Matching
@@ -108,7 +109,8 @@ Approving farms, suspending users and handling reports are done in the Supabase 
 - Farms start as `pending`. Only admin functions (dashboard only) can verify them. Changing legal details sends a verified farm back for review.
 - Worker photos are in a private storage bucket, served through short-lived signed URLs.
 - No passport numbers, dates of birth or street addresses are collected. "Use my location" keeps only the postcode.
-- Users can delete their account in the app (Profile → Delete my account).
+- The day tracker (employers, shifts, payslips) is visible only to the worker. Farms and the app's admin role can't read it. Payslip files are in a private bucket.
+- Users can delete their account in the app (Profile → Delete my account), which also removes their photos and payslip files.
 
 ## Push notifications
 

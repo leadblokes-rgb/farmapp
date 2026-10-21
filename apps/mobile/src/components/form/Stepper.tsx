@@ -9,10 +9,12 @@ interface Props {
   min: number;
   max: number;
   suffix?: string;
+  /** Increment per tap (e.g. 0.5 for hours). */
+  step?: number;
 }
 
 /** Big −/+ buttons instead of typing numbers: easier with gloves or wet hands. */
-export function Stepper({ label, value, onChange, min, max, suffix }: Props) {
+export function Stepper({ label, value, onChange, min, max, suffix, step = 1 }: Props) {
   return (
     <View style={styles.row}>
       <Text variant="bodyLarge" style={styles.label}>
@@ -24,7 +26,7 @@ export function Stepper({ label, value, onChange, min, max, suffix }: Props) {
         size={28}
         style={styles.button}
         disabled={value <= min}
-        onPress={() => onChange(Math.max(min, value - 1))}
+        onPress={() => onChange(Math.max(min, value - step))}
         accessibilityLabel={`Decrease ${label}`}
       />
       <Text variant="titleLarge" style={styles.value}>
@@ -37,7 +39,7 @@ export function Stepper({ label, value, onChange, min, max, suffix }: Props) {
         size={28}
         style={styles.button}
         disabled={value >= max}
-        onPress={() => onChange(Math.min(max, value + 1))}
+        onPress={() => onChange(Math.min(max, value + step))}
         accessibilityLabel={`Increase ${label}`}
       />
     </View>
