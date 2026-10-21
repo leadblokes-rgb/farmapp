@@ -157,3 +157,79 @@ begin
   end loop;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Jobs (milestone 3). Dates are relative to today. Rates sit around the award minimum
+-- (see packages/shared/src/config/payRules.ts); one is deliberately below it.
+-- ---------------------------------------------------------------------------
+
+insert into public.jobs (id, farm_id, title, role_type, description, postcode, start_date, end_date, workers_needed,
+                         pay_type, pay_rate_cents, piece_rate_unit, min_hourly_guarantee_cents, hours_per_week,
+                         accommodation_provided, accommodation_cost_week_cents, transport_provided, car_required,
+                         likely_specified_work) values
+  -- Lockyer Fresh Farms (Gatton) - the demo farm
+  ('a0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Lettuce harvest crew', 'picking',
+   'Early starts (5:30am) cutting and packing iceberg and cos lettuce in the field. Gloves and knives supplied.',
+   '4343', current_date + 7, current_date + 97, 30, 'hourly', 3250, null, null, 38, false, null, false, true, true),
+  ('a0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001', 'Broccoli packing shed', 'packing',
+   'Grading and packing broccoli in a cool shed. Standing work, rotating stations.',
+   '4343', current_date + 3, current_date + 60, 12, 'hourly', 3300, null, null, 40, false, null, true, false, true),
+  ('a0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000001', 'Tractor driver (onion season)', 'machinery',
+   'Experienced tractor driver for bed forming and harvest. Must have driven tractors before.',
+   '4342', current_date + 14, current_date + 120, 2, 'hourly', 3800, null, null, 45, false, null, false, true, true),
+  -- Bundy Sweet Potato Co (Bundaberg)
+  ('a0000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000002', 'Sweet potato pickers', 'picking',
+   'Picking sweet potatoes behind the digger. Paid per bin with a guaranteed hourly minimum.',
+   '4670', current_date + 5, current_date + 75, 40, 'piece_rate', 4800, 'bin', 3218, 38, true, 16000, true, false, true),
+  ('a0000000-0000-0000-0000-000000000005', 'f0000000-0000-0000-0000-000000000002', 'Tomato packers', 'packing',
+   'Packing truss tomatoes. Day shift, air-conditioned shed.',
+   '4670', current_date + 1, current_date + 45, 15, 'hourly', 3218, null, null, 38, true, 16000, true, false, true),
+  ('a0000000-0000-0000-0000-000000000006', 'f0000000-0000-0000-0000-000000000002', 'Planting crew', 'planting',
+   'Planting sweet potato slips. Hot, physical work; hats and water provided.',
+   '4671', current_date + 30, current_date + 60, 10, 'hourly', 3218, null, null, 36, true, 16000, true, false, true),
+  -- Granite Belt Orchards (Stanthorpe)
+  ('a0000000-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000003', 'Apple pickers', 'picking',
+   'Picking apples into bags and bins. Ladder work. Piece rate per bin, minimum hourly guaranteed.',
+   '4380', current_date + 10, current_date + 130, 25, 'piece_rate', 5500, 'bin', 3218, 40, true, 14000, false, false, true),
+  ('a0000000-0000-0000-0000-000000000008', 'f0000000-0000-0000-0000-000000000003', 'Winter pruning', 'pruning',
+   'Pruning apple and pear trees. Training given; previous pruning experience a plus.',
+   '4382', current_date + 60, current_date + 150, 8, 'hourly', 3400, null, null, 38, true, 14000, false, true, true),
+  ('a0000000-0000-0000-0000-000000000009', 'f0000000-0000-0000-0000-000000000003', 'Stone fruit packing', 'packing',
+   'Packing peaches and plums. Short season, long days.',
+   '4380', current_date + 2, current_date + 40, 10, 'hourly', 3218, null, null, 45, true, 14000, false, false, true),
+  -- North Queensland Harvest Crew (labour hire, Bowen)
+  ('a0000000-0000-0000-0000-00000000000a', 'f0000000-0000-0000-0000-000000000004', 'Capsicum pickers (Bowen)', 'picking',
+   'Supplying crews to growers around Bowen. Bus to farm daily from our Bowen accommodation.',
+   '4805', current_date + 4, current_date + 110, 50, 'piece_rate', 280, 'bucket', 3218, 38, true, 18000, true, false, true),
+  ('a0000000-0000-0000-0000-00000000000c', 'f0000000-0000-0000-0000-000000000004', 'Mango pickers (Ayr)', 'picking',
+   'Mango season crew in the Burdekin. Sap protection supplied.',
+   '4807', current_date + 20, current_date + 90, 30, 'hourly', 3300, null, null, 40, true, 18000, true, false, true),
+  ('a0000000-0000-0000-0000-00000000000d', 'f0000000-0000-0000-0000-000000000004', 'Forklift driver - packing shed', 'machinery',
+   'Licensed forklift driver for a busy packing shed. Forklift licence required.',
+   '4805', current_date + 7, current_date + 180, 2, 'hourly', 3600, null, null, 45, false, null, false, true, true),
+  -- Below-award example (shows how a job looks if a farm ignores the warning)
+  ('a0000000-0000-0000-0000-00000000000e', 'f0000000-0000-0000-0000-000000000002', 'Weekend weeding', 'general',
+   'Light weeding work on weekends.',
+   '4670', current_date + 6, current_date + 50, 4, 'hourly', 2900, null, null, 16, false, null, false, true, false),
+  -- Closed job (shouldn't appear in the feed)
+  ('a0000000-0000-0000-0000-00000000000f', 'f0000000-0000-0000-0000-000000000001', 'Pumpkin harvest (filled)', 'picking',
+   'Season filled, thanks!', '4341', current_date + 2, current_date + 30, 10, 'hourly', 3218, null, null, 38,
+   false, null, false, true, true);
+
+update public.jobs set status = 'filled' where id = 'a0000000-0000-0000-0000-00000000000f';
+
+-- Applications (milestone 3) so farms have applicants to review in milestone 4.
+-- Lettuce harvest: 12 applicants. Sweet potato: 6. Apple pickers: the French group of 3.
+insert into public.swipes (worker_id, job_id, direction)
+select w.id, j.job_id, 'like'
+from (values
+  ('a0000000-0000-0000-0000-000000000001'::uuid, array[1, 2, 6, 8, 9, 11, 12, 13, 19, 21, 22, 24]),
+  ('a0000000-0000-0000-0000-000000000004'::uuid, array[2, 10, 15, 17, 18, 16]),
+  ('a0000000-0000-0000-0000-000000000007'::uuid, array[3, 4, 5]),
+  ('a0000000-0000-0000-0000-00000000000a'::uuid, array[6, 12, 13, 23])
+) as j(job_id, workers)
+cross join lateral unnest(j.workers) as n
+cross join lateral (select ('11111111-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid as id) w;
+
+insert into public.applications (job_id, worker_id, created_at)
+select job_id, worker_id, now() - (random() * interval '3 days') from public.swipes where direction = 'like';

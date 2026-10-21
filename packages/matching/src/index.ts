@@ -1,18 +1,11 @@
 // Matching module: the ONLY place ranking logic lives.
-// Milestone 4 adds `ruleBasedRanker`; an AI ranker can later implement the same interface.
+// To replace it (e.g. with an AI model), implement `Ranker` and change `ranker` below.
+import { ruleBasedRanker } from './ruleBasedRanker';
+import type { Ranker } from './types';
 
-export interface ScoreBreakdown {
-  [factor: string]: { score: number; weight: number; note?: string };
-}
+export const ranker: Ranker = ruleBasedRanker;
 
-export interface Ranked<T> {
-  item: T;
-  score: number; // 0–100
-  breakdown: ScoreBreakdown;
-}
-
-export interface Ranker<Job, Applicant> {
-  version: string;
-  rankApplicants(job: Job, applicants: Applicant[]): Ranked<Applicant>[];
-  rankJobsForWorker(worker: Applicant, jobs: Job[]): Ranked<Job>[];
-}
+export * from './types';
+export { distanceKm, overlapDays } from './factors';
+export { ruleBasedRanker, scoreApplicant, scoreJobForWorker } from './ruleBasedRanker';
+export * as weights from './weights';

@@ -54,6 +54,58 @@ export type Database = {
         };
         Relationships: [];
       };
+      applications: {
+        Row: {
+          created_at: string;
+          decided_at: string | null;
+          id: string;
+          job_id: string;
+          match_score: number | null;
+          ranker_version: string | null;
+          score_breakdown: Json | null;
+          status: Database['public']['Enums']['application_status'];
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          job_id: string;
+          match_score?: number | null;
+          ranker_version?: string | null;
+          score_breakdown?: Json | null;
+          status?: Database['public']['Enums']['application_status'];
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          job_id?: string;
+          match_score?: number | null;
+          ranker_version?: string | null;
+          score_breakdown?: Json | null;
+          status?: Database['public']['Enums']['application_status'];
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'applications_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'applications_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       farms: {
         Row: {
           abn: string;
@@ -116,6 +168,120 @@ export type Database = {
             columns: ['owner_id'];
             isOneToOne: true;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      jobs: {
+        Row: {
+          accommodation_cost_week_cents: number | null;
+          accommodation_provided: boolean;
+          car_required: boolean;
+          created_at: string;
+          description: string;
+          end_date: string;
+          farm_id: string;
+          hours_per_week: number;
+          id: string;
+          lat: number | null;
+          likely_specified_work: boolean;
+          lng: number | null;
+          min_hourly_guarantee_cents: number | null;
+          pay_rate_cents: number;
+          pay_type: Database['public']['Enums']['pay_type'];
+          piece_rate_unit: string | null;
+          postcode: string;
+          region_id: string | null;
+          role_type: Database['public']['Enums']['job_role_type'];
+          start_date: string;
+          status: Database['public']['Enums']['job_status'];
+          title: string;
+          transport_provided: boolean;
+          updated_at: string;
+          workers_needed: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          accommodation_cost_week_cents?: number | null;
+          accommodation_provided?: boolean;
+          car_required?: boolean;
+          created_at?: string;
+          description?: string;
+          end_date: string;
+          farm_id: string;
+          hours_per_week: number;
+          id?: string;
+          lat?: number | null;
+          likely_specified_work?: boolean;
+          lng?: number | null;
+          min_hourly_guarantee_cents?: number | null;
+          pay_rate_cents: number;
+          pay_type: Database['public']['Enums']['pay_type'];
+          piece_rate_unit?: string | null;
+          postcode: string;
+          region_id?: string | null;
+          role_type: Database['public']['Enums']['job_role_type'];
+          start_date: string;
+          status?: Database['public']['Enums']['job_status'];
+          title: string;
+          transport_provided?: boolean;
+          updated_at?: string;
+          workers_needed: number;
+        };
+        Update: {
+          accommodation_cost_week_cents?: number | null;
+          accommodation_provided?: boolean;
+          car_required?: boolean;
+          created_at?: string;
+          description?: string;
+          end_date?: string;
+          farm_id?: string;
+          hours_per_week?: number;
+          id?: string;
+          lat?: number | null;
+          likely_specified_work?: boolean;
+          lng?: number | null;
+          min_hourly_guarantee_cents?: number | null;
+          pay_rate_cents?: number;
+          pay_type?: Database['public']['Enums']['pay_type'];
+          piece_rate_unit?: string | null;
+          postcode?: string;
+          region_id?: string | null;
+          role_type?: Database['public']['Enums']['job_role_type'];
+          start_date?: string;
+          status?: Database['public']['Enums']['job_status'];
+          title?: string;
+          transport_provided?: boolean;
+          updated_at?: string;
+          workers_needed?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'jobs_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_pending_farms';
+            referencedColumns: ['farm_id'];
+          },
+          {
+            foreignKeyName: 'jobs_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms_public';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_region_id_fkey';
+            columns: ['region_id'];
+            isOneToOne: false;
+            referencedRelation: 'regions';
             referencedColumns: ['id'];
           },
         ];
@@ -205,6 +371,43 @@ export type Database = {
           state?: string;
         };
         Relationships: [];
+      };
+      swipes: {
+        Row: {
+          created_at: string;
+          direction: Database['public']['Enums']['swipe_direction'];
+          job_id: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          direction: Database['public']['Enums']['swipe_direction'];
+          job_id: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          direction?: Database['public']['Enums']['swipe_direction'];
+          job_id?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'swipes_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'swipes_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       worker_availability: {
         Row: {
@@ -459,10 +662,66 @@ export type Database = {
       admin_suspend_user: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
       admin_unsuspend_user: { Args: { p_note?: string; p_user_id: string }; Returns: undefined };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      has_applied: { Args: { p_job_id: string }; Returns: boolean };
       is_active: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_valid_abn: { Args: { abn: string }; Returns: boolean };
+      is_verified_farm: { Args: { p_farm_id: string }; Returns: boolean };
+      job_feed: {
+        Args: {
+          p_accommodation_only?: boolean;
+          p_from?: string;
+          p_limit?: number;
+          p_min_hourly_cents?: number;
+          p_region_ids?: string[];
+          p_to?: string;
+        };
+        Returns: {
+          accommodation_cost_week_cents: number;
+          accommodation_provided: boolean;
+          car_required: boolean;
+          description: string;
+          end_date: string;
+          farm_id: string;
+          farm_is_labour_hire: boolean;
+          farm_name: string;
+          hours_per_week: number;
+          id: string;
+          lat: number;
+          likely_specified_work: boolean;
+          lng: number;
+          locality: string;
+          min_hourly_guarantee_cents: number;
+          pay_rate_cents: number;
+          pay_type: Database['public']['Enums']['pay_type'];
+          piece_rate_unit: string;
+          postcode: string;
+          region_name: string;
+          role_type: Database['public']['Enums']['job_role_type'];
+          start_date: string;
+          title: string;
+          transport_provided: boolean;
+          workers_needed: number;
+        }[];
+      };
+      my_applications: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          application_id: string;
+          applied_at: string;
+          end_date: string;
+          farm_name: string;
+          job_id: string;
+          job_status: Database['public']['Enums']['job_status'];
+          locality: string;
+          start_date: string;
+          status: Database['public']['Enums']['application_status'];
+          title: string;
+        }[];
+      };
       my_role: { Args: Record<PropertyKey, never>; Returns: Database['public']['Enums']['user_role'] };
+      owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
+      owns_job: { Args: { p_job_id: string }; Returns: boolean };
       save_worker_profile: { Args: { p: Json }; Returns: undefined };
       set_my_role: {
         Args: { new_role: Database['public']['Enums']['user_role'] };
@@ -480,9 +739,20 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      swipe_job: {
+        Args: { p_direction: Database['public']['Enums']['swipe_direction']; p_job_id: string };
+        Returns: string;
+      };
+      undo_swipe: { Args: { p_job_id: string }; Returns: undefined };
+      withdraw_application: { Args: { p_application_id: string }; Returns: undefined };
     };
     Enums: {
       account_status: 'active' | 'suspended';
+      application_status: 'applied' | 'accepted' | 'declined' | 'withdrawn' | 'completed';
+      job_role_type: 'picking' | 'packing' | 'pruning' | 'planting' | 'machinery' | 'livestock' | 'general';
+      job_status: 'open' | 'filled' | 'closed';
+      pay_type: 'hourly' | 'piece_rate';
+      swipe_direction: 'like' | 'pass';
       travel_mode: 'solo' | 'group';
       user_role: 'worker' | 'farm' | 'admin';
       verification_status: 'pending' | 'verified' | 'rejected';
@@ -606,6 +876,11 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ['active', 'suspended'],
+      application_status: ['applied', 'accepted', 'declined', 'withdrawn', 'completed'],
+      job_role_type: ['picking', 'packing', 'pruning', 'planting', 'machinery', 'livestock', 'general'],
+      job_status: ['open', 'filled', 'closed'],
+      pay_type: ['hourly', 'piece_rate'],
+      swipe_direction: ['like', 'pass'],
       travel_mode: ['solo', 'group'],
       user_role: ['worker', 'farm', 'admin'],
       verification_status: ['pending', 'verified', 'rejected'],

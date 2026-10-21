@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { isValidAbn, normaliseAbn } from './abn';
 import { COUNTRIES } from './config/countries';
+import { JOB_ROLE_KEYS } from './config/jobRoles';
 import { SKILL_KEYS } from './config/skills';
 import { TRAVEL_MODES, VISA_TYPES, VISA_TYPES_WITH_EXPIRY } from './enums';
 
@@ -80,3 +81,55 @@ export const farmSchema = z
 
 export type FarmInput = z.input<typeof farmSchema>;
 export type FarmOutput = z.output<typeof farmSchema>;
+
+// ---------------------------------------------------------------------------
+// Jobs
+// ---------------------------------------------------------------------------
+
+export const jobSchema = z
+  .object({
+    title: z.string().trim().min(3, 'Give the job a short title').max(80),
+    roleType: z.enum(JOB_ROLE_KEYS, { message: 'Choose a role type' }),
+    description: z.string().trim().max(2000, 'Keep it under 2000 characters'),
+    postcode: postcodeSchema,
+    startDate: isoDate,
+    endDate: isoDate,
+    workersNeeded: z.number().int().min(1).max(500),
+    payType: z.enum(['hourly', 'piece_rate']),
+    payRateCents: z.number({ message: 'Enter the pay rate' }).int().positive('Enter the pay rate'),
+    pieceRateUnit: z.string().trim().max(40),
+    minHourlyGuaranteeCents: z.number().int().positive().nullable(),
+    hoursPerWeek: z.number().int().min(1).max(80),
+    accommodationProvided: z.boolean(),
+    accommodationCostWeekCents: z.number().int().min(0).nullable(),
+    transportProvided: z.boolean(),
+    carRequired: z.boolean(),
+    likelySpecifiedWork: z.boolean(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.endDate < v.startDate) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endDate'],
+        message: 'End date must be on or after the start date',
+      });
+    }
+    if (v.payType === 'piece_rate') {
+      if (!v.minHourlyGuaranteeCents) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['minHourlyGuaranteeCents'],
+          message: 'Piece-rate jobs must state the minimum hourly amount you guarantee',
+        });
+      }
+      if (v.pieceRateUnit.length < 2) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['pieceRateUnit'],
+          message: 'What is the rate per? e.g. bin, tray, kg',
+        });
+      }
+    }
+  });
+
+export type JobInput = z.infer<typeof jobSchema>;

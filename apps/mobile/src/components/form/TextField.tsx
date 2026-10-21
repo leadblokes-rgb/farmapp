@@ -21,6 +21,7 @@ export function TextField<T extends FieldValues>({ control, name, hint, ...input
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             error={!!fieldState.error}
+            accessibilityLabel={typeof input.label === 'string' ? input.label : undefined}
             style={styles.input}
             {...input}
           />

@@ -44,6 +44,7 @@ export function DateField({ label, value, onChange, error }: Props) {
         keyboardType="number-pad"
         maxLength={10}
         error={!!error || incomplete}
+        accessibilityLabel={label}
         style={styles.input}
       />
       <FieldMessage error={error ?? (incomplete ? 'Use DD/MM/YYYY' : undefined)} />

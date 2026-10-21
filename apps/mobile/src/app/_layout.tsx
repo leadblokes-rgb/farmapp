@@ -16,14 +16,16 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
+        {/* Data and auth providers sit above PaperProvider: Paper's <Portal> (modals, dialogs)
+            renders at the PaperProvider level, so anything below it is out of reach for portals. */}
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <PaperProvider theme={theme}>
               <StatusBar style="dark" />
               <RootNavigator />
-            </AuthProvider>
-          </QueryClientProvider>
-        </PaperProvider>
+            </PaperProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

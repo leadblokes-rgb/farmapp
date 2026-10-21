@@ -49,6 +49,7 @@ export function PostcodeField({ label, value, onChange, error, hint, allowLocati
         keyboardType="number-pad"
         maxLength={4}
         error={!!error}
+        accessibilityLabel={label}
         style={styles.input}
       />
       <FieldMessage error={error ?? locError ?? undefined} hint={hint} />

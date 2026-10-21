@@ -73,6 +73,25 @@ npm run db:test         # pgTAP tests for row-level security
 npm run db:types        # regenerate packages/shared/src/database.types.ts after changing the schema
 ```
 
+## Rules that change: keep these up to date
+
+| File | What | Review |
+|---|---|---|
+| `packages/shared/src/config/payRules.ts` | Horticulture Award casual minimum, used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
+| `packages/shared/src/config/visaRules.ts` (milestone 6) | Specified-work day counting rules | Whenever Home Affairs changes the rules |
+| `packages/matching/src/weights.ts` | How much each factor counts in match scores | As you learn what farms value |
+
+## Matching
+
+All ranking logic lives in `packages/matching`. The `Ranker` interface has two methods:
+
+- `rankJobsForWorker` orders the swipe feed.
+- `rankApplicants` orders a farm's shortlist (milestone 4).
+
+Each score comes with a per-factor breakdown that the app shows ("Available for the whole job", "9 km away"…). To try a smarter model later, implement `Ranker` and swap it in `packages/matching/src/index.ts`.
+
+The database only *filters* candidates (`job_feed()`). It never ranks them.
+
 ## Admin tasks
 
 Approving farms, suspending users and (from milestone 5) handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).

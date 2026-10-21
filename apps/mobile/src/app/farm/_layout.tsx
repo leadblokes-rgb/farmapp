@@ -1,15 +1,17 @@
-import { Tabs } from 'expo-router';
-import { tabIcon as icon, tabScreenOptions } from '@/components/tabOptions';
+import { Stack } from 'expo-router';
 import { RequireSession } from '@/providers/AuthProvider';
 
-export default function FarmTabs() {
+export default function Layout() {
   return (
     <RequireSession>
-      <Tabs screenOptions={tabScreenOptions}>
-        <Tabs.Screen name="index" options={{ title: 'Jobs', tabBarIcon: icon('briefcase') }} />
-        <Tabs.Screen name="messages" options={{ title: 'Messages', tabBarIcon: icon('chat') }} />
-        <Tabs.Screen name="profile" options={{ title: 'Farm', tabBarIcon: icon('barn') }} />
-      </Tabs>
+      <Stack
+        screenOptions={{
+          headerBackButtonDisplayMode: 'minimal',
+          headerTitleStyle: { fontSize: 20, fontWeight: '700' },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
     </RequireSession>
   );
 }
