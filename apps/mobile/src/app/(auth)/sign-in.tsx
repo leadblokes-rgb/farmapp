@@ -5,6 +5,7 @@ import { HelperText, Text, TextInput } from 'react-native-paper';
 import { isSelfServeRole, isValidEmail, normaliseEmail } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
+import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 
 const DEMO_ACCOUNTS = [
@@ -37,7 +38,7 @@ export default function SignIn() {
     });
     setSending(false);
     if (err) {
-      setError(err.message);
+      setError(friendlyError(err));
       return;
     }
     router.push({ pathname: '/verify', params: { email: address } });
@@ -49,7 +50,7 @@ export default function SignIn() {
       email: demoEmail,
       password: 'croppr-demo',
     });
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
   }
 
   return (

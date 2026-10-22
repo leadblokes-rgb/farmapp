@@ -17,6 +17,7 @@ import { ReportDialog } from '@/features/chat/ReportDialog';
 import { JobDetailSheet } from '@/features/worker/JobDetailSheet';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDirection } from '@/features/worker/SwipeDeck';
 import { useUserId } from '@/providers/AuthProvider';
+import { friendlyError } from '@/lib/errors';
 
 export default function Discover() {
   const userId = useUserId();
@@ -48,7 +49,7 @@ export default function Discover() {
         onSuccess: () => direction === 'like' && setMessage(`Applied to ${item.job.title}`),
         onError: (e) => {
           setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
-          setMessage(e.message || 'Couldn’t save that. Check your connection.');
+          setMessage(friendlyError(e));
         },
       },
     );
@@ -63,7 +64,7 @@ export default function Discover() {
         setLast(null);
         setMessage('Undone');
       },
-      onError: (e) => setMessage(e.message),
+      onError: (e) => setMessage(friendlyError(e)),
     });
   }
 

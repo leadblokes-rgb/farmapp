@@ -23,6 +23,7 @@ import { FieldMessage, TextField } from '@/components/form/TextField';
 import { usePostcode } from '@/features/common/api';
 import { zodResolver } from '@/lib/zodResolver';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 interface Props {
   initial: JobInput;
@@ -62,7 +63,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
     try {
       await onSubmit(values);
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
+      setSubmitError(friendlyError(e));
     }
   });
 

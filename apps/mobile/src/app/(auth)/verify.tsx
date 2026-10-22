@@ -5,6 +5,7 @@ import { HelperText, Text, TextInput } from 'react-native-paper';
 import { OTP_LENGTH, isValidOtp } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
+import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 
 const RESEND_SECONDS = 60;
@@ -38,7 +39,7 @@ export default function Verify() {
   async function resend() {
     setCooldown(RESEND_SECONDS);
     const { error: err } = await supabase.auth.signInWithOtp({ email });
-    if (err) setError(err.message);
+    if (err) setError(friendlyError(err));
   }
 
   return (

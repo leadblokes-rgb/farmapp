@@ -13,6 +13,7 @@ import { Screen } from '@/components/Screen';
 import { useAddPayslip, useTracker, type PayslipInput } from '@/features/tracker/api';
 import { useUserId } from '@/providers/AuthProvider';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 export default function NewPayslip() {
   const { employerId } = useLocalSearchParams<{ employerId?: string }>();
@@ -62,7 +63,7 @@ export default function NewPayslip() {
     setError(null);
     add.mutate(
       { employerId: selected, periodStart: start, periodEnd: end, daysWorked: days, hoursTotal, file },
-      { onSuccess: () => router.back(), onError: (e) => setError(e.message) },
+      { onSuccess: () => router.back(), onError: (e) => setError(friendlyError(e)) },
     );
   }
 

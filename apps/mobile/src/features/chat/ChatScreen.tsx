@@ -8,6 +8,7 @@ import { useUserId } from '@/providers/AuthProvider';
 import { MIN_TAP } from '@/theme';
 import { markRead, useConversations, useMessages, useSendMessage, type Message } from './api';
 import { ReportDialog } from './ReportDialog';
+import { friendlyError } from '@/lib/errors';
 
 function time(iso: string) {
   const d = new Date(iso);
@@ -41,7 +42,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
     send.mutate(body, {
       onError: (e) => {
         setDraft(body);
-        setNotice(e.message || 'Message not sent. Check your connection.');
+        setNotice(friendlyError(e));
       },
     });
   }

@@ -4,6 +4,7 @@ import { HelperText, Text } from 'react-native-paper';
 import type { SelfServeRole } from '@croppr/shared';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
+import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -17,7 +18,7 @@ export default function ChooseRole() {
     setError(null);
     const { error: err } = await supabase.rpc('set_my_role', { new_role: role });
     if (err) {
-      setError(err.message);
+      setError(friendlyError(err));
       setSaving(null);
       return;
     }

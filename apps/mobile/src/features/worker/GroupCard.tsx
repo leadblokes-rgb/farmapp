@@ -4,6 +4,7 @@ import { Share, StyleSheet, View } from 'react-native';
 import { Button, Card, HelperText, Text, TextInput } from 'react-native-paper';
 import { supabase } from '@/lib/supabase';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 /** Link up with friends so farms see you're travelling together (each person still applies). */
 export function GroupCard({ userId }: { userId: string }) {
@@ -39,7 +40,7 @@ export function GroupCard({ userId }: { userId: string }) {
       setCode('');
       refresh();
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setError(friendlyError(e)),
   });
 
   const members = group.data ?? [];

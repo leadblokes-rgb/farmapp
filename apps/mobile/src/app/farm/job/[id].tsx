@@ -12,6 +12,7 @@ import { useJob, useSetJobStatus, type JobStatus } from '@/features/farm/jobsApi
 import { useDecide, useShortlist, type Applicant, type Decision } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 type Tab = 'applied' | 'accepted' | 'declined';
 
@@ -68,7 +69,7 @@ export default function JobShortlist() {
         },
         onError: (e) => {
           setConfirm(null);
-          setMessage(e.message);
+          setMessage(friendlyError(e));
         },
       },
     );

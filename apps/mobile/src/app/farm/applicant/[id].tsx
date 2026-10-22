@@ -17,6 +17,7 @@ import {
 } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 const FACTOR_LABELS: Record<string, string> = {
   availability: 'Availability',
@@ -129,7 +130,7 @@ export default function ApplicantDetail() {
             onPress={() =>
               startChat.mutate(a.application_id, {
                 onSuccess: (convId) => router.push(`/farm/chat/${convId}`),
-                onError: (e) => setMessage(e.message),
+                onError: (e) => setMessage(friendlyError(e)),
               })
             }
           >

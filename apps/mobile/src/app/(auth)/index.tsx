@@ -18,8 +18,11 @@ export default function Welcome() {
           contentFit="contain"
           accessibilityLabel="Croppr"
         />
-        <Text variant="titleMedium" style={styles.center}>
-          Farm work across Australia, matched to your dates and your visa days.
+        <Text variant="headlineSmall" style={[styles.center, styles.headline]}>
+          Get matched with farm work across Australia.
+        </Text>
+        <Text variant="bodyLarge" style={styles.center}>
+          Whether you&apos;re after a season&apos;s work or hiring your next crew.
         </Text>
       </View>
       <View style={styles.actions}>
@@ -41,5 +44,6 @@ const styles = StyleSheet.create({
   hero: { flex: 1, justifyContent: 'center', gap: 12 },
   logo: { width: '80%', aspectRatio: 900 / 817, alignSelf: 'center', maxWidth: 320 },
   center: { textAlign: 'center' },
+  headline: { fontWeight: '700' },
   actions: { gap: 14 },
 });

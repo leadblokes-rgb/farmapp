@@ -23,6 +23,7 @@ import { FieldMessage, TextField } from '@/components/form/TextField';
 import { zodResolver } from '@/lib/zodResolver';
 import { usePostcode, useRegions } from '@/features/common/api';
 import { MIN_TAP } from '@/theme';
+import { friendlyError } from '@/lib/errors';
 
 interface Props {
   initial: WorkerProfileInput;
@@ -55,7 +56,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
       await onSubmit(values, photo);
       setPhoto(null);
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
+      setSubmitError(friendlyError(e));
     }
   });
 

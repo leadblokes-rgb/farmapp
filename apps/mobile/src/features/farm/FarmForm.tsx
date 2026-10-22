@@ -10,6 +10,7 @@ import { SwitchRow } from '@/components/form/SwitchRow';
 import { TextField } from '@/components/form/TextField';
 import { usePostcode } from '@/features/common/api';
 import { zodResolver } from '@/lib/zodResolver';
+import { friendlyError } from '@/lib/errors';
 
 interface Props {
   initial: FarmInput;
@@ -35,7 +36,7 @@ export function FarmForm({ initial, submitLabel, legalNote, onSubmit }: Props) {
     try {
       await onSubmit(values);
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
+      setSubmitError(friendlyError(e));
     }
   });
 
