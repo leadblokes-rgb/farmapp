@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { TabsScreenOptions } from 'expo-router/tabs';
+import type { BottomTabNavigationOptions } from 'expo-router/tabs';
 import type { ColorValue } from 'react-native';
 import { theme } from '@/theme';
 
 // Tall tab bar with large labels for outdoor, one-handed use.
-export const tabScreenOptions: TabsScreenOptions = {
+export const tabScreenOptions: BottomTabNavigationOptions = {
   tabBarActiveTintColor: theme.colors.primary,
   tabBarInactiveTintColor: '#444444',
   tabBarLabelStyle: { fontSize: 14, fontWeight: '600' },

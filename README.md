@@ -8,7 +8,7 @@ Croppr is a mobile app that matches Australian farms with agricultural workers, 
 
 | Path | What |
 |---|---|
-| `apps/mobile` | Expo (React Native + Expo Router) app for workers and farms |
+| `apps/mobile` | Expo SDK 57 (React Native + Expo Router) app for workers and farms |
 | `packages/shared` | Shared TypeScript: generated DB types, enums, validation, config files |
 | `packages/matching` | The ranking module (the only place match scoring lives) |
 | `supabase/` | Postgres migrations, RLS policies, seed data, pgTAP tests, email templates |
@@ -61,6 +61,10 @@ Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In
 | `admin@demo.croppr.test` | Admin |
 
 You can also sign up with any email address. The 6-digit code arrives in Mailpit.
+
+## Expo SDK version
+
+The app is on **Expo SDK 57**, so it opens in the current App Store/Play Store **Expo Go**. SDK 58 came out on 29 Sep 2026, before Expo Go supported it. Upgrade with `cd apps/mobile && npx expo install expo@^58 --fix` once Expo Go supports SDK 58 (check Expo Go → Settings → Supported SDK). Development builds aren't limited by Expo Go.
 
 ## Branding
 

@@ -29,7 +29,6 @@ export async function registerForPush(userId: string): Promise<string | null> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Croppr',
-      // eslint-disable-next-line import/namespace -- re-exported via export *, which the lint plugin can't follow
       importance: Notifications.AndroidImportance.HIGH,
     });
   }

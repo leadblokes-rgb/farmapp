@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack, type Href } from 'expo-router';
+import { router, Stack, useRootNavigationState, useSegments, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -60,8 +60,9 @@ function RootNavigator() {
   const active = profile?.status === 'active';
   const role = active ? profile?.role : null;
 
-  // Where this user belongs right now. Any guarded screen redirects here, so a fresh
-  // sign-in lands on the first tab rather than whichever route sorts first.
+  // Where this user belongs right now. When their area changes (signed in, onboarded, signed out…)
+  // we navigate there explicitly, so a fresh sign-in lands on the first tab rather than whichever
+  // route the guard falls back to. Deep links inside the right area (e.g. a chat) are left alone.
   const home: Href = !signedIn
     ? '/'
     : !active
@@ -78,30 +79,54 @@ function RootNavigator() {
               : '/farm-onboarding'
             : '/admin';
 
+  return <GuardedStack home={home} signedIn={signedIn} active={active} role={role} onboarded={onboarded} />;
+}
+
+function GuardedStack({
+  home,
+  signedIn,
+  active,
+  role,
+  onboarded,
+}: {
+  home: Href;
+  signedIn: boolean;
+  active: boolean;
+  role: string | null | undefined;
+  onboarded: boolean;
+}) {
+  const segments = useSegments();
+  const navReady = !!useRootNavigationState()?.key;
+  const homeArea = String(home).split('/')[1] || '(auth)';
+
+  useEffect(() => {
+    if (navReady && segments[0] !== homeArea) router.replace(home);
+  }, [navReady, home, homeArea, segments]);
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!signedIn} redirectTo={home}>
+      <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !active} redirectTo={home}>
+      <Stack.Protected guard={signedIn && !active}>
         <Stack.Screen name="suspended" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && active && role == null} redirectTo={home}>
+      <Stack.Protected guard={signedIn && active && role == null}>
         <Stack.Screen name="choose-role" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'worker' && !onboarded} redirectTo={home}>
+      <Stack.Protected guard={role === 'worker' && !onboarded}>
         <Stack.Screen name="worker-onboarding" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'worker' && onboarded} redirectTo={home}>
+      <Stack.Protected guard={role === 'worker' && onboarded}>
         <Stack.Screen name="worker" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'farm' && !onboarded} redirectTo={home}>
+      <Stack.Protected guard={role === 'farm' && !onboarded}>
         <Stack.Screen name="farm-onboarding" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'farm' && onboarded} redirectTo={home}>
+      <Stack.Protected guard={role === 'farm' && onboarded}>
         <Stack.Screen name="farm" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'admin'} redirectTo={home}>
+      <Stack.Protected guard={role === 'admin'}>
         <Stack.Screen name="admin" />
       </Stack.Protected>
     </Stack>

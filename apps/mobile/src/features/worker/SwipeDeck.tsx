@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -54,19 +54,18 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
 
   useImperativeHandle(ref, () => ({ swipe: (d) => top && flyOut(d) }));
 
-  const pan = usePanGesture({
-    activeOffsetX: [-12, 12],
-    onUpdate: (e) => {
+  const pan = Gesture.Pan()
+    .activeOffsetX([-12, 12])
+    .onUpdate((e) => {
       tx.value = e.translationX;
-    },
-    onDeactivate: (e) => {
+    })
+    .onEnd((e) => {
       if (Math.abs(e.translationX) > width * SWIPE_THRESHOLD || Math.abs(e.velocityX) > 900) {
         flyOut(e.translationX > 0 ? 'like' : 'pass');
       } else {
         tx.value = withSpring(0);
       }
-    },
-  });
+    });
 
   const topStyle = useAnimatedStyle(() => ({
     transform: [
