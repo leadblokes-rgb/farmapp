@@ -192,10 +192,10 @@ export default function Days() {
 
 const styles = StyleSheet.create({
   progress: { alignItems: 'center', gap: 6, paddingVertical: 8 },
-  big: { fontSize: 64, fontWeight: '900', color: '#1B5E20', lineHeight: 70 },
+  big: { fontSize: 64, fontWeight: '900', color: '#17482F', lineHeight: 70 },
   togo: { fontWeight: '700' },
   tall: { minHeight: MIN_TAP },
-  suggestion: { borderColor: '#1B5E20', borderWidth: 2 },
+  suggestion: { borderColor: '#17482F', borderWidth: 2 },
   gap: { gap: 8 },
   bold: { fontWeight: '700' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },

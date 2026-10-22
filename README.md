@@ -62,6 +62,14 @@ Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In
 
 You can also sign up with any email address. The 6-digit code arrives in Mailpit.
 
+## Branding
+
+The original logo is `apps/mobile/assets/brand/croppr-logo-source.png`. The app icon, Android adaptive and monochrome icons, splash, favicon and welcome-screen logo are generated from it. Brand colours are in `apps/mobile/src/theme.ts` (`BRAND`).
+
+## What's left before launch
+
+See [`docs/launch-checklist.md`](docs/launch-checklist.md).
+
 ## Checks
 
 ```bash

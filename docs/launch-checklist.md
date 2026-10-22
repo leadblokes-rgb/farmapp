@@ -1,0 +1,63 @@
+# Croppr: what's left before launch
+
+All six MVP milestones are built and tested locally. This is what remains, roughly in order.
+**You** = a decision or account only you can provide. **Dev** = code or config work.
+
+## 1. Try it on real phones (start here)
+- [ ] **Dev:** Run `npx eas-cli init` in `apps/mobile` (links an Expo account and adds the EAS project id), add `eas.json` build profiles, and make a development build for Android and iOS.
+- [ ] **You:** Test on real devices outdoors:
+  - swipe feel, tap targets in sun or with gloves
+  - camera for the photo and payslip
+  - "Use my location"
+  - push notifications (these can't be tested in Expo Go on Android)
+- [ ] **Dev:** Fix whatever that turns up. Web testing is done; the native gesture and camera paths haven't been tried on a device yet.
+
+## 2. Confirm the rules (needs an expert)
+- [ ] **You:** Have a registered migration agent check `packages/shared/src/config/visaRules.ts`. Current choices:
+  - a week of 35+ hours counts as 7 days
+  - a shift of 7+ hours counts as one day
+  - shorter shifts are ignored
+  - each calendar day counts once
+  
+  Public guidance disagrees on part-time counting.
+- [ ] **You:** Confirm the award minimum in `packages/shared/src/config/payRules.ts` ($32.18/hr casual from 1 July 2026), and diarise a review every July.
+- [ ] **Dev:** Add the official list of eligible specified-work postcodes, so the tracker and job form can pre-tick "counts as specified work" from the postcode instead of relying on the farm's estimate.
+- [ ] **You:** Get legal advice on whether Croppr itself needs a labour hire licence in QLD or other states. A job platform usually doesn't, but check.
+
+## 3. Legal and privacy (required by the app stores and the Privacy Act)
+- [ ] **You:** A privacy policy and terms of use. Croppr holds sensitive information (visa status, nationality, payslips), so the Australian Privacy Principles apply.
+- [ ] **Dev:** A consent step at sign-up linking those documents, and links in Profile.
+- [ ] **Dev:** Replace the placeholder support address `support@croppr.example` (on the suspended screen) with a real one, and add a "Contact support" link.
+- [ ] **You:** Decide how long data is kept (e.g. closed jobs, old chats, payslips) and whether to auto-delete it.
+- [ ] **You:** Fill in the App Store privacy labels and the Google Play data safety form.
+
+## 4. Production backend
+- [ ] **You:** Create a Supabase project in the **Sydney (ap-southeast-2)** region, so data stays in Australia, on a paid plan for backups.
+- [ ] **Dev:** Set up production:
+  1. `supabase link` and `supabase db push`
+  2. deploy both Edge Functions
+  3. set the two Vault secrets (see the README)
+  4. set the auth email templates to show the 6-digit code
+  5. connect a real email provider (e.g. Resend or Postmark)
+- [ ] **Dev:** Load the full Australian postcode list. Right now only about 20 QLD postcodes exist, so distance ranking only works there.
+- [ ] **Dev:** Create the first admin account and walk through `docs/admin-runbook.md` with whoever will approve farms.
+
+## 5. App store release
+- [ ] **You:** Apple Developer account (paid yearly) and Google Play Console account (one-off fee), under the business name.
+- [ ] **You:** Store listing: screenshots, description, keywords, support URL, privacy policy URL. The app icon and splash are done from the Croppr logo.
+- [ ] **Dev:** Production builds with `eas build`, then TestFlight and Play internal testing, then submit.
+
+## 6. Running it
+- [ ] **Dev:** Crash and error reporting (e.g. Sentry) for the app and the Edge Functions.
+- [ ] **Dev:** A GitHub Actions workflow that runs typecheck, lint, unit tests and the database tests on every push.
+- [ ] **Dev:** Basic usage stats for the team: signups, jobs posted, applications, hires per week. A dashboard in Supabase or a few saved SQL queries are enough at first.
+- [ ] **Dev:** Rate limits on messages, reports and sign-in codes, to stop spam.
+
+## 7. After the MVP (agreed to defer)
+- Two-way ratings after a job ends. The ranker already has a reliability slot, at a neutral value until ratings exist.
+- Mark applications "completed" automatically when a job ends, which ratings depend on.
+- A dedicated admin web app (farm queue, reports, stats) to replace the dashboard SQL.
+- Automatic ABN checks through the ABR web service, and checks against labour hire registers.
+- Farm logo upload: the storage bucket and database column exist, but there's no UI yet.
+- Translations: many workers aren't native English speakers. French, German, Korean, Japanese, Spanish and Chinese would cover most of them.
+- A smarter, AI-based ranker: implement the `Ranker` interface in `packages/matching`.

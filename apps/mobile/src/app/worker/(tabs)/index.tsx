@@ -143,7 +143,7 @@ export default function Discover() {
           mode="contained"
           size={40}
           iconColor="#FFFFFF"
-          containerColor="#1B5E20"
+          containerColor="#17482F"
           style={styles.round}
           disabled={!queue.length}
           onPress={() => deck.current?.swipe('like')}

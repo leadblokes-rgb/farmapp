@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
@@ -11,9 +12,12 @@ export default function Welcome() {
   return (
     <Screen>
       <View style={styles.hero}>
-        <Text variant="displaySmall" style={styles.title}>
-          Croppr
-        </Text>
+        <Image
+          source={require('../../../assets/brand/logo.png')}
+          style={styles.logo}
+          contentFit="contain"
+          accessibilityLabel="Croppr"
+        />
         <Text variant="titleMedium" style={styles.center}>
           Farm work across Australia, matched to your dates and your visa days.
         </Text>
@@ -35,7 +39,7 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   hero: { flex: 1, justifyContent: 'center', gap: 12 },
-  title: { textAlign: 'center', fontWeight: '700' },
+  logo: { width: '80%', aspectRatio: 900 / 817, alignSelf: 'center', maxWidth: 320 },
   center: { textAlign: 'center' },
   actions: { gap: 14 },
 });

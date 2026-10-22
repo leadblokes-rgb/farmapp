@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   content: { gap: 8 },
   title: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bold: { fontWeight: '700' },
-  verified: { borderColor: '#1B5E20', borderWidth: 2 },
+  verified: { borderColor: '#17482F', borderWidth: 2 },
   pending: { borderColor: '#8D5A00', borderWidth: 2, backgroundColor: '#FFF8E8' },
   rejected: { borderColor: '#B00020', borderWidth: 2, backgroundColor: '#FDECEE' },
 });

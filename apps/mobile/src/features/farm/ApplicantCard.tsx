@@ -23,7 +23,7 @@ export function VisaBadge({ a }: { a: Pick<Applicant, 'visa_type' | 'visa_valid_
       style={[styles.badge, ok ? styles.ok : styles.warn]}
       accessibilityLabel={`${VISA_TYPE_LABELS[a.visa_type]}: ${ok ? 'covers the job dates' : 'ends before the job ends'}`}
     >
-      <Icon source={ok ? 'check-circle' : 'alert'} size={16} color={ok ? '#1B5E20' : '#8D5A00'} />
+      <Icon source={ok ? 'check-circle' : 'alert'} size={16} color={ok ? '#17482F' : '#8D5A00'} />
       <Text style={styles.badgeText}>
         {ok ? `${label} · visa covers job` : `${label} · visa ends before job end`}
       </Text>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
   },
-  selected: { borderColor: '#1B5E20', borderWidth: 3, backgroundColor: '#F1F8E9' },
+  selected: { borderColor: '#17482F', borderWidth: 3, backgroundColor: '#F1F8E9' },
   grouped: { borderLeftWidth: 6, borderLeftColor: '#8D5A00' },
   check: { width: MIN_TAP, alignItems: 'center', justifyContent: 'center' },
   body: { flex: 1, padding: 12, gap: 6 },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     minWidth: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#17482F',
     alignItems: 'center',
     justifyContent: 'center',
   },

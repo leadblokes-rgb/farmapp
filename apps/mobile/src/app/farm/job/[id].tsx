@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   header: { gap: 12, marginBottom: 4 },
   summary: { gap: 6, borderWidth: 1, borderColor: '#BDBDBD', borderRadius: 14, padding: 16 },
   bold: { fontWeight: '700' },
-  counter: { fontWeight: '800', color: '#1B5E20' },
+  counter: { fontWeight: '800', color: '#17482F' },
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   selectRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   flex: { flex: 1 },

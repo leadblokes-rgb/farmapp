@@ -95,7 +95,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
             icon="send"
             mode="contained"
             size={28}
-            containerColor="#1B5E20"
+            containerColor="#17482F"
             iconColor="#FFFFFF"
             style={styles.send}
             onPress={submit}
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   list: { padding: 12, gap: 8 },
   empty: { textAlign: 'center', opacity: 0.6, padding: 24, transform: [{ scaleY: -1 }] },
   bubble: { maxWidth: '82%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10 },
-  mine: { alignSelf: 'flex-end', backgroundColor: '#1B5E20', borderBottomRightRadius: 4 },
+  mine: { alignSelf: 'flex-end', backgroundColor: '#17482F', borderBottomRightRadius: 4 },
   theirs: { alignSelf: 'flex-start', backgroundColor: '#EEEEEE', borderBottomLeftRadius: 4 },
   mineText: { color: '#FFFFFF' },
   meta: { fontSize: 12, marginTop: 4, opacity: 0.7 },

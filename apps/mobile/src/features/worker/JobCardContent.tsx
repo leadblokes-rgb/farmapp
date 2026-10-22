@@ -8,7 +8,7 @@ import type { RankedFeedJob } from './feedApi';
 function Fact({ icon, children, compact }: { icon: string; children: string; compact?: boolean }) {
   return (
     <View style={styles.fact}>
-      <Icon source={icon} size={22} color="#1B5E20" />
+      <Icon source={icon} size={22} color="#17482F" />
       <Text variant="bodyLarge" style={styles.factText} numberOfLines={compact ? 1 : undefined}>
         {children}
       </Text>
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   title: { fontWeight: '800' },
   muted: { opacity: 0.75 },
   payBox: { backgroundColor: '#E8F5E9', borderRadius: 12, padding: 12, marginVertical: 4 },
-  pay: { fontWeight: '800', color: '#1B5E20' },
+  pay: { fontWeight: '800', color: '#17482F' },
   fact: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   factText: { flex: 1 },
   specified: {

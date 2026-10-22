@@ -3,6 +3,13 @@ import { MD3LightTheme, configureFonts, type MD3Theme } from 'react-native-paper
 // High-contrast, large-type theme: many users are outdoors in bright sun, often with gloves.
 export const MIN_TAP = 56;
 
+// Brand colours, sampled from assets/brand/croppr-logo-source.png.
+export const BRAND = {
+  green: '#17482F', // dark field green: primary actions, text accents (10:1 on white)
+  leaf: '#5A8F3A', // light field green
+  sun: '#CE5B39', // orange sun
+} as const;
+
 const fonts = configureFonts({
   config: {
     bodyLarge: { fontSize: 18, lineHeight: 26, letterSpacing: 0.15, fontWeight: '400', fontFamily: 'System' },
@@ -23,10 +30,10 @@ export const theme: MD3Theme = {
   roundness: 3,
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#1B5E20',
+    primary: BRAND.green,
     onPrimary: '#FFFFFF',
-    primaryContainer: '#C8E6C9',
-    onPrimaryContainer: '#0B2E0F',
+    primaryContainer: '#D7E9DC',
+    onPrimaryContainer: '#0B2A1B',
     secondary: '#8D5A00',
     secondaryContainer: '#FFE0A8',
     background: '#FFFFFF',

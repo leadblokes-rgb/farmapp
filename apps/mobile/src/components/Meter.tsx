@@ -17,5 +17,5 @@ export function Meter({ value, height = 10, label }: { value: number; height?: n
 
 const styles = StyleSheet.create({
   track: { backgroundColor: '#E0E0E0', overflow: 'hidden', alignSelf: 'stretch' },
-  fill: { height: '100%', backgroundColor: '#1B5E20' },
+  fill: { height: '100%', backgroundColor: '#17482F' },
 });

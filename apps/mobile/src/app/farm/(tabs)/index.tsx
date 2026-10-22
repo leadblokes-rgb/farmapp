@@ -86,6 +86,6 @@ const styles = StyleSheet.create({
   cardContent: { gap: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { flex: 1, fontWeight: '700' },
-  applicants: { color: '#1B5E20', fontWeight: '700' },
+  applicants: { color: '#17482F', fontWeight: '700' },
   dim: { opacity: 0.7 },
 });

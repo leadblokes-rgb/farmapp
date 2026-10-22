@@ -140,9 +140,9 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderRadius: 10,
   },
-  applyStamp: { left: 20, borderColor: '#1B5E20', transform: [{ rotate: '-12deg' }] },
+  applyStamp: { left: 20, borderColor: '#17482F', transform: [{ rotate: '-12deg' }] },
   skipStamp: { right: 20, borderColor: '#B00020', transform: [{ rotate: '12deg' }] },
   stampText: { fontSize: 30, fontWeight: '900' },
-  applyText: { color: '#1B5E20' },
+  applyText: { color: '#17482F' },
   skipText: { color: '#B00020' },
 });
