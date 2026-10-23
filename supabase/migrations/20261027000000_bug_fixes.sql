@@ -3,11 +3,12 @@
 -- One day of slack allows for the worker's timezone being ahead of the database (UTC).
 
 alter table public.shift_logs drop constraint shift_logs_hours_check;
-alter table public.shift_logs add constraint shift_logs_hours_check check (hours > 0 and hours <= 16);
+alter table public.shift_logs add constraint shift_logs_hours_check check (hours > 0 and hours <= 16) not valid;
 
+-- NOT VALID: enforced for new and edited rows only, so existing test data can't block the migration.
 alter table public.payslips
-  add constraint payslips_period_length_check check (period_end - period_start + 1 <= 62),
-  add constraint payslips_hours_check check (hours_total <= 16 * days_worked);
+  add constraint payslips_period_length_check check (period_end - period_start + 1 <= 62) not valid,
+  add constraint payslips_hours_check check (hours_total <= 16 * days_worked) not valid;
 
 create function public.shift_logs_no_future()
 returns trigger
