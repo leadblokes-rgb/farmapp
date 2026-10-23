@@ -81,7 +81,7 @@ select vault.create_secret('<service_role key>', 'service_role_key');
 ```
 
 - Find the **service_role** key under Project Settings → API Keys. It's secret: paste it only into the Supabase SQL editor, never into chat, email or the code.
-- Also deploy the push function if you haven't: `npx supabase functions deploy send-push --no-verify-jwt` (run from the repo root).
+- Also deploy the push function if you haven't: `npx supabase functions deploy send-push --no-verify-jwt --use-api` (run from the repo root).
 
 To check pushes are going out, run `select * from notification_log order by id desc limit 20;` in the SQL editor.
 

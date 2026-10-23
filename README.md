@@ -72,15 +72,16 @@ You don't need Docker if you use a free project on supabase.com.
    npx supabase login
    npx supabase link --project-ref <your-project-ref>
    npx supabase db push --include-seed
-   npx supabase functions deploy rank-applicants
-   npx supabase functions deploy send-push --no-verify-jwt
+   npx supabase functions deploy rank-applicants --use-api
+   npx supabase functions deploy send-push --no-verify-jwt --use-api
    ```
    - The project ref is the `xxxx` in `https://xxxx.supabase.co`.
+   - `--use-api` bundles the functions on Supabase's servers, so Docker isn't needed (without it, deploys fail with "exit 139").
    - `--include-seed` loads the demo accounts, which use the known password `croppr-demo`. Use a fresh project for real users.
 3. In `apps/mobile/.env.local`, set:
    - `EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co`
    - `EXPO_PUBLIC_SUPABASE_KEY=<publishable or anon key>` (from Dashboard → Project Settings → API Keys)
-4. Under Dashboard → Authentication → Emails → Templates, paste `supabase/templates/otp.html` into **Confirm signup** and **Magic link**, so emails show the 6-digit code. Supabase's built-in email sender only sends a few emails per hour; use the demo buttons for quick testing.
+4. **Required for sign-in emails:** under Dashboard → Authentication → Emails → Templates, paste `supabase/templates/otp.html` into **Confirm signup** and **Magic link**, so emails show the 6-digit code. Without this, emails contain a link that opens a localhost page. Supabase's built-in email sender only sends a few emails per hour. For quick testing, add `EXPO_PUBLIC_SHOW_DEMO_ACCOUNTS=true` to `apps/mobile/.env.local` to show the demo sign-in buttons.
 5. Optional, for push notifications later: in the SQL editor, run
    `select vault.create_secret('https://<ref>.supabase.co/functions/v1', 'functions_url');` and
    `select vault.create_secret('<service_role key>', 'service_role_key');`
@@ -211,5 +212,5 @@ Locally, `seed.sql` stores the function URL and service key in Supabase Vault.
 - Push notifications need two Vault secrets in production. In the SQL editor, run:
   `select vault.create_secret('https://<project-ref>.supabase.co/functions/v1', 'functions_url');`
   `select vault.create_secret('<service role key>', 'service_role_key');`
-  Then deploy the functions with `npx supabase functions deploy rank-applicants` and `npx supabase functions deploy send-push --no-verify-jwt`.
+  Then deploy the functions with `npx supabase functions deploy rank-applicants --use-api` and `npx supabase functions deploy send-push --no-verify-jwt --use-api`.
 - The `postcodes` table only has a Queensland subset. Load the full Australian postcode list before launch, otherwise distance ranking won't work outside QLD.
