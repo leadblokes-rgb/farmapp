@@ -62,6 +62,29 @@ Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In
 
 You can also sign up with any email address. The 6-digit code arrives in Mailpit.
 
+## Using hosted Supabase instead of Docker
+
+You don't need Docker if you use a free project on supabase.com.
+
+1. Create a project at https://supabase.com/dashboard, in the **Sydney** region. Save the database password.
+2. From the repo root:
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <your-project-ref>
+   npx supabase db push --include-seed
+   npx supabase functions deploy rank-applicants
+   npx supabase functions deploy send-push --no-verify-jwt
+   ```
+   - The project ref is the `xxxx` in `https://xxxx.supabase.co`.
+   - `--include-seed` loads the demo accounts, which use the known password `croppr-demo`. Use a fresh project for real users.
+3. In `apps/mobile/.env.local`, set:
+   - `EXPO_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co`
+   - `EXPO_PUBLIC_SUPABASE_KEY=<publishable or anon key>` (from Dashboard → Project Settings → API Keys)
+4. Under Dashboard → Authentication → Emails → Templates, paste `supabase/templates/otp.html` into **Confirm signup** and **Magic link**, so emails show the 6-digit code. Supabase's built-in email sender only sends a few emails per hour; use the demo buttons for quick testing.
+5. Optional, for push notifications later: in the SQL editor, run
+   `select vault.create_secret('https://<ref>.supabase.co/functions/v1', 'functions_url');` and
+   `select vault.create_secret('<service_role key>', 'service_role_key');`
+
 ## Expo SDK version
 
 The app is on **Expo SDK 57**, so it opens in the current App Store/Play Store **Expo Go**. SDK 58 came out on 29 Sep 2026, before Expo Go supported it. Upgrade with `cd apps/mobile && npx expo install expo@^58 --fix` once Expo Go supports SDK 58 (check Expo Go → Settings → Supported SDK). Development builds aren't limited by Expo Go.
