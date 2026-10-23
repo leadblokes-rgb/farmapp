@@ -39,18 +39,26 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<JobInput>({ defaultValues: initial, resolver: zodResolver(jobSchema) });
 
-  const [payType, payRateCents, minHourlyGuaranteeCents, accommodationProvided, postcode, pieceRateUnit] =
-    useWatch({
-      control,
-      name: [
-        'payType',
-        'payRateCents',
-        'minHourlyGuaranteeCents',
-        'accommodationProvided',
-        'postcode',
-        'pieceRateUnit',
-      ],
-    });
+  const [
+    payType,
+    payRateCents,
+    minHourlyGuaranteeCents,
+    accommodationProvided,
+    postcode,
+    pieceRateUnit,
+    startDate,
+  ] = useWatch({
+    control,
+    name: [
+      'payType',
+      'payRateCents',
+      'minHourlyGuaranteeCents',
+      'accommodationProvided',
+      'postcode',
+      'pieceRateUnit',
+      'startDate',
+    ],
+  });
   const place = usePostcode(postcode);
   const awardWarning = belowAwardWarning({
     payType,
@@ -129,6 +137,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
               <DateField
                 label="End date"
                 value={field.value || null}
+                minDate={startDate || null}
                 onChange={(v) => field.onChange(v ?? '')}
                 error={fieldState.error?.message}
               />

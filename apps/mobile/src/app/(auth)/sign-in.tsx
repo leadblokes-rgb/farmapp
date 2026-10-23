@@ -79,7 +79,7 @@ export default function SignIn() {
         Email me a code
       </BigButton>
 
-      {__DEV__ && (
+      {SHOW_DEMO_ACCOUNTS && (
         <View style={styles.demo}>
           <Text variant="labelLarge">Development only: seeded demo accounts</Text>
           {DEMO_ACCOUNTS.map((a) => (
@@ -92,6 +92,10 @@ export default function SignIn() {
     </Screen>
   );
 }
+
+// One-tap demo sign-in, only in development builds and only when switched on in .env.local, so
+// testing against a real (hosted) project doesn't show buttons that won't work there.
+const SHOW_DEMO_ACCOUNTS = __DEV__ && process.env.EXPO_PUBLIC_SHOW_DEMO_ACCOUNTS === 'true';
 
 const styles = StyleSheet.create({
   input: { fontSize: 18 },

@@ -1,4 +1,4 @@
-import { estimateDays, type DayEstimate, type TrackerGoal } from '@croppr/shared';
+import { estimateDays, todayIso, type DayEstimate, type TrackerGoal } from '@croppr/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { uploadUserFileFromUri } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
@@ -64,7 +64,7 @@ export function useTracker(userId: string) {
           daysWorked: p.days_worked,
           hoursTotal: p.hours_total,
         })),
-        goal,
+        { goal, today: todayIso() },
       );
       return {
         goal,

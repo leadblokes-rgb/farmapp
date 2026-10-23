@@ -27,6 +27,12 @@ export const visaRules = {
    */
   fullTimeWeekHours: 35,
 
+  /**
+   * A full-time week also needs at least this many separate work days, so 35 hours squeezed into
+   * two long shifts doesn't count as 7 days. Applies to payslips too (scaled to the pay period).
+   */
+  fullTimeWeekMinDays: 5,
+
   /** In a week that isn't full-time, a shift of at least this many hours counts as one day. */
   fullDayHours: 7,
 

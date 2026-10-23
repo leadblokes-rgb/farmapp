@@ -14,10 +14,11 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 
 ## 2. Confirm the rules (needs an expert)
 - [ ] **You:** Have a registered migration agent check `packages/shared/src/config/visaRules.ts`. Current choices:
-  - a week of 35+ hours counts as 7 days
+  - a week of 35+ hours over at least 5 days counts as 7 days
   - a shift of 7+ hours counts as one day
   - shorter shifts are ignored
   - each calendar day counts once
+  - dates after today never count
   
   Public guidance disagrees on part-time counting.
 - [ ] **You:** Confirm the award minimum in `packages/shared/src/config/payRules.ts` ($32.18/hr casual from 1 July 2026), and diarise a review every July.

@@ -1,3 +1,4 @@
+import { todayIso } from '@croppr/shared';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -57,9 +58,14 @@ export default function NewPayslip() {
     if (!selected) return setError('Add an employer first');
     if (!start || !end) return setError('Enter the pay period dates');
     if (end < start) return setError('The period ends before it starts');
-    if (!(hoursTotal >= 0)) return setError('Enter the total hours on the payslip');
+    if (end > todayIso()) return setError('The pay period can’t end in the future');
+    if (!(hours.trim() !== '' && hoursTotal >= 0)) return setError('Enter the total hours on the payslip');
     const periodDays = (Date.parse(end) - Date.parse(start)) / 86_400_000 + 1;
+    if (periodDays > 62)
+      return setError('A pay period can be at most 62 days. Add longer periods separately.');
     if (days > periodDays) return setError(`The period is only ${periodDays} days long`);
+    if (hoursTotal > 16 * days)
+      return setError(`${hoursTotal} hours is more than 16 per day worked. Check the hours and days worked.`);
     setError(null);
     add.mutate(
       { employerId: selected, periodStart: start, periodEnd: end, daysWorked: days, hoursTotal, file },
@@ -79,8 +85,8 @@ export default function NewPayslip() {
         onChange={setEmployer}
       />
       <View style={styles.row}>
-        <DateField label="Period start" value={start} onChange={setStart} />
-        <DateField label="Period end" value={end} onChange={setEnd} />
+        <DateField label="Period start" value={start} maxDate={end ?? todayIso()} onChange={setStart} />
+        <DateField label="Period end" value={end} minDate={start} maxDate={todayIso()} onChange={setEnd} />
       </View>
       <Stepper label="Days worked" value={days} onChange={setDays} min={0} max={62} />
       <TextInput

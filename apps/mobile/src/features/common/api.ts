@@ -4,10 +4,13 @@ import { supabase } from '@/lib/supabase';
 export function useRegions() {
   return useQuery({
     queryKey: ['regions'],
+    // Regions rarely change, so cache them for the session, but never cache an empty list.
     staleTime: Infinity,
     queryFn: async () => {
       const { data, error } = await supabase.from('regions').select('id, name').order('name');
       if (error) throw error;
+      // There are always regions; an empty answer means the request didn't get through properly.
+      if (!data.length) throw new Error('Couldn’t load regions.');
       return data;
     },
   });

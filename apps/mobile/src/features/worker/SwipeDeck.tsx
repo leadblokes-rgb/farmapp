@@ -89,13 +89,18 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
     <View style={styles.deck}>
       {next ? (
         <Animated.View key={next.job.id} style={[styles.card, nextStyle]} pointerEvents="none">
-          <JobCardContent item={next} compact />
+          <View style={styles.clip}>
+            <JobCardContent item={next} compact />
+          </View>
         </Animated.View>
       ) : null}
       <GestureDetector gesture={pan}>
         <Animated.View key={top.job.id} style={[styles.card, topStyle]} testID="swipe-card">
           <Pressable onPress={() => onOpen(top)} accessibilityHint="Opens job details" style={styles.fill}>
-            <JobCardContent item={top} compact />
+            {/* On short screens the card clips its last facts; "Tap for details" stays visible. */}
+            <View style={styles.clip}>
+              <JobCardContent item={top} compact />
+            </View>
             <Text style={styles.more}>Tap for details</Text>
           </Pressable>
           <Animated.View style={[styles.stamp, styles.applyStamp, applyLabel]} pointerEvents="none">
@@ -130,7 +135,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   fill: { flex: 1 },
-  more: { marginTop: 'auto', textAlign: 'center', fontSize: 15, color: '#555555' },
+  clip: { flex: 1, overflow: 'hidden' },
+  more: { paddingTop: 6, textAlign: 'center', fontSize: 15, color: '#555555' },
   stamp: {
     position: 'absolute',
     top: 24,

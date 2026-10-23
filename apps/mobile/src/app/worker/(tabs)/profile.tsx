@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Snackbar } from 'react-native-paper';
 import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
@@ -8,6 +7,7 @@ import { GroupCard } from '@/features/worker/GroupCard';
 import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { useSignedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
+import { Toast } from '@/components/Toast';
 
 export default function WorkerProfile() {
   const userId = useUserId();
@@ -36,9 +36,7 @@ export default function WorkerProfile() {
         />
         <DangerZone />
       </Screen>
-      <Snackbar visible={saved} onDismiss={() => setSaved(false)} duration={3000}>
-        Profile saved
-      </Snackbar>
+      <Toast message={saved ? 'Profile saved' : null} onDismiss={() => setSaved(false)} />
     </>
   );
 }

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Button, Card, Chip, Text } from 'react-native-paper';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
-import { LoadError, Loading } from '@/components/Loading';
+import { LoadError } from '@/components/Loading';
 import { useConversations } from '@/features/chat/api';
 import { ConversationList } from '@/features/chat/ConversationList';
 import { Screen } from '@/components/Screen';
+import { ListSkeleton } from '@/components/Skeleton';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { useMyApplications, useWithdrawApplication } from '@/features/worker/feedApi';
 
@@ -51,7 +52,7 @@ export default function Matches() {
     );
   }
 
-  if (apps.isPending) return <Loading />;
+  if (apps.isPending) return <ListSkeleton label="Loading your matches" />;
   if (apps.isError) return <LoadError onRetry={() => apps.refetch()} />;
 
   return (

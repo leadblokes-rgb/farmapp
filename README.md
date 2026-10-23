@@ -46,7 +46,7 @@ Press `i` or `a` in the Expo terminal to open a simulator or emulator, or `w` to
 
 ## Demo accounts (local only)
 
-Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In a development build, the sign-in screen shows one-tap buttons for these accounts.
+Seeded by `supabase/seed.sql`. The password for all of them is `croppr-demo`. In a development build with `EXPO_PUBLIC_SHOW_DEMO_ACCOUNTS=true` in `apps/mobile/.env.local` (the default in `.env.example`), the sign-in screen shows one-tap buttons for these accounts. Set it to `false` when testing with real farms. Production builds never show them.
 
 | Email | What you'll see |
 |---|---|

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Snackbar } from 'react-native-paper';
 import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
@@ -7,6 +6,7 @@ import { farmToInput, useMyFarm, useSaveFarm } from '@/features/farm/api';
 import { FarmForm } from '@/features/farm/FarmForm';
 import { VerificationStatusCard } from '@/features/farm/VerificationStatusCard';
 import { useUserId } from '@/providers/AuthProvider';
+import { Toast } from '@/components/Toast';
 
 export default function FarmProfile() {
   const userId = useUserId();
@@ -39,9 +39,7 @@ export default function FarmProfile() {
         />
         <DangerZone />
       </Screen>
-      <Snackbar visible={saved} onDismiss={() => setSaved(false)} duration={3000}>
-        Farm details saved
-      </Snackbar>
+      <Toast message={saved ? 'Farm details saved' : null} onDismiss={() => setSaved(false)} />
     </>
   );
 }

@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Avatar, Button, Divider, Snackbar, Text } from 'react-native-paper';
+import { Avatar, Button, Divider, Text } from 'react-native-paper';
 import { Meter } from '@/components/Meter';
 import { LoadError, Loading } from '@/components/Loading';
 import { useStartConversation } from '@/features/chat/api';
@@ -18,6 +18,7 @@ import {
 import { dateRangeLabel } from '@/features/jobs/format';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { Toast } from '@/components/Toast';
 
 const FACTOR_LABELS: Record<string, string> = {
   availability: 'Availability',
@@ -176,9 +177,7 @@ export default function ApplicantDetail() {
           ) : null}
         </View>
       </Screen>
-      <Snackbar visible={message !== null} onDismiss={() => setMessage(null)} duration={3000}>
-        {message}
-      </Snackbar>
+      <Toast message={message} onDismiss={() => setMessage(null)} duration={3000} />
     </>
   );
 }

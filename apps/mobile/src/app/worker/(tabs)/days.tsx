@@ -2,12 +2,13 @@ import { visaRules, type TrackerGoal } from '@croppr/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Card, Snackbar, Text } from 'react-native-paper';
+import { Button, Card, Text } from 'react-native-paper';
 import { BigButton } from '@/components/BigButton';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
-import { LoadError, Loading } from '@/components/Loading';
+import { LoadError } from '@/components/Loading';
 import { Meter } from '@/components/Meter';
 import { Screen } from '@/components/Screen';
+import { DaysSkeleton } from '@/components/Skeleton';
 import {
   useEmployerSuggestions,
   useLogShift,
@@ -18,7 +19,9 @@ import {
 import { Disclaimer } from '@/features/tracker/Disclaimer';
 import { LogShiftSheet } from '@/features/tracker/LogShiftSheet';
 import { useUserId } from '@/providers/AuthProvider';
+import { friendlyError } from '@/lib/errors';
 import { MIN_TAP } from '@/theme';
+import { Toast } from '@/components/Toast';
 
 export default function Days() {
   const userId = useUserId();
@@ -30,7 +33,7 @@ export default function Days() {
   const [logging, setLogging] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (tracker.isPending) return <Loading />;
+  if (tracker.isPending) return <DaysSkeleton />;
   if (tracker.isError) return <LoadError onRetry={() => tracker.refetch()} />;
 
   const t = tracker.data;
@@ -158,21 +161,22 @@ export default function Days() {
           </Text>
         ))}
         <Text variant="bodySmall" style={styles.note}>
-          Counting rules v{visaRules.rulesVersion}: full-time weeks ({visaRules.fullTimeWeekHours}+ hrs) count
-          7 days; otherwise shifts of {visaRules.fullDayHours}+ hrs count as a day; each calendar day counts
-          once.
+          Counting rules v{visaRules.rulesVersion}: full-time weeks ({visaRules.fullTimeWeekHours}+ hrs over{' '}
+          {visaRules.fullTimeWeekMinDays}+ days) count 7 days; otherwise shifts of {visaRules.fullDayHours}+
+          hrs count as a day; each calendar day counts once.
         </Text>
       </Screen>
 
       <LogShiftSheet
         visible={logging}
         employers={t.employers}
+        shifts={t.shifts}
         defaults={{
           employerId: lastShift?.employer_id,
           hoursFor: (id) => t.shifts.find((s) => s.employer_id === id)?.hours ?? 8,
         }}
         saving={logShift.isPending}
-        error={logShift.error?.message}
+        error={logShift.error ? friendlyError(logShift.error) : undefined}
         onDismiss={() => setLogging(false)}
         onSave={(s) =>
           logShift.mutate(s, {
@@ -183,9 +187,7 @@ export default function Days() {
           })
         }
       />
-      <Snackbar visible={message !== null} onDismiss={() => setMessage(null)} duration={2500}>
-        {message}
-      </Snackbar>
+      <Toast message={message} onDismiss={() => setMessage(null)} duration={2500} />
     </>
   );
 }

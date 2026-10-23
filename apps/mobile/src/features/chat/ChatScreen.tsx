@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
-import { IconButton, Snackbar, Text, TextInput } from 'react-native-paper';
+import { IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LoadError, Loading } from '@/components/Loading';
 import { useUserId } from '@/providers/AuthProvider';
@@ -9,6 +9,7 @@ import { MIN_TAP } from '@/theme';
 import { markRead, useConversations, useMessages, useSendMessage, type Message } from './api';
 import { ReportDialog } from './ReportDialog';
 import { friendlyError } from '@/lib/errors';
+import { Toast } from '@/components/Toast';
 
 function time(iso: string) {
   const d = new Date(iso);
@@ -25,6 +26,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
   const [draft, setDraft] = useState('');
   const [reporting, setReporting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [barHeight, setBarHeight] = useState(0);
 
   const convo = conversations.data?.find((c) => c.conversation_id === conversationId);
   const newest = messages.data?.[0]?.id;
@@ -81,7 +83,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
             renderItem={({ item }) => <Bubble m={item} mine={item.sender_id === userId} />}
           />
         )}
-        <View style={styles.composer}>
+        <View style={styles.composer} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
           <TextInput
             mode="outlined"
             placeholder="Message"
@@ -115,9 +117,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
           setNotice('Thanks. The Croppr team will review your report.');
         }}
       />
-      <Snackbar visible={notice !== null} onDismiss={() => setNotice(null)} duration={3500}>
-        {notice}
-      </Snackbar>
+      <Toast message={notice} onDismiss={() => setNotice(null)} duration={3500} bottomOffset={barHeight} />
     </SafeAreaView>
   );
 }

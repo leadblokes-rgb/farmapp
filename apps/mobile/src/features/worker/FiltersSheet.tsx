@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Modal, Portal, Text } from 'react-native-paper';
 import { BigButton } from '@/components/BigButton';
-import { ChipSelect } from '@/components/form/ChipSelect';
 import { DateField } from '@/components/form/DateField';
 import { MoneyField } from '@/components/form/MoneyField';
 import { SwitchRow } from '@/components/form/SwitchRow';
-import { useRegions } from '@/features/common/api';
+import { RegionSelect } from '@/features/common/RegionSelect';
 import { NO_FILTERS, type FeedFilters } from './feedApi';
 
 interface Props {
@@ -28,7 +27,6 @@ export function FiltersSheet({ visible, value, onApply, onDismiss }: Props) {
 }
 
 function FiltersForm({ initial, onApply }: { initial: FeedFilters; onApply: (f: FeedFilters) => void }) {
-  const regions = useRegions();
   const [f, setF] = useState(initial);
   const set = <K extends keyof FeedFilters>(k: K, v: FeedFilters[K]) => setF((prev) => ({ ...prev, [k]: v }));
 
@@ -38,15 +36,11 @@ function FiltersForm({ initial, onApply }: { initial: FeedFilters; onApply: (f: 
         Filter jobs
       </Text>
       <Text variant="titleMedium">Regions</Text>
-      <ChipSelect
-        options={(regions.data ?? []).map((r) => ({ key: r.id, label: r.name }))}
-        selected={f.regionIds}
-        onChange={(ids) => set('regionIds', ids)}
-      />
+      <RegionSelect selected={f.regionIds} onChange={(ids) => set('regionIds', ids)} />
       <Text variant="titleMedium">I&apos;m available</Text>
       <View style={styles.row}>
         <DateField label="From" value={f.from} onChange={(v) => set('from', v)} />
-        <DateField label="To" value={f.to} onChange={(v) => set('to', v)} />
+        <DateField label="To" value={f.to} minDate={f.from} onChange={(v) => set('to', v)} />
       </View>
       <MoneyField
         label="Minimum hourly pay"

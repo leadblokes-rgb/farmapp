@@ -2,10 +2,10 @@ import { jobRoleLabel } from '@croppr/shared';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Dialog, Portal, Snackbar, Text } from 'react-native-paper';
+import { Button, Dialog, Portal, Text } from 'react-native-paper';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { Meter } from '@/components/Meter';
-import { LoadError, Loading } from '@/components/Loading';
+import { LoadError } from '@/components/Loading';
 import { WarningBanner } from '@/components/WarningBanner';
 import { ApplicantCard } from '@/features/farm/ApplicantCard';
 import { useJob, useSetJobStatus, type JobStatus } from '@/features/farm/jobsApi';
@@ -13,6 +13,8 @@ import { useDecide, useShortlist, type Applicant, type Decision } from '@/featur
 import { dateRangeLabel } from '@/features/jobs/format';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { ListSkeleton } from '@/components/Skeleton';
+import { Toast } from '@/components/Toast';
 
 type Tab = 'applied' | 'accepted' | 'declined';
 
@@ -26,6 +28,7 @@ export default function JobShortlist() {
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<Decision | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [barHeight, setBarHeight] = useState(0);
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
   const byTab = (t: Tab) => applicants.filter((a) => a.status === t);
@@ -42,7 +45,7 @@ export default function JobShortlist() {
     return `Group of ${a.group_size} · with ${others.map((o) => o.full_name.split(' ')[0]).join(', ')}`;
   };
 
-  if (job.isPending || shortlist.isPending) return <Loading />;
+  if (job.isPending || shortlist.isPending) return <ListSkeleton label="Loading applicants" />;
   if (job.isError || !job.data) return <LoadError onRetry={() => job.refetch()} />;
   if (shortlist.isError) return <LoadError onRetry={() => shortlist.refetch()} />;
 
@@ -217,7 +220,7 @@ export default function JobShortlist() {
       />
 
       {selected.length ? (
-        <View style={styles.bulkBar}>
+        <View style={styles.bulkBar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
           {tab === 'applied' ? (
             <Button
               mode="contained"
@@ -263,9 +266,12 @@ export default function JobShortlist() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-      <Snackbar visible={message !== null} onDismiss={() => setMessage(null)} duration={3000}>
-        {message}
-      </Snackbar>
+      <Toast
+        message={message}
+        onDismiss={() => setMessage(null)}
+        duration={3000}
+        bottomOffset={selected.length ? barHeight : 0}
+      />
     </View>
   );
 }

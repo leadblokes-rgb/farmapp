@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Badge, Button, IconButton, Snackbar, Text } from 'react-native-paper';
-import { LoadError, Loading } from '@/components/Loading';
+import { Badge, Button, IconButton, Text } from 'react-native-paper';
+import { LoadError } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
+import { CardSkeleton } from '@/components/Skeleton';
 import {
   activeFilterCount,
   NO_FILTERS,
@@ -18,6 +19,7 @@ import { JobDetailSheet } from '@/features/worker/JobDetailSheet';
 import { SwipeDeck, type SwipeDeckHandle, type SwipeDirection } from '@/features/worker/SwipeDeck';
 import { useUserId } from '@/providers/AuthProvider';
 import { friendlyError } from '@/lib/errors';
+import { Toast } from '@/components/Toast';
 
 export default function Discover() {
   const userId = useUserId();
@@ -29,6 +31,7 @@ export default function Discover() {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [last, setLast] = useState<{ item: RankedFeedJob; direction: SwipeDirection } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [barHeight, setBarHeight] = useState(0);
   const deck = useRef<SwipeDeckHandle>(null);
 
   const feed = useFeed(userId, filters);
@@ -91,7 +94,7 @@ export default function Discover() {
 
       <View style={styles.deckArea}>
         {feed.isPending ? (
-          <Loading />
+          <CardSkeleton />
         ) : feed.isError ? (
           <LoadError onRetry={() => feed.refetch()} />
         ) : queue.length === 0 ? (
@@ -119,7 +122,7 @@ export default function Discover() {
         )}
       </View>
 
-      <View style={styles.actions}>
+      <View style={styles.actions} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
         <IconButton
           icon="close"
           mode="outlined"
@@ -183,9 +186,7 @@ export default function Discover() {
           setMessage('Thanks. The Croppr team will review your report.');
         }}
       />
-      <Snackbar visible={message !== null} onDismiss={() => setMessage(null)} duration={2500}>
-        {message}
-      </Snackbar>
+      <Toast message={message} onDismiss={() => setMessage(null)} duration={2500} bottomOffset={barHeight} />
     </Screen>
   );
 }

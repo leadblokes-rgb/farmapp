@@ -296,3 +296,24 @@ begin
   end if;
 end;
 $$;
+
+-- ---------------------------------------------------------------------------
+-- Day tracker (milestone 6): Sam has logged 3 full-time weeks at a previous farm plus a payslip.
+-- ---------------------------------------------------------------------------
+
+insert into public.employers_worked (id, worker_id, name, postcode, counts_as_specified) values
+  ('e1000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Sunny Strawberries (Caboolture)', '4510', true),
+  ('e1000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'Brisbane CBD cafe', '4000', false);
+
+-- Three Mon–Fri weeks of 8-hour shifts, ending last week.
+insert into public.shift_logs (worker_id, employer_id, work_date, hours)
+select '11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-000000000001', d::date, 8
+from generate_series(date_trunc('week', current_date) - interval '35 days', date_trunc('week', current_date) - interval '15 days', interval '1 day') as d
+where extract(isodow from d) <= 5;
+
+insert into public.shift_logs (worker_id, employer_id, work_date, hours)
+values ('11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-000000000002', current_date - 3, 6);
+
+insert into public.payslips (worker_id, employer_id, period_start, period_end, days_worked, hours_total)
+values ('11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-000000000001',
+        current_date - 70, current_date - 57, 10, 80);

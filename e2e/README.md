@@ -9,6 +9,8 @@ npm i -D playwright && npx playwright install chromium   # once
 npm run test:e2e
 ```
 
+The suites sign in with the one-tap demo buttons, so `apps/mobile/.env.local` needs `EXPO_PUBLIC_SHOW_DEMO_ACCOUNTS=true` (restart Expo after changing it).
+
 Each suite resets the database first. Failure screenshots go to `e2e/screenshots/`, which git ignores.
 
 Swipe gestures, the camera and push notifications behave differently on a real phone, so also do a manual pass on a device before releases.

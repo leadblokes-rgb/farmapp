@@ -3,6 +3,7 @@ import {
   VISA_TYPE_LABELS,
   VISA_TYPES,
   VISA_TYPES_WITH_EXPIRY,
+  todayIso,
   workerProfileSchema,
   type WorkerProfileInput,
 } from '@croppr/shared';
@@ -21,7 +22,8 @@ import { Stepper } from '@/components/form/Stepper';
 import { SwitchRow } from '@/components/form/SwitchRow';
 import { FieldMessage, TextField } from '@/components/form/TextField';
 import { zodResolver } from '@/lib/zodResolver';
-import { usePostcode, useRegions } from '@/features/common/api';
+import { usePostcode } from '@/features/common/api';
+import { RegionSelect } from '@/features/common/RegionSelect';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 
@@ -33,7 +35,6 @@ interface Props {
 }
 
 export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: Props) {
-  const regions = useRegions();
   const [photo, setPhoto] = useState<PickedImage | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const {
@@ -48,6 +49,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
     control,
     name: ['visaType', 'travelMode', 'currentPostcode', 'fullName'],
   });
+  const availabilityValues = useWatch({ control, name: 'availability' });
   const place = usePostcode(postcode);
 
   const submit = handleSubmit(async (values) => {
@@ -121,6 +123,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
               <DateField
                 label="Visa expiry date"
                 value={field.value}
+                minDate={todayIso()}
                 onChange={field.onChange}
                 error={fieldState.error?.message}
               />
@@ -152,11 +155,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
           name="regionIds"
           render={({ field, fieldState }) => (
             <View>
-              <ChipSelect
-                options={(regions.data ?? []).map((r) => ({ key: r.id, label: r.name }))}
-                selected={field.value}
-                onChange={field.onChange}
-              />
+              <RegionSelect selected={field.value} onChange={field.onChange} />
               <FieldMessage error={fieldState.error?.message} />
             </View>
           )}
@@ -183,6 +182,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
                 <DateField
                   label="To"
                   value={field.value || null}
+                  minDate={availabilityValues?.[index]?.startDate || null}
                   onChange={(v) => field.onChange(v ?? '')}
                   error={fieldState.error?.message}
                 />

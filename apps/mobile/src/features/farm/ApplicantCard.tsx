@@ -63,12 +63,10 @@ export function ApplicantCard({ a, selectable, selected, onToggle, onOpen, group
             <Avatar.Text size={52} label={initials(a.full_name)} />
           )}
           <View style={styles.flex}>
-            <Text variant="titleMedium" style={styles.name} numberOfLines={1}>
+            <Text variant="titleMedium" style={styles.name} numberOfLines={2}>
               {a.full_name}
             </Text>
-            <Text variant="bodyMedium" numberOfLines={1}>
-              {[a.locality, b.distance?.note].filter(Boolean).join(' · ')}
-            </Text>
+            <Text variant="bodyMedium">{[a.locality, b.distance?.note].filter(Boolean).join(' · ')}</Text>
           </View>
           {a.match_score != null ? (
             <View
