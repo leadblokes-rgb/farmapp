@@ -12,9 +12,13 @@ interface Props {
   onDismiss: () => void;
   onDecide: (direction: SwipeDirection) => void;
   onReport: (item: RankedFeedJob) => void;
+  /** Shown as "Save for later" when given (Discover). */
+  onSave?: () => void;
+  /** Label for the left button, e.g. "Remove" on the saved list. */
+  skipLabel?: string;
 }
 
-export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
+export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, skipLabel = 'Skip' }: Props) {
   return (
     <Portal>
       <Modal visible={item !== null} onDismiss={onDismiss} contentContainerStyle={styles.modal}>
@@ -58,6 +62,11 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
               >
                 Report this job
               </Button>
+              {onSave ? (
+                <Button mode="text" icon="bookmark-outline" onPress={onSave} style={styles.report}>
+                  Save for later
+                </Button>
+              ) : null}
             </ScrollView>
             <View style={styles.actions}>
               <Button
@@ -68,7 +77,7 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
                 contentStyle={styles.tall}
                 onPress={() => onDecide('pass')}
               >
-                Skip
+                {skipLabel}
               </Button>
               <Button
                 mode="contained"

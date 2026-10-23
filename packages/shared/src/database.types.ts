@@ -457,6 +457,48 @@ export type Database = {
           },
         ];
       };
+      job_alerts: {
+        Row: {
+          accommodation_only: boolean;
+          available_from: string | null;
+          available_to: string | null;
+          enabled: boolean;
+          min_hourly_cents: number | null;
+          region_ids: string[];
+          updated_at: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          accommodation_only?: boolean;
+          available_from?: string | null;
+          available_to?: string | null;
+          enabled?: boolean;
+          min_hourly_cents?: number | null;
+          region_ids?: string[];
+          updated_at?: string;
+          worker_id: string;
+        };
+        Update: {
+          accommodation_only?: boolean;
+          available_from?: string | null;
+          available_to?: string | null;
+          enabled?: boolean;
+          min_hourly_cents?: number | null;
+          region_ids?: string[];
+          updated_at?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_alerts_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       jobs: {
         Row: {
           accommodation_cost_week_cents: number | null;
@@ -907,6 +949,40 @@ export type Database = {
           },
         ];
       };
+      saved_jobs: {
+        Row: {
+          created_at: string;
+          job_id: string;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          job_id: string;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          job_id?: string;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'saved_jobs_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'saved_jobs_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       shift_logs: {
         Row: {
           created_at: string;
@@ -952,6 +1028,28 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      specified_work_postcodes: {
+        Row: {
+          category: string;
+          postcode_from: number;
+          postcode_to: number;
+          visa_subclass: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          postcode_from: number;
+          postcode_to: number;
+          visa_subclass: string;
+        };
+        Update: {
+          category?: string;
+          postcode_from?: number;
+          postcode_to?: number;
+          visa_subclass?: string;
+        };
+        Relationships: [];
       };
       swipes: {
         Row: {
@@ -1497,8 +1595,15 @@ export type Database = {
       is_conversation_participant: { Args: { p_conversation_id: string }; Returns: boolean };
       is_my_applicant: { Args: { p_worker_id: string }; Returns: boolean };
       is_my_applicant_folder: { Args: { p_folder: string }; Returns: boolean };
+      is_specified_work_postcode: { Args: { p_postcode: string; p_subclass: string }; Returns: boolean };
       is_valid_abn: { Args: { abn: string }; Returns: boolean };
       is_verified_farm: { Args: { p_farm_id: string }; Returns: boolean };
+      job_alert_recipients: {
+        Args: { p_job_id: string };
+        Returns: {
+          worker_id: string;
+        }[];
+      };
       job_feed: {
         Args: {
           p_accommodation_only?: boolean;
@@ -1506,6 +1611,7 @@ export type Database = {
           p_limit?: number;
           p_min_hourly_cents?: number;
           p_region_ids?: string[];
+          p_saved_only?: boolean;
           p_to?: string;
         };
         Returns: {

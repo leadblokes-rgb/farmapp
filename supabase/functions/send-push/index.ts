@@ -6,6 +6,7 @@
 //   no_show_marked       -> the worker (with a way to dispute it)
 //   application_completed -> the worker ("How was it? Leave a rating")
 //   check_in_reminder    -> the farm owner, on a job's first day
+//   job_alert            -> every worker whose job alert matches a new job (max 3 a day each)
 // Every attempt is written to public.notification_log.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -121,54 +122,84 @@ async function build(event: string, payload: Record<string, string>): Promise<No
   return null;
 }
 
+// Job alerts go to every worker whose alert matches (see job_alert_recipients in SQL).
+async function jobAlerts(jobId: string): Promise<Notice[]> {
+  const [j] = await rest<any[]>(
+    `jobs?id=eq.${jobId}&select=id,title,pay_type,pay_rate_cents,min_hourly_guarantee_cents,farm:farms(business_name),postcode`,
+  );
+  if (!j) return [];
+  const recipients = await rest<{ worker_id: string }[]>('rpc/job_alert_recipients', {
+    method: 'POST',
+    body: JSON.stringify({ p_job_id: jobId }),
+    headers: { Prefer: 'return=representation' },
+  });
+  const hourly = j.pay_type === 'hourly' ? j.pay_rate_cents : j.min_hourly_guarantee_cents;
+  const pay = hourly ? ` · from $${(hourly / 100).toFixed(2)}/hr` : '';
+  return recipients.map((r) => ({
+    recipientId: r.worker_id,
+    title: `New job: ${j.title}`,
+    body: `${j.farm.business_name}${pay}. Tap to have a look.`,
+    url: '/worker',
+  }));
+}
+
+async function deliver(event: string, notice: Notice): Promise<string> {
+  const tokens = await rest<{ expo_token: string }[]>(
+    `push_tokens?user_id=eq.${notice.recipientId}&select=expo_token`,
+    { headers: { Prefer: 'return=representation' } },
+  );
+  let outcome = 'no_tokens';
+  if (tokens.length) {
+    const res = await fetch(EXPO_PUSH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(
+        tokens.map((t) => ({
+          to: t.expo_token,
+          title: notice.title,
+          body: notice.body,
+          sound: 'default',
+          data: { url: notice.url },
+        })),
+      ),
+    }).catch((e) => ({ ok: false, status: 0, statusText: String(e) }) as Response);
+    outcome = res.ok ? 'sent' : `expo_error_${res.status}`;
+  }
+  await rest('notification_log', {
+    method: 'POST',
+    body: JSON.stringify({
+      event,
+      recipient_id: notice.recipientId,
+      title: notice.title,
+      body: notice.body,
+      url: notice.url,
+      tokens: tokens.length,
+      outcome,
+    }),
+  });
+  return outcome;
+}
+
 Deno.serve(async (req) => {
   if (req.headers.get('Authorization') !== `Bearer ${SERVICE_KEY}`) {
     return new Response('Forbidden', { status: 403 });
   }
   const { event, ...payload } = await req.json();
-  let notice: Notice | null = null;
+  let current: Notice | null = null;
   try {
-    notice = await build(event, payload);
-    if (!notice) return Response.json({ skipped: true });
-
-    const tokens = await rest<{ expo_token: string }[]>(
-      `push_tokens?user_id=eq.${notice.recipientId}&select=expo_token`,
-    );
-    let outcome = 'no_tokens';
-    if (tokens.length) {
-      const res = await fetch(EXPO_PUSH_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(
-          tokens.map((t) => ({
-            to: t.expo_token,
-            title: notice!.title,
-            body: notice!.body,
-            sound: 'default',
-            data: { url: notice!.url },
-          })),
-        ),
-      }).catch((e) => ({ ok: false, status: 0, statusText: String(e) }) as Response);
-      outcome = res.ok ? 'sent' : `expo_error_${res.status}`;
+    const notices = event === 'job_alert' ? await jobAlerts(payload.job_id) : [await build(event, payload)];
+    const outcomes: string[] = [];
+    for (const notice of notices) {
+      if (!notice) continue;
+      current = notice;
+      outcomes.push(await deliver(event, notice));
     }
-    await rest('notification_log', {
-      method: 'POST',
-      body: JSON.stringify({
-        event,
-        recipient_id: notice.recipientId,
-        title: notice.title,
-        body: notice.body,
-        url: notice.url,
-        tokens: tokens.length,
-        outcome,
-      }),
-    });
-    return Response.json({ outcome });
+    return Response.json(outcomes.length ? { outcomes } : { skipped: true });
   } catch (e) {
     console.error(e);
     await rest('notification_log', {
       method: 'POST',
-      body: JSON.stringify({ event, recipient_id: notice?.recipientId ?? null, outcome: `error: ${String(e).slice(0, 200)}` }),
+      body: JSON.stringify({ event, recipient_id: current?.recipientId ?? null, outcome: `error: ${String(e).slice(0, 200)}` }),
     }).catch(() => {});
     return new Response('error', { status: 500 });
   }

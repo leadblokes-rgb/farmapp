@@ -116,6 +116,7 @@ npm run test:e2e        # browser end-to-end suites (see e2e/README.md)
 |---|---|---|
 | `packages/shared/src/config/payRules.ts` | Horticulture Award casual minimum, used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
 | `packages/shared/src/config/visaRules.ts` | Specified-work day counting: 88/179 targets, full-time week = 7 days, full-day hours, short-shift handling, disclaimer text | Whenever Home Affairs changes its guidance |
+| `packages/shared/src/config/specifiedWorkPostcodes.ts` | Eligible postcodes for plant & animal cultivation (417 and 462). Used on job cards, the job form and the day tracker. Mirrored in SQL (`specified_work_postcodes`); a unit test keeps the two in sync | Whenever Home Affairs updates the specified-work instrument |
 | `packages/matching/src/weights.ts` | How much each factor counts in match scores | As you learn what farms value |
 
 ## Matching
@@ -139,6 +140,15 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 - Farm ratings are public to signed-in users. Worker ratings are visible only to farms the worker has applied to, and to the worker.
 - Each no-show counts as a 1-star reliability rating in the ranking, unless the worker has disputed it and the Croppr team hasn't decided yet.
 - Reviews can be reported; admins handle reports and disputes as described in the runbook.
+
+## Saved jobs and job alerts
+
+- Workers swipe a job **up** (or tap the bookmark) to save it. Saved jobs leave the swipe feed and are listed under Matches → Saved, with Apply and Remove.
+- **Job alerts** (Profile → Job alerts): regions, minimum pay and accommodation. A new open job pushes to each matching worker, at most 3 alerts per worker per day (`job_alert_recipients` in SQL, sent by `send-push`).
+
+## Specified-work postcodes
+
+Croppr checks one kind of specified work automatically: **plant and animal cultivation in an eligible regional postcode**, for the worker's own visa subclass (417 or 462). Job cards say "Eligible postcode for 417 plant & animal cultivation"; the job form pre-ticks "likely counts as specified work"; the tracker pre-sets new employers and flags ones outside the list. Other specified work (tourism, construction, fishing, recovery work…) isn't detected, and the app says so.
 
 ## Farm tools
 

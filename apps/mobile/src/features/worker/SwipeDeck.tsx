@@ -12,7 +12,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 import type { RankedFeedJob } from './feedApi';
 import { JobCardContent } from './JobCardContent';
 
-export type SwipeDirection = 'like' | 'pass';
+/** Right applies, left skips, up saves for later. */
+export type SwipeDirection = 'like' | 'pass' | 'save';
 
 export interface SwipeDeckHandle {
   /** Animate the top card off-screen, as if swiped (used by the big buttons). */
@@ -26,20 +27,23 @@ interface Props {
 }
 
 const SWIPE_THRESHOLD = 0.3; // fraction of screen width
+const SAVE_THRESHOLD = 0.18; // fraction of screen height, swiping up
 
 export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
   { items, onSwiped, onOpen },
   ref,
 ) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const tx = useSharedValue(0);
+  const ty = useSharedValue(0);
   const top = items[0];
   const next = items[1];
 
   // Each new top card starts centred.
   useEffect(() => {
     tx.value = 0;
-  }, [top?.job.id, tx]);
+    ty.value = 0;
+  }, [top?.job.id, tx, ty]);
 
   function finish(direction: SwipeDirection) {
     if (top) onSwiped(top, direction);
@@ -47,29 +51,41 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
 
   function flyOut(direction: SwipeDirection) {
     'worklet';
-    tx.value = withTiming((direction === 'like' ? 1 : -1) * width * 1.5, { duration: 220 }, (done) => {
-      if (done) scheduleOnRN(finish, direction);
-    });
+    const done = (finished?: boolean) => {
+      if (finished) scheduleOnRN(finish, direction);
+    };
+    if (direction === 'save') {
+      tx.value = withTiming(0, { duration: 220 });
+      ty.value = withTiming(-height * 1.2, { duration: 220 }, done);
+    } else {
+      tx.value = withTiming((direction === 'like' ? 1 : -1) * width * 1.5, { duration: 220 }, done);
+    }
   }
 
   useImperativeHandle(ref, () => ({ swipe: (d) => top && flyOut(d) }));
 
   const pan = Gesture.Pan()
     .activeOffsetX([-12, 12])
+    .activeOffsetY([-12, 12])
     .onUpdate((e) => {
       tx.value = e.translationX;
+      ty.value = Math.min(0, e.translationY);
     })
     .onEnd((e) => {
       if (Math.abs(e.translationX) > width * SWIPE_THRESHOLD || Math.abs(e.velocityX) > 900) {
         flyOut(e.translationX > 0 ? 'like' : 'pass');
+      } else if (-e.translationY > height * SAVE_THRESHOLD || e.velocityY < -900) {
+        flyOut('save');
       } else {
         tx.value = withSpring(0);
+        ty.value = withSpring(0);
       }
     });
 
   const topStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: tx.value },
+      { translateY: ty.value },
       { rotate: `${interpolate(tx.value, [-width, width], [-12, 12])}deg` },
     ],
   }));
@@ -78,6 +94,9 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
   }));
   const applyLabel = useAnimatedStyle(() => ({
     opacity: interpolate(tx.value, [20, width * 0.25], [0, 1], 'clamp'),
+  }));
+  const saveLabel = useAnimatedStyle(() => ({
+    opacity: interpolate(ty.value, [-height * 0.15, -20], [1, 0], 'clamp'),
   }));
   const skipLabel = useAnimatedStyle(() => ({
     opacity: interpolate(tx.value, [-width * 0.25, -20], [1, 0], 'clamp'),
@@ -105,6 +124,9 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
           </Pressable>
           <Animated.View style={[styles.stamp, styles.applyStamp, applyLabel]} pointerEvents="none">
             <Text style={[styles.stampText, styles.applyText]}>APPLY</Text>
+          </Animated.View>
+          <Animated.View style={[styles.stamp, styles.saveStamp, saveLabel]} pointerEvents="none">
+            <Text style={[styles.stampText, styles.saveText]}>SAVED</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.skipStamp, skipLabel]} pointerEvents="none">
             <Text style={[styles.stampText, styles.skipText]}>SKIP</Text>
@@ -147,7 +169,9 @@ const styles = StyleSheet.create({
   },
   applyStamp: { left: 20, borderColor: '#17482F', transform: [{ rotate: '-12deg' }] },
   skipStamp: { right: 20, borderColor: '#B00020', transform: [{ rotate: '12deg' }] },
+  saveStamp: { alignSelf: 'center', top: 60, borderColor: '#8D5A00' },
   stampText: { fontSize: 30, fontWeight: '900' },
   applyText: { color: '#17482F' },
   skipText: { color: '#B00020' },
+  saveText: { color: '#8D5A00' },
 });

@@ -380,3 +380,6 @@ values ('11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-0000000
 insert into public.payslips (worker_id, employer_id, period_start, period_end, days_worked, hours_total)
 values ('11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-000000000001',
         current_date - 70, current_date - 57, 10, 80);
+
+-- Job alerts (phase C): Sam gets alerts for new jobs in the Lockyer Valley.
+insert into public.job_alerts (worker_id, region_ids) values ('11111111-1111-1111-1111-111111111111', array['lockyer-valley']);

@@ -8,6 +8,7 @@ import {
   activeFilterCount,
   NO_FILTERS,
   useFeed,
+  useSaveJob,
   useSwipe,
   useUndoSwipe,
   type FeedFilters,
@@ -37,6 +38,7 @@ export default function Discover() {
   const feed = useFeed(userId, filters);
   const swipe = useSwipe();
   const undo = useUndoSwipe();
+  const save = useSaveJob(userId);
 
   const queue = useMemo(
     () => (feed.data ?? []).filter((r) => !swipedIds.includes(r.job.id)),
@@ -46,29 +48,37 @@ export default function Discover() {
   function handleSwiped(item: RankedFeedJob, direction: SwipeDirection) {
     setSwipedIds((ids) => [...ids, item.job.id]);
     setLast({ item, direction });
+    const restore = (e: unknown) => {
+      setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
+      setMessage(friendlyError(e));
+    };
+    if (direction === 'save') {
+      save.mutate(
+        { jobId: item.job.id, saved: true },
+        { onSuccess: () => setMessage('Saved for later. Find it in Matches → Saved.'), onError: restore },
+      );
+      return;
+    }
     swipe.mutate(
       { jobId: item.job.id, direction },
       {
         onSuccess: () => direction === 'like' && setMessage(`Applied to ${item.job.title}`),
-        onError: (e) => {
-          setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
-          setMessage(friendlyError(e));
-        },
+        onError: restore,
       },
     );
   }
 
   function handleUndo() {
     if (!last) return;
-    const { item } = last;
-    undo.mutate(item.job.id, {
-      onSuccess: () => {
-        setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
-        setLast(null);
-        setMessage('Undone');
-      },
-      onError: (e) => setMessage(friendlyError(e)),
-    });
+    const { item, direction } = last;
+    const onSuccess = () => {
+      setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
+      setLast(null);
+      setMessage('Undone');
+    };
+    const onError = (e: unknown) => setMessage(friendlyError(e));
+    if (direction === 'save') save.mutate({ jobId: item.job.id, saved: false }, { onSuccess, onError });
+    else undo.mutate(item.job.id, { onSuccess, onError });
   }
 
   const filterCount = activeFilterCount(filters);
@@ -138,9 +148,18 @@ export default function Discover() {
           mode="outlined"
           size={28}
           style={styles.smallRound}
-          disabled={!last || undo.isPending}
+          disabled={!last || undo.isPending || save.isPending}
           onPress={handleUndo}
           accessibilityLabel="Undo last swipe"
+        />
+        <IconButton
+          icon="bookmark-outline"
+          mode="outlined"
+          size={28}
+          style={styles.smallRound}
+          disabled={!queue.length}
+          onPress={() => deck.current?.swipe('save')}
+          accessibilityLabel="Save for later"
         />
         <IconButton
           icon="check"
@@ -174,6 +193,10 @@ export default function Discover() {
         onDecide={(direction) => {
           setDetail(null);
           deck.current?.swipe(direction);
+        }}
+        onSave={() => {
+          setDetail(null);
+          deck.current?.swipe('save');
         }}
       />
       <ReportDialog

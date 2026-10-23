@@ -17,6 +17,7 @@ export function SwitchRow({ label, description, value, onChange }: Props) {
       style={styles.row}
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
+      aria-checked={value}
       accessibilityLabel={label}
     >
       <View style={styles.text}>

@@ -1,3 +1,4 @@
+import { isSpecifiedWorkPostcode, isWhmSubclass } from './config/specifiedWorkPostcodes';
 import { visaRules as defaultRules, type TrackerGoal, type VisaRules } from './config/visaRules';
 
 // Pure, unit-tested estimate of specified-work days. All rules come from config/visaRules.ts.
@@ -7,6 +8,7 @@ export interface TrackerEmployer {
   name: string;
   /** The worker says this employer's work is specified work in an eligible postcode. */
   countsAsSpecified: boolean;
+  postcode?: string | null;
 }
 
 export interface ShiftLog {
@@ -44,13 +46,15 @@ export interface EstimateOptions {
   rules?: VisaRules;
   /** ISO date of "today" (device local). Nothing after it is ever counted. */
   today: string;
+  /** The worker's visa, to flag employers whose postcode isn't on the eligible list. */
+  visaType?: string | null;
 }
 
 export function estimateDays(
   employers: TrackerEmployer[],
   shifts: ShiftLog[],
   payslips: Payslip[],
-  { goal = 'second', rules = defaultRules, today }: EstimateOptions,
+  { goal = 'second', rules = defaultRules, today, visaType }: EstimateOptions,
 ): DayEstimate {
   const eligible = new Map(employers.filter((e) => e.countsAsSpecified).map((e) => [e.id, e]));
   const notes: string[] = [];
@@ -133,6 +137,15 @@ export function estimateDays(
   }
   if (futureIgnored) {
     notes.push('Dates after today aren’t counted yet.');
+  }
+  if (isWhmSubclass(visaType)) {
+    for (const e of employers) {
+      if (e.countsAsSpecified && e.postcode && !isSpecifiedWorkPostcode(e.postcode, visaType)) {
+        notes.push(
+          `${e.name} (${e.postcode}) isn’t an eligible postcode for ${visaType} plant & animal cultivation. Only count it if it’s another kind of specified work.`,
+        );
+      }
+    }
   }
   if (employers.some((e) => !e.countsAsSpecified)) {
     notes.push('Work you marked as not specified work is not counted.');

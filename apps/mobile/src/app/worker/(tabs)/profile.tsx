@@ -4,6 +4,7 @@ import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
 import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
 import { GroupCard } from '@/features/worker/GroupCard';
+import { JobAlertsCard } from '@/features/worker/JobAlertsCard';
 import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { useSignedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
@@ -14,7 +15,7 @@ export default function WorkerProfile() {
   const profile = useMyWorkerProfile(userId);
   const photoUrl = useSignedUrl('avatars', profile.data?.photoPath);
   const save = useSaveWorkerProfile(userId);
-  const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   if (profile.isPending) return <Loading />;
   if (profile.isError || !profile.data) return <LoadError onRetry={() => profile.refetch()} />;
@@ -31,12 +32,13 @@ export default function WorkerProfile() {
           submitLabel="Save changes"
           onSubmit={async (values, photo) => {
             await save.mutateAsync({ values, photo });
-            setSaved(true);
+            setMessage('Profile saved');
           }}
         />
+        <JobAlertsCard userId={userId} onSaved={setMessage} />
         <DangerZone />
       </Screen>
-      <Toast message={saved ? 'Profile saved' : null} onDismiss={() => setSaved(false)} />
+      <Toast message={message} onDismiss={() => setMessage(null)} />
     </>
   );
 }

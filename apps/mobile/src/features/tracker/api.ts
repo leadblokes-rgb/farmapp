@@ -55,6 +55,7 @@ export function useTracker(userId: string) {
           id: e.id,
           name: e.name,
           countsAsSpecified: e.counts_as_specified,
+          postcode: e.postcode,
         })),
         shiftRows.map((s) => ({ employerId: s.employer_id, workDate: s.work_date, hours: s.hours })),
         payslipRows.map((p) => ({
@@ -64,7 +65,7 @@ export function useTracker(userId: string) {
           daysWorked: p.days_worked,
           hoursTotal: p.hours_total,
         })),
-        { goal, today: todayIso() },
+        { goal, today: todayIso(), visaType: priv.data?.visa_type ?? null },
       );
       return {
         goal,

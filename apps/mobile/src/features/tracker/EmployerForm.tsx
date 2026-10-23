@@ -1,7 +1,7 @@
-import { isValidAbn } from '@croppr/shared';
+import { isSpecifiedWorkPostcode, isValidAbn, isWhmSubclass } from '@croppr/shared';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { HelperText, TextInput } from 'react-native-paper';
+import { HelperText, Text, TextInput } from 'react-native-paper';
 import { BigButton } from '@/components/BigButton';
 import { PostcodeField } from '@/components/form/PostcodeField';
 import { SwitchRow } from '@/components/form/SwitchRow';
@@ -11,9 +11,11 @@ interface Props {
   initial: EmployerInput;
   submitLabel: string;
   onSubmit: (v: EmployerInput) => Promise<void>;
+  /** The worker's visa, to pre-set "counts as specified work" from the postcode. */
+  visaType?: string | null;
 }
 
-export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
+export function EmployerForm({ initial, submitLabel, onSubmit, visaType }: Props) {
   const [v, setV] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,7 +49,12 @@ export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
       <PostcodeField
         label="Work postcode"
         value={v.postcode}
-        onChange={(p) => set('postcode', p)}
+        onChange={(p) => {
+          set('postcode', p);
+          // Plant & animal cultivation in an eligible postcode for the worker's visa: pre-set the switch.
+          if (isWhmSubclass(visaType) && /^\d{4}$/.test(p) && p !== v.postcode)
+            set('countsAsSpecified', isSpecifiedWorkPostcode(p, visaType));
+        }}
         hint="Where the work was done (eligibility depends on the postcode)."
       />
       <TextInput
@@ -60,6 +67,13 @@ export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
         maxLength={14}
         style={styles.input}
       />
+      {isWhmSubclass(visaType) && /^\d{4}$/.test(v.postcode) ? (
+        <Text variant="bodyMedium">
+          {isSpecifiedWorkPostcode(v.postcode, visaType)
+            ? `✓ Eligible postcode for ${visaType} plant & animal cultivation.`
+            : `Not an eligible postcode for ${visaType} plant & animal cultivation. Only count it if it’s another kind of specified work.`}
+        </Text>
+      ) : null}
       <SwitchRow
         label="This counts as specified work"
         description="e.g. plant and animal cultivation in an eligible regional postcode. Turn off for other jobs (like a city café) so they aren't counted."

@@ -88,13 +88,29 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
       </Fact>
       <Fact icon="account-group" compact={compact}>{`${j.workers_needed} workers needed`}</Fact>
 
-      {j.likely_specified_work ? (
+      {item.specified.eligible === true ? (
+        <View style={styles.specified}>
+          <Icon source="passport" size={20} color="#5C3B00" />
+          <Text variant="bodyMedium" style={styles.specifiedText}>
+            {item.specified.label}
+          </Text>
+        </View>
+      ) : item.specified.eligible === false ? (
+        <Text variant="bodyMedium" style={styles.muted}>
+          {item.specified.label}
+        </Text>
+      ) : j.likely_specified_work ? (
         <View style={styles.specified}>
           <Icon source="passport" size={20} color="#5C3B00" />
           <Text variant="bodyMedium" style={styles.specifiedText}>
             {compact ? 'Likely specified work' : 'Likely counts as specified work (farm’s estimate)'}
           </Text>
         </View>
+      ) : null}
+      {!compact && item.specified.eligible !== null ? (
+        <Text variant="bodySmall" style={styles.muted}>
+          Based on the postcode only. Other kinds of specified work aren’t checked; confirm with Home Affairs.
+        </Text>
       ) : null}
     </View>
   );

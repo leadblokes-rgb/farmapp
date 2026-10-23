@@ -1,12 +1,13 @@
 import {
   JOB_ROLES,
   belowAwardWarning,
+  isSpecifiedWorkPostcodeForAnyWhm,
   formatCents,
   jobSchema,
   payRules,
   type JobInput,
 } from '@croppr/shared';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Button, HelperText, SegmentedButtons, Text } from 'react-native-paper';
@@ -36,6 +37,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<JobInput>({ defaultValues: initial, resolver: zodResolver(jobSchema) });
 
@@ -47,6 +49,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
     postcode,
     pieceRateUnit,
     startDate,
+    likelySpecifiedWork,
   ] = useWatch({
     control,
     name: [
@@ -57,8 +60,19 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
       'postcode',
       'pieceRateUnit',
       'startDate',
+      'likelySpecifiedWork',
     ],
   });
+  // When the farm enters a new postcode, pre-tick "specified work" from the eligible postcode list
+  // (plant & animal cultivation). The farm can still change it.
+  const postcodeValid = /^\d{4}$/.test(postcode);
+  const eligiblePostcode = postcodeValid && isSpecifiedWorkPostcodeForAnyWhm(postcode);
+  const lastPostcode = useRef(postcode);
+  useEffect(() => {
+    if (postcode === lastPostcode.current) return;
+    lastPostcode.current = postcode;
+    if (/^\d{4}$/.test(postcode)) setValue('likelySpecifiedWork', isSpecifiedWorkPostcodeForAnyWhm(postcode));
+  }, [postcode, setValue]);
   const place = usePostcode(postcode);
   const awardWarning = belowAwardWarning({
     payType,
@@ -288,12 +302,24 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
           render={({ field }) => (
             <SwitchRow
               label="Likely counts as specified work"
-              description="Plant and animal cultivation in an eligible regional postcode usually counts towards a 2nd or 3rd working holiday visa. Workers are told this is your estimate."
+              description="Plant and animal cultivation in an eligible regional postcode usually counts towards a 2nd or 3rd working holiday visa. Ticked automatically from the postcode."
               value={field.value}
               onChange={field.onChange}
             />
           )}
         />
+        {postcodeValid && likelySpecifiedWork && !eligiblePostcode ? (
+          <WarningBanner>
+            This postcode isn’t on the eligible list for plant and animal cultivation. Workers on 417/462
+            visas will see that. Only leave this on if it’s another kind of specified work.
+          </WarningBanner>
+        ) : null}
+        {postcodeValid && !likelySpecifiedWork && eligiblePostcode ? (
+          <Text variant="bodyMedium">
+            This postcode is eligible for plant and animal cultivation, so workers will see that whatever you
+            choose.
+          </Text>
+        ) : null}
       </Section>
 
       <FieldMessage

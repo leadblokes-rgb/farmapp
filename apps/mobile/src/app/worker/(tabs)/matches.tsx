@@ -10,7 +10,9 @@ import { ListSkeleton } from '@/components/Skeleton';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { DisputeDialog } from '@/features/ratings/DisputeDialog';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
-import { useMyApplications, useWithdrawApplication } from '@/features/worker/feedApi';
+import { useMyApplications, useSavedJobs, useWithdrawApplication } from '@/features/worker/feedApi';
+import { SavedJobs } from '@/features/worker/SavedJobs';
+import { useUserId } from '@/providers/AuthProvider';
 import { Toast } from '@/components/Toast';
 
 const STATUS = {
@@ -21,10 +23,12 @@ const STATUS = {
   completed: { label: 'Completed', color: '#C8E6C9' },
 } as const;
 
-type View_ = 'messages' | 'applications';
+type View_ = 'messages' | 'applications' | 'saved';
 
 export default function Matches() {
+  const userId = useUserId();
   const apps = useMyApplications();
+  const saved = useSavedJobs(userId);
   const withdraw = useWithdrawApplication();
   const conversations = useConversations();
   const unread = (conversations.data ?? []).reduce((n, c) => n + c.unread, 0);
@@ -41,6 +45,7 @@ export default function Matches() {
         options={[
           { key: 'messages', label: unread ? `Messages (${unread} new)` : 'Messages' },
           { key: 'applications', label: `Applications (${apps.data?.length ?? 0})` },
+          { key: 'saved', label: `Saved (${saved.data?.length ?? 0})` },
         ]}
       />
     </View>
@@ -54,6 +59,15 @@ export default function Matches() {
           header={switcher}
           emptyText="No messages yet. When a farm messages you or accepts your application, the chat appears here."
         />
+        <Toast message={message} onDismiss={() => setMessage(null)} />
+      </Screen>
+    );
+  }
+
+  if (view === 'saved') {
+    return (
+      <Screen edges={[]}>
+        <SavedJobs userId={userId} header={switcher} onMessage={setMessage} />
         <Toast message={message} onDismiss={() => setMessage(null)} />
       </Screen>
     );
