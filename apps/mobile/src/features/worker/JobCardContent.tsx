@@ -1,6 +1,7 @@
 import { formatCents, jobRoleLabel } from '@croppr/shared';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
+import { RatingSummary } from '@/components/Stars';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { dateRangeLabel, payLabel } from '@/features/jobs/format';
 import type { RankedFeedJob } from './feedApi';
@@ -42,6 +43,7 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
         </Text>
         <VerifiedBadge />
       </View>
+      {tight ? null : <RatingSummary avg={j.farm_rating_avg} count={j.farm_rating_count} />}
       <Text
         variant={tight ? 'titleLarge' : 'headlineSmall'}
         style={styles.title}

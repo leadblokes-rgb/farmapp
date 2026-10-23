@@ -1,4 +1,4 @@
-import { jobRoleLabel } from '@croppr/shared';
+import { jobRoleLabel, todayIso } from '@croppr/shared';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
@@ -11,6 +11,7 @@ import { ApplicantCard } from '@/features/farm/ApplicantCard';
 import { useJob, useSetJobStatus, type JobStatus } from '@/features/farm/jobsApi';
 import { useDecide, useShortlist, type Applicant, type Decision } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
+import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 import { ListSkeleton } from '@/components/Skeleton';
@@ -31,7 +32,9 @@ export default function JobShortlist() {
   const [barHeight, setBarHeight] = useState(0);
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
-  const byTab = (t: Tab) => applicants.filter((a) => a.status === t);
+  // Completed workers stay in the Accepted tab.
+  const byTab = (t: Tab) =>
+    applicants.filter((a) => a.status === t || (t === 'accepted' && a.status === 'completed'));
   const visible = byTab(tab);
   const accepted = byTab('accepted').length;
 
@@ -136,6 +139,19 @@ export default function JobShortlist() {
           )}
         </View>
       </View>
+      {accepted > 0 && j.start_date <= todayIso() ? (
+        <Button
+          mode="contained"
+          icon="clipboard-check-outline"
+          contentStyle={styles.tall}
+          onPress={() => router.push(`/farm/job/attendance/${j.id}`)}
+        >
+          {applicants.some((a) => a.status === 'accepted' && !a.attendance)
+            ? 'Who turned up? Check in your crew'
+            : 'Crew check-in'}
+        </Button>
+      ) : null}
+      <PendingReviews jobId={j.id} onMessage={setMessage} />
       {shortlist.data?.rankingFailed ? (
         <WarningBanner>Couldn’t refresh match scores. Showing the last ranking.</WarningBanner>
       ) : null}
@@ -191,7 +207,7 @@ export default function JobShortlist() {
           <View>
             <ApplicantCard
               a={item}
-              selectable={tab !== 'declined'}
+              selectable={tab !== 'declined' && item.status !== 'completed'}
               selected={selected.includes(item.application_id)}
               onToggle={() => toggle(item.application_id)}
               onOpen={() =>

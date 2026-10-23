@@ -42,8 +42,8 @@ let page;
   console.log(`PASS Filters lists all ${regionCount} regions`);
 
   // "To" can't be before "From"
-  await page.getByLabel('From').fill(ddmmyyyy(10));
-  await page.getByLabel('To').fill(ddmmyyyy(5));
+  await page.getByLabel('From', { exact: true }).fill(ddmmyyyy(10));
+  await page.getByLabel('To', { exact: true }).fill(ddmmyyyy(5));
   await page.getByText(/or later$/).waitFor();
   console.log('PASS date range: "To" before "From" is flagged');
   await page.keyboard.press('Escape');

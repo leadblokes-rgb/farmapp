@@ -16,6 +16,7 @@ import {
   type FactorScore,
 } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
+import { WorkerReviews } from '@/features/ratings/Reviews';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 import { Toast } from '@/components/Toast';
@@ -121,6 +122,12 @@ export default function ApplicantDetail() {
           {skillLabels.length ? ` · ${skillLabels.join(', ')}` : ''}
         </Text>
         {a.experience_summary ? <Text variant="bodyLarge">“{a.experience_summary}”</Text> : null}
+        {a.no_show_count > 0 ? (
+          <Text variant="bodyLarge" style={styles.warnText}>
+            {a.no_show_count} no-show{a.no_show_count === 1 ? '' : 's'} on Croppr jobs
+          </Text>
+        ) : null}
+        <WorkerReviews workerId={a.worker_id} />
 
         {a.status === 'applied' || a.status === 'accepted' ? (
           <Button
@@ -183,6 +190,7 @@ export default function ApplicantDetail() {
 }
 
 const styles = StyleSheet.create({
+  warnText: { color: '#8D5A00', fontWeight: '700' },
   top: { flexDirection: 'row', gap: 16, alignItems: 'center' },
   photo: { width: 96, height: 96, borderRadius: 48 },
   flex: { flex: 1 },

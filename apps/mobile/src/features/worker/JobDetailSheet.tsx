@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Divider, Modal, Portal, Text } from 'react-native-paper';
+import { FarmReviews } from '@/features/ratings/Reviews';
 import { MIN_TAP } from '@/theme';
 import type { RankedFeedJob } from './feedApi';
 import { JobCardContent } from './JobCardContent';
@@ -25,6 +26,8 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
                 About the job
               </Text>
               <Text variant="bodyLarge">{item.job.description || 'No description given.'}</Text>
+              <Divider />
+              <FarmReviews farmId={item.job.farm_id} />
               <Divider />
               <Text variant="titleMedium" style={styles.bold}>
                 Why you&apos;re seeing this ({Math.round(item.score)}% match)

@@ -89,7 +89,7 @@ To suspend a whole farm business, suspend its owner (`farms.owner_id`).
 
 ## 3. Handle reports
 
-Workers and farms can report the other person from any chat (flag icon), and workers can report a job from its detail sheet. The person reported is **not** told. Reasons are: unsafe, underpaid, harassment, scam, no-show, fake profile, other.
+Workers and farms can report the other person from any chat (flag icon), workers can report a job from its detail sheet, anyone can report a review, and workers can dispute a no-show. The person reported is **not** told. Reasons are: unsafe, underpaid, harassment, scam, no-show, fake profile, other, no-show dispute, inappropriate review.
 
 ### See the queue
 
@@ -119,7 +119,21 @@ select sender_id, body, created_at from messages where conversation_id = '<conve
   select admin_resolve_report(12, 'actioned', 'Suspended farm owner');
   ```
 - **Underpaid.** Check the job's pay (`select pay_type, pay_rate_cents, min_hourly_guarantee_cents from jobs where id = '<target_job_id>'`). Contact the farm. Point workers to the Fair Work Ombudsman (13 13 94). Suspend if it's repeated.
-- **No-show.** Usually just record it: `admin_resolve_report(<id>, 'actioned', 'Noted no-show')`. After the MVP, ratings will capture this.
+- **No-show** (reported from a chat). Usually just record it: `admin_resolve_report(<id>, 'actioned', 'Noted no-show')`. Farms now mark no-shows on the check-in screen, which counts against the worker automatically.
+- **No-show dispute** (`reason = 'no_show_dispute'`). A worker says a farm wrongly marked them as a no-show. While it's open, the no-show doesn't count against them. Read `details` and, if needed, the chat (`conversation_id`), or call the farm. Then decide:
+  ```sql
+  -- The worker did turn up: the no-show is removed and their job completes normally.
+  select admin_resolve_no_show_dispute(<report_id>, 'overturned', 'Supervisor confirmed they worked');
+  -- The no-show stands and counts against the worker.
+  select admin_resolve_no_show_dispute(<report_id>, 'upheld', 'Farm sign-in sheet shows absent');
+  ```
+  The worker sees the outcome in the app.
+- **Inappropriate review** (`reason = 'inappropriate_review'`). `review_comment` shows the text and `review_kind` says whether it's a review of a farm or of a worker. Hide reviews that are abusive, share private details, or are clearly false:
+  ```sql
+  select admin_hide_review('<review_kind>', '<review_application_id>', 'Abusive language');
+  select admin_resolve_report(<report_id>, 'actioned', 'Review hidden');
+  ```
+  A hidden review disappears from the app and from averages. Otherwise dismiss the report.
 - **Not a real problem:**
   ```sql
   select admin_resolve_report(12, 'dismissed', 'Misunderstanding about start time');

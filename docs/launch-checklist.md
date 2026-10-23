@@ -56,8 +56,6 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 - [ ] **Dev:** Rate limits on messages, reports and sign-in codes, to stop spam.
 
 ## 7. After the MVP (agreed to defer)
-- Two-way ratings after a job ends. The ranker already has a reliability slot, at a neutral value until ratings exist.
-- Mark applications "completed" automatically when a job ends, which ratings depend on.
 - A dedicated admin web app (farm queue, reports, stats) to replace the dashboard SQL.
 - Automatic ABN checks through the ABR web service, and checks against labour hire registers.
 - Farm logo upload: the storage bucket and database column exist, but there's no UI yet.

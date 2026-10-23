@@ -277,6 +277,61 @@ from public.conversations c,
           ('22222222-2222-2222-2222-222222222222'::uuid, 'Yes please. Hi-vis is supplied.', interval '80 minutes')) as m(sender, body, ago)
 where c.application_id = 'ab000000-0000-0000-0000-000000000001';
 
+-- ---------------------------------------------------------------------------
+-- Trust loop: a finished Lockyer job (check-in done, some ratings), a finished Bundy job with
+-- older one-sided ratings (revealed after 14 days), and a Lockyer job that started yesterday
+-- so the farm sees "Who turned up?".
+-- ---------------------------------------------------------------------------
+
+insert into public.jobs (id, farm_id, title, role_type, description, postcode, start_date, end_date, workers_needed,
+                         pay_type, pay_rate_cents, hours_per_week, likely_specified_work, status) values
+  ('a0000000-0000-0000-0000-000000000010', 'f0000000-0000-0000-0000-000000000001', 'Strawberry runners (last season)', 'planting',
+   'Planting strawberry runners.', '4343', current_date - 60, current_date - 10, 6, 'hourly', 3250, 38, true, 'closed'),
+  ('a0000000-0000-0000-0000-000000000011', 'f0000000-0000-0000-0000-000000000002', 'Sweet potato grading (last season)', 'packing',
+   'Grading in the shed.', '4670', current_date - 90, current_date - 40, 4, 'hourly', 3218, 38, true, 'closed'),
+  ('a0000000-0000-0000-0000-000000000012', 'f0000000-0000-0000-0000-000000000001', 'Celery harvest', 'picking',
+   'Cutting and packing celery in the field.', '4343', current_date - 1, current_date + 40, 3, 'hourly', 3300, 38, true, 'filled');
+
+insert into public.applications (id, job_id, worker_id, status, decided_at) values
+  ('ab000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000010', '11111111-1111-1111-1111-111111111111', 'accepted', now() - interval '65 days'),
+  ('ab000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000010', '11111111-0000-0000-0000-000000000019', 'accepted', now() - interval '65 days'),
+  ('ab000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000010', '11111111-0000-0000-0000-000000000007', 'accepted', now() - interval '65 days'),
+  ('ab000000-0000-0000-0000-000000000005', 'a0000000-0000-0000-0000-000000000010', '11111111-0000-0000-0000-000000000006', 'accepted', now() - interval '65 days'),
+  ('ab000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000010', '11111111-0000-0000-0000-000000000020', 'accepted', now() - interval '65 days'),
+  ('ab000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000011', '11111111-0000-0000-0000-000000000015', 'accepted', now() - interval '95 days'),
+  ('ab000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000011', '11111111-0000-0000-0000-000000000017', 'accepted', now() - interval '95 days'),
+  ('ab000000-0000-0000-0000-000000000009', 'a0000000-0000-0000-0000-000000000012', '11111111-0000-0000-0000-000000000009', 'accepted', now() - interval '5 days'),
+  ('ab000000-0000-0000-0000-00000000000a', 'a0000000-0000-0000-0000-000000000012', '11111111-0000-0000-0000-000000000011', 'accepted', now() - interval '5 days'),
+  ('ab000000-0000-0000-0000-00000000000b', 'a0000000-0000-0000-0000-000000000012', '11111111-0000-0000-0000-000000000016', 'accepted', now() - interval '5 days');
+
+insert into public.attendance (application_id, status, marked_at) values
+  ('ab000000-0000-0000-0000-000000000002', 'showed', now() - interval '60 days'),
+  ('ab000000-0000-0000-0000-000000000003', 'showed', now() - interval '60 days'),
+  ('ab000000-0000-0000-0000-000000000004', 'showed', now() - interval '60 days'),
+  ('ab000000-0000-0000-0000-000000000005', 'no_show', now() - interval '60 days'),
+  ('ab000000-0000-0000-0000-000000000006', 'left_early', now() - interval '60 days'),
+  ('ab000000-0000-0000-0000-000000000007', 'showed', now() - interval '90 days'),
+  ('ab000000-0000-0000-0000-000000000008', 'showed', now() - interval '90 days');
+select public.complete_finished_jobs();
+update public.applications set completed_at = now() - interval '39 days'
+ where id in ('ab000000-0000-0000-0000-000000000007', 'ab000000-0000-0000-0000-000000000008');
+
+-- Tom and Min-jun rated Lockyer and Lockyer rated them, so those ratings are revealed.
+-- Sam hasn't rated yet (and Lockyer hasn't rated Sam or Aroha), so both see "Rate" prompts.
+insert into public.farm_ratings (application_id, farm_id, worker_id, overall, accommodation, would_work_again, comment) values
+  ('ab000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000019', 5, null, true,
+   'Well organised, paid on time every week. Supervisor explains everything.'),
+  ('ab000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000007', 4, null, true,
+   'Hard work but fair. Early starts.'),
+  ('ab000000-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000015', 4, 3, true,
+   'Good shed, accommodation a bit crowded.'),
+  ('ab000000-0000-0000-0000-000000000008', 'f0000000-0000-0000-0000-000000000002', '11111111-0000-0000-0000-000000000017', 5, 4, true,
+   'Friendly team and the bus was always on time.');
+insert into public.worker_ratings (application_id, worker_id, farm_id, reliability, quality, comment) values
+  ('ab000000-0000-0000-0000-000000000003', '11111111-0000-0000-0000-000000000019', 'f0000000-0000-0000-0000-000000000001', 5, 5,
+   'Never missed a day.'),
+  ('ab000000-0000-0000-0000-000000000004', '11111111-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000001', 4, 4, '');
+
 -- A sample report for the admin queue.
 insert into public.reports (reporter_id, target_job_id, target_user_id, reason, details)
 values ('11111111-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-00000000000e',

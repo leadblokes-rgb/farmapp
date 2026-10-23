@@ -8,7 +8,10 @@ import { ConversationList } from '@/features/chat/ConversationList';
 import { Screen } from '@/components/Screen';
 import { ListSkeleton } from '@/components/Skeleton';
 import { dateRangeLabel } from '@/features/jobs/format';
+import { DisputeDialog } from '@/features/ratings/DisputeDialog';
+import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { useMyApplications, useWithdrawApplication } from '@/features/worker/feedApi';
+import { Toast } from '@/components/Toast';
 
 const STATUS = {
   applied: { label: 'Applied', color: '#FFE0A8' },
@@ -26,9 +29,12 @@ export default function Matches() {
   const conversations = useConversations();
   const unread = (conversations.data ?? []).reduce((n, c) => n + c.unread, 0);
   const [view, setView] = useState<View_>('messages');
+  const [message, setMessage] = useState<string | null>(null);
+  const [disputing, setDisputing] = useState<{ id: string; farm: string } | null>(null);
 
   const switcher = (
     <View style={styles.switcher}>
+      <PendingReviews onMessage={setMessage} />
       <SingleChoiceChips<View_>
         value={view}
         onChange={setView}
@@ -48,6 +54,7 @@ export default function Matches() {
           header={switcher}
           emptyText="No messages yet. When a farm messages you or accepts your application, the chat appears here."
         />
+        <Toast message={message} onDismiss={() => setMessage(null)} />
       </Screen>
     );
   }
@@ -68,8 +75,7 @@ export default function Matches() {
           <View style={styles.empty}>
             <Text variant="headlineSmall">No applications yet</Text>
             <Text variant="bodyLarge" style={styles.center}>
-              Swipe right on jobs in Discover to apply. Farms review applicants and reply here; chat arrives
-              in milestone 5.
+              Swipe right on jobs in Discover to apply. Farms review applicants and reply in Messages.
             </Text>
           </View>
         }
@@ -89,6 +95,35 @@ export default function Matches() {
                   {item.locality ? ` · ${item.locality}` : ''}
                 </Text>
                 <Text variant="bodyLarge">{dateRangeLabel(item.start_date, item.end_date)}</Text>
+                {item.attendance === 'left_early' ? (
+                  <Text variant="bodyMedium">The farm marked you as leaving early.</Text>
+                ) : null}
+                {item.attendance === 'no_show' ? (
+                  <View style={styles.noShow}>
+                    <Text variant="bodyLarge" style={styles.noShowText}>
+                      {item.farm_name ?? 'The farm'} marked you as a no-show.
+                    </Text>
+                    {item.disputed ? (
+                      <Text variant="bodyMedium">
+                        {item.dispute_outcome === 'upheld'
+                          ? 'The Croppr team reviewed your dispute and the no-show stands.'
+                          : 'You disputed this. The Croppr team is looking into it.'}
+                      </Text>
+                    ) : (
+                      <Button
+                        mode="outlined"
+                        icon="gavel"
+                        style={styles.withdraw}
+                        contentStyle={styles.tall}
+                        onPress={() =>
+                          setDisputing({ id: item.application_id, farm: item.farm_name ?? 'the farm' })
+                        }
+                      >
+                        Not right? Dispute it
+                      </Button>
+                    )}
+                  </View>
+                ) : null}
                 {item.status === 'applied' ? (
                   <Button
                     mode="text"
@@ -106,6 +141,15 @@ export default function Matches() {
           );
         }}
       />
+      <DisputeDialog
+        target={disputing}
+        onDismiss={() => setDisputing(null)}
+        onDone={() => {
+          setDisputing(null);
+          setMessage('Dispute sent. The Croppr team will look into it.');
+        }}
+      />
+      <Toast message={message} onDismiss={() => setMessage(null)} />
     </Screen>
   );
 }
@@ -120,4 +164,6 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontWeight: '700' },
   withdraw: { alignSelf: 'flex-start' },
   tall: { minHeight: 48 },
+  noShow: { backgroundColor: '#FDECEA', borderRadius: 10, padding: 10, gap: 6, marginTop: 4 },
+  noShowText: { fontWeight: '700', color: '#7A1C14' },
 });

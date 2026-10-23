@@ -56,6 +56,7 @@ export type Database = {
       };
       applications: {
         Row: {
+          completed_at: string | null;
           created_at: string;
           decided_at: string | null;
           id: string;
@@ -68,6 +69,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          completed_at?: string | null;
           created_at?: string;
           decided_at?: string | null;
           id?: string;
@@ -79,6 +81,7 @@ export type Database = {
           worker_id: string;
         };
         Update: {
+          completed_at?: string | null;
           created_at?: string;
           decided_at?: string | null;
           id?: string;
@@ -102,6 +105,59 @@ export type Database = {
             columns: ['worker_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      attendance: {
+        Row: {
+          application_id: string;
+          dispute_outcome: string | null;
+          dispute_report_id: number | null;
+          disputed_at: string | null;
+          marked_at: string;
+          resolved_at: string | null;
+          status: Database['public']['Enums']['attendance_status'];
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          dispute_outcome?: string | null;
+          dispute_report_id?: number | null;
+          disputed_at?: string | null;
+          marked_at?: string;
+          resolved_at?: string | null;
+          status: Database['public']['Enums']['attendance_status'];
+        };
+        Update: {
+          application_id?: string;
+          dispute_outcome?: string | null;
+          dispute_report_id?: number | null;
+          disputed_at?: string | null;
+          marked_at?: string;
+          resolved_at?: string | null;
+          status?: Database['public']['Enums']['attendance_status'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'attendance_application_id_fkey';
+            columns: ['application_id'];
+            isOneToOne: true;
+            referencedRelation: 'applications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'attendance_dispute_report_fk';
+            columns: ['dispute_report_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_open_reports';
+            referencedColumns: ['report_id'];
+          },
+          {
+            foreignKeyName: 'attendance_dispute_report_fk';
+            columns: ['dispute_report_id'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
             referencedColumns: ['id'];
           },
         ];
@@ -246,6 +302,79 @@ export type Database = {
           },
           {
             foreignKeyName: 'employers_worked_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      farm_ratings: {
+        Row: {
+          accommodation: number | null;
+          application_id: string;
+          comment: string;
+          created_at: string;
+          farm_id: string;
+          hidden_at: string | null;
+          overall: number;
+          worker_id: string;
+          would_work_again: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          accommodation?: number | null;
+          application_id: string;
+          comment?: string;
+          created_at?: string;
+          farm_id: string;
+          hidden_at?: string | null;
+          overall: number;
+          worker_id: string;
+          would_work_again: boolean;
+        };
+        Update: {
+          accommodation?: number | null;
+          application_id?: string;
+          comment?: string;
+          created_at?: string;
+          farm_id?: string;
+          hidden_at?: string | null;
+          overall?: number;
+          worker_id?: string;
+          would_work_again?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'farm_ratings_application_id_fkey';
+            columns: ['application_id'];
+            isOneToOne: true;
+            referencedRelation: 'applications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'farm_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_pending_farms';
+            referencedColumns: ['farm_id'];
+          },
+          {
+            foreignKeyName: 'farm_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'farm_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms_public';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'farm_ratings_worker_id_fkey';
             columns: ['worker_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
@@ -691,6 +820,8 @@ export type Database = {
           reporter_id: string;
           resolution_note: string | null;
           resolved_at: string | null;
+          review_application_id: string | null;
+          review_kind: string | null;
           status: Database['public']['Enums']['report_status'];
           target_job_id: string | null;
           target_user_id: string | null;
@@ -705,6 +836,8 @@ export type Database = {
           reporter_id: string;
           resolution_note?: string | null;
           resolved_at?: string | null;
+          review_application_id?: string | null;
+          review_kind?: string | null;
           status?: Database['public']['Enums']['report_status'];
           target_job_id?: string | null;
           target_user_id?: string | null;
@@ -718,6 +851,8 @@ export type Database = {
           reporter_id?: string;
           resolution_note?: string | null;
           resolved_at?: string | null;
+          review_application_id?: string | null;
+          review_kind?: string | null;
           status?: Database['public']['Enums']['report_status'];
           target_job_id?: string | null;
           target_user_id?: string | null;
@@ -735,6 +870,13 @@ export type Database = {
             columns: ['reporter_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_review_application_id_fkey';
+            columns: ['review_application_id'];
+            isOneToOne: false;
+            referencedRelation: 'applications';
             referencedColumns: ['id'];
           },
           {
@@ -999,6 +1141,76 @@ export type Database = {
           },
         ];
       };
+      worker_ratings: {
+        Row: {
+          application_id: string;
+          comment: string;
+          created_at: string;
+          farm_id: string;
+          hidden_at: string | null;
+          quality: number;
+          reliability: number;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          comment?: string;
+          created_at?: string;
+          farm_id: string;
+          hidden_at?: string | null;
+          quality: number;
+          reliability: number;
+          worker_id: string;
+        };
+        Update: {
+          application_id?: string;
+          comment?: string;
+          created_at?: string;
+          farm_id?: string;
+          hidden_at?: string | null;
+          quality?: number;
+          reliability?: number;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'worker_ratings_application_id_fkey';
+            columns: ['application_id'];
+            isOneToOne: true;
+            referencedRelation: 'applications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'worker_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_pending_farms';
+            referencedColumns: ['farm_id'];
+          },
+          {
+            foreignKeyName: 'worker_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'worker_ratings_farm_id_fkey';
+            columns: ['farm_id'];
+            isOneToOne: false;
+            referencedRelation: 'farms_public';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'worker_ratings_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       worker_regions: {
         Row: {
           region_id: string;
@@ -1044,6 +1256,9 @@ export type Database = {
           reporter_email: string | null;
           reporter_role: Database['public']['Enums']['user_role'] | null;
           reports_against_target: number | null;
+          review_application_id: string | null;
+          review_comment: string | null;
+          review_kind: string | null;
           target_email: string | null;
           target_job_id: string | null;
           target_role: Database['public']['Enums']['user_role'] | null;
@@ -1057,6 +1272,13 @@ export type Database = {
             columns: ['conversation_id'];
             isOneToOne: false;
             referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_review_application_id_fkey';
+            columns: ['review_application_id'];
+            isOneToOne: false;
+            referencedRelation: 'applications';
             referencedColumns: ['id'];
           },
           {
@@ -1101,6 +1323,8 @@ export type Database = {
           locality: string | null;
           logo_path: string | null;
           postcode: string | null;
+          rating_avg: number | null;
+          rating_count: number | null;
           region_id: string | null;
           verification_status: Database['public']['Enums']['verification_status'] | null;
           verified_at: string | null;
@@ -1145,6 +1369,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      admin_hide_review: {
+        Args: { p_application_id: string; p_kind: string; p_note: string };
+        Returns: undefined;
+      };
       admin_reject_farm: {
         Args: { p_farm_id: string; p_reason: string };
         Returns: {
@@ -1172,6 +1400,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      admin_resolve_no_show_dispute: {
+        Args: { p_note: string; p_outcome: string; p_report_id: number };
+        Returns: undefined;
+      };
       admin_resolve_report: {
         Args: { p_note: string; p_report_id: number; p_status: Database['public']['Enums']['report_status'] };
         Returns: undefined;
@@ -1185,12 +1417,16 @@ export type Database = {
           visa_valid_through_job_end: boolean;
         }[];
       };
+      can_rate_farm: { Args: { p_application_id: string }; Returns: boolean };
+      can_rate_worker: { Args: { p_application_id: string }; Returns: boolean };
+      complete_finished_jobs: { Args: Record<PropertyKey, never>; Returns: number };
       create_group: { Args: Record<PropertyKey, never>; Returns: string };
       decide_applications: {
         Args: { p_application_ids: string[]; p_decision: Database['public']['Enums']['application_status'] };
         Returns: number;
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      dispute_no_show: { Args: { p_application_id: string; p_details?: string }; Returns: number };
       employer_suggestions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -1200,6 +1436,19 @@ export type Database = {
           job_title: string;
           likely_specified_work: boolean;
           postcode: string;
+        }[];
+      };
+      farm_reviews: {
+        Args: { p_farm_id: string };
+        Returns: {
+          accommodation: number;
+          application_id: string;
+          comment: string;
+          job_title: string;
+          overall: number;
+          rated_at: string;
+          reviewer_name: string;
+          would_work_again: boolean;
         }[];
       };
       has_applied: { Args: { p_job_id: string }; Returns: boolean };
@@ -1228,6 +1477,8 @@ export type Database = {
           farm_id: string;
           farm_is_labour_hire: boolean;
           farm_name: string;
+          farm_rating_avg: number;
+          farm_rating_count: number;
           hours_per_week: number;
           id: string;
           lat: number;
@@ -1253,6 +1504,8 @@ export type Database = {
         Returns: {
           application_id: string;
           applied_at: string;
+          attendance: Database['public']['Enums']['attendance_status'];
+          attendance_disputed: boolean;
           experience_summary: string;
           full_name: string;
           group_id: string;
@@ -1261,7 +1514,11 @@ export type Database = {
           locality: string;
           match_score: number;
           needs_accommodation: boolean;
+          no_show_count: number;
           photo_path: string;
+          quality_avg: number;
+          rating_count: number;
+          reliability_avg: number;
           score_breakdown: Json;
           skills: string[];
           status: Database['public']['Enums']['application_status'];
@@ -1274,13 +1531,21 @@ export type Database = {
       };
       join_group: { Args: { p_invite_code: string }; Returns: undefined };
       leave_group: { Args: Record<PropertyKey, never>; Returns: undefined };
+      mark_attendance: {
+        Args: { p_application_ids: string[]; p_status: Database['public']['Enums']['attendance_status'] };
+        Returns: number;
+      };
       mark_conversation_read: { Args: { p_conversation_id: string }; Returns: undefined };
       my_applications: {
         Args: Record<PropertyKey, never>;
         Returns: {
           application_id: string;
           applied_at: string;
+          attendance: Database['public']['Enums']['attendance_status'];
+          dispute_outcome: string;
+          disputed: boolean;
           end_date: string;
+          farm_id: string;
           farm_name: string;
           job_id: string;
           job_status: Database['public']['Enums']['job_status'];
@@ -1314,9 +1579,41 @@ export type Database = {
       };
       my_role: { Args: Record<PropertyKey, never>; Returns: Database['public']['Enums']['user_role'] };
       notify: { Args: { p_event: string; p_payload: Json }; Returns: undefined };
+      owns_application_job: { Args: { p_application_id: string }; Returns: boolean };
       owns_employer: { Args: { p_employer_id: string }; Returns: boolean };
       owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
+      pending_reviews: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          application_id: string;
+          end_date: string;
+          job_id: string;
+          job_title: string;
+          kind: string;
+          subject_name: string;
+        }[];
+      };
+      rate_farm: {
+        Args: {
+          p_accommodation?: number;
+          p_application_id: string;
+          p_comment?: string;
+          p_overall: number;
+          p_would_work_again: boolean;
+        };
+        Returns: undefined;
+      };
+      rate_worker: {
+        Args: { p_application_id: string; p_comment?: string; p_quality: number; p_reliability: number };
+        Returns: undefined;
+      };
+      ratings_revealed: { Args: { p_application_id: string }; Returns: boolean };
+      report_review: {
+        Args: { p_application_id: string; p_details?: string; p_kind: string };
+        Returns: number;
+      };
+      run_daily_jobs: { Args: Record<PropertyKey, never>; Returns: undefined };
       save_match_scores: { Args: { p_ranker_version: string; p_scores: Json }; Returns: number };
       save_worker_profile: { Args: { p: Json }; Returns: undefined };
       set_my_role: {
@@ -1351,14 +1648,47 @@ export type Database = {
       };
       undo_swipe: { Args: { p_job_id: string }; Returns: undefined };
       withdraw_application: { Args: { p_application_id: string }; Returns: undefined };
+      worker_reputation: {
+        Args: { p_worker_ids: string[] };
+        Returns: {
+          no_show_count: number;
+          quality_avg: number;
+          rating_count: number;
+          reliability_avg: number;
+          reliability_score: number;
+          worker_id: string;
+        }[];
+      };
+      worker_reviews: {
+        Args: { p_worker_id: string };
+        Returns: {
+          application_id: string;
+          comment: string;
+          farm_name: string;
+          job_title: string;
+          quality: number;
+          rated_at: string;
+          reliability: number;
+        }[];
+      };
     };
     Enums: {
       account_status: 'active' | 'suspended';
       application_status: 'applied' | 'accepted' | 'declined' | 'withdrawn' | 'completed';
+      attendance_status: 'showed' | 'no_show' | 'left_early';
       job_role_type: 'picking' | 'packing' | 'pruning' | 'planting' | 'machinery' | 'livestock' | 'general';
       job_status: 'open' | 'filled' | 'closed';
       pay_type: 'hourly' | 'piece_rate';
-      report_reason: 'unsafe' | 'harassment' | 'scam' | 'underpaid' | 'no_show' | 'fake_profile' | 'other';
+      report_reason:
+        | 'unsafe'
+        | 'harassment'
+        | 'scam'
+        | 'underpaid'
+        | 'no_show'
+        | 'fake_profile'
+        | 'other'
+        | 'no_show_dispute'
+        | 'inappropriate_review';
       report_status: 'open' | 'actioned' | 'dismissed';
       swipe_direction: 'like' | 'pass';
       travel_mode: 'solo' | 'group';
@@ -1480,10 +1810,21 @@ export const Constants = {
     Enums: {
       account_status: ['active', 'suspended'],
       application_status: ['applied', 'accepted', 'declined', 'withdrawn', 'completed'],
+      attendance_status: ['showed', 'no_show', 'left_early'],
       job_role_type: ['picking', 'packing', 'pruning', 'planting', 'machinery', 'livestock', 'general'],
       job_status: ['open', 'filled', 'closed'],
       pay_type: ['hourly', 'piece_rate'],
-      report_reason: ['unsafe', 'harassment', 'scam', 'underpaid', 'no_show', 'fake_profile', 'other'],
+      report_reason: [
+        'unsafe',
+        'harassment',
+        'scam',
+        'underpaid',
+        'no_show',
+        'fake_profile',
+        'other',
+        'no_show_dispute',
+        'inappropriate_review',
+      ],
       report_status: ['open', 'actioned', 'dismissed'],
       swipe_direction: ['like', 'pass'],
       travel_mode: ['solo', 'group'],

@@ -82,6 +82,21 @@ export function ApplicantCard({ a, selectable, selected, onToggle, onOpen, group
           <Tag icon={a.has_car ? 'car' : 'car-off'} text={a.has_car ? 'Has car' : 'No car'} />
           {a.needs_accommodation ? <Tag icon="home" text="Needs accommodation" /> : null}
           <Tag icon="sprout" text={`${a.years_experience} season${a.years_experience === 1 ? '' : 's'}`} />
+          {a.rating_count > 0 && a.reliability_avg != null ? (
+            <Tag
+              icon="star"
+              text={`${Number(a.reliability_avg).toFixed(1)} reliability (${a.rating_count} rating${a.rating_count === 1 ? '' : 's'})`}
+            />
+          ) : (
+            <Tag icon="star-outline" text="No ratings yet" />
+          )}
+          {a.no_show_count > 0 ? (
+            <Tag
+              icon="alert-circle-outline"
+              text={`${a.no_show_count} no-show${a.no_show_count === 1 ? '' : 's'}`}
+              warn
+            />
+          ) : null}
         </View>
         <VisaBadge a={a} />
         {groupNote ? (
@@ -94,10 +109,10 @@ export function ApplicantCard({ a, selectable, selected, onToggle, onOpen, group
   );
 }
 
-function Tag({ icon, text }: { icon: string; text: string }) {
+function Tag({ icon, text, warn }: { icon: string; text: string; warn?: boolean }) {
   return (
-    <View style={styles.tag}>
-      <Icon source={icon} size={16} color="#333333" />
+    <View style={[styles.tag, warn && styles.warn]}>
+      <Icon source={icon} size={16} color={warn ? '#8D5A00' : '#333333'} />
       <Text style={styles.tagText}>{text}</Text>
     </View>
   );

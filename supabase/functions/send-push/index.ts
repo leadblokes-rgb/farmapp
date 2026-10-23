@@ -3,6 +3,9 @@
 //   application_created  -> the farm owner ("New applicant")
 //   application_decided  -> the worker (accepted / not this time)
 //   message              -> the other person in the conversation
+//   no_show_marked       -> the worker (with a way to dispute it)
+//   application_completed -> the worker ("How was it? Leave a rating")
+//   check_in_reminder    -> the farm owner, on a job's first day
 // Every attempt is written to public.notification_log.
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -68,6 +71,37 @@ async function build(event: string, payload: Record<string, string>): Promise<No
           body: `${a.job.farm.business_name} has filled this role. Keep swiping, there are more jobs waiting.`,
           url: '/worker/matches',
         };
+  }
+
+  if (event === 'no_show_marked' || event === 'application_completed') {
+    const [a] = await rest<any[]>(
+      `applications?id=eq.${payload.application_id}&select=id,worker_id,job:jobs(id,title,farm:farms(business_name))`,
+    );
+    if (!a) return null;
+    return event === 'no_show_marked'
+      ? {
+          recipientId: a.worker_id,
+          title: `${a.job.farm.business_name} marked you as a no-show`,
+          body: `For ${a.job.title}. Not right? Tap to dispute it.`,
+          url: '/worker/matches',
+        }
+      : {
+          recipientId: a.worker_id,
+          title: `How was ${a.job.farm.business_name}?`,
+          body: `You finished ${a.job.title}. Leave a rating to help other workers.`,
+          url: '/worker/matches',
+        };
+  }
+
+  if (event === 'check_in_reminder') {
+    const [j] = await rest<any[]>(`jobs?id=eq.${payload.job_id}&select=id,title,farm:farms(owner_id)`);
+    if (!j) return null;
+    return {
+      recipientId: j.farm.owner_id,
+      title: `Day one: ${j.title}`,
+      body: 'Who turned up? Tap to check in your crew.',
+      url: `/farm/job/attendance/${j.id}`,
+    };
   }
 
   if (event === 'message') {

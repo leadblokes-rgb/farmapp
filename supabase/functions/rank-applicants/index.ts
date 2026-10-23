@@ -61,12 +61,18 @@ Deno.serve(async (req) => {
     if (!apps.length) return json({ ranked: [], rankerVersion: ranker.version });
 
     const workerIds = apps.map((a) => a.worker_id);
-    const [profiles, availability] = await Promise.all([
+    const [profiles, availability, reputation] = await Promise.all([
       rest<any[]>(
         `worker_profiles?user_id=${inList(workerIds)}&select=user_id,current_postcode,has_car,needs_accommodation,skills,years_experience`,
       ),
       rest<any[]>(`worker_availability?worker_id=${inList(workerIds)}&select=worker_id,start_date,end_date`),
+      // Revealed reliability ratings, with no-shows counted as 1 star (see worker_reputation in SQL).
+      rest<{ worker_id: string; reliability_score: number | null }[]>('rpc/worker_reputation', {
+        method: 'POST',
+        body: JSON.stringify({ p_worker_ids: workerIds }),
+      }),
     ]);
+    const reliabilityOf = new Map(reputation.map((r) => [r.worker_id, r.reliability_score]));
     const postcodes = await rest<{ postcode: string; lat: number; lng: number }[]>(
       `postcodes?postcode=${inList([...new Set(profiles.map((p) => p.current_postcode))])}&select=postcode,lat,lng`,
     );
@@ -93,7 +99,7 @@ Deno.serve(async (req) => {
       needsAccommodation: p.needs_accommodation,
       skills: p.skills,
       yearsExperience: p.years_experience,
-      reliability: null, // ratings arrive after the MVP
+      reliability: reliabilityOf.get(p.user_id) ?? null,
     }));
 
     const ranked = ranker.rankApplicants(matchJob, workers);

@@ -16,6 +16,7 @@ import {
   useSetGoal,
   useTracker,
 } from '@/features/tracker/api';
+import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { Disclaimer } from '@/features/tracker/Disclaimer';
 import { LogShiftSheet } from '@/features/tracker/LogShiftSheet';
 import { useUserId } from '@/providers/AuthProvider';
@@ -46,6 +47,7 @@ export default function Days() {
     <>
       <Screen scroll edges={[]}>
         <Disclaimer />
+        <PendingReviews onMessage={setMessage} />
         {notWhm ? (
           <Text variant="bodyMedium">
             Your profile says you&apos;re not on a 417/462 visa, so you probably don&apos;t need specified

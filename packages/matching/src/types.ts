@@ -32,7 +32,7 @@ export interface MatchWorker {
   needsAccommodation: boolean;
   skills: string[];
   yearsExperience: number;
-  /** Average reliability rating 1–5, or null if unrated (ratings arrive after the MVP). */
+  /** Average reliability rating 1–5 (each no-show counts as a 1), or null if unrated. */
   reliability: number | null;
 }
 

@@ -81,6 +81,16 @@ describe('rankApplicants', () => {
     expect(a.score).toBeGreaterThan(b.score);
   });
 
+  it('ranks a worker with a no-show below an unrated worker', () => {
+    // One 5-star rating plus two no-shows (each counted as 1 star) averages 2.3.
+    const [a, b] = ruleBasedRanker.rankApplicants(job, [
+      worker({ id: 'noshows', reliability: (5 + 1 + 1) / 3 }),
+      worker({ id: 'new', reliability: null }),
+    ]);
+    expect(a.item.id).toBe('new');
+    expect(b.breakdown.reliability.score).toBeLessThan(a.breakdown.reliability.score);
+  });
+
   it('is deterministic for ties', () => {
     const ids = ruleBasedRanker
       .rankApplicants(job, [worker({ id: 'b' }), worker({ id: 'a' })])

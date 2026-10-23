@@ -131,6 +131,15 @@ The database only *filters* candidates (`job_feed()`) and stores scores. It neve
 
 Edge Functions run in Deno, so `npm run build:functions` bundles `packages/matching` into `supabase/functions/_shared/matching.js`. **Re-run it after changing matching or shared code.**
 
+## Ratings, check-in and completion
+
+- On a job's first day the farm marks each accepted worker as **turned up**, **no-show** or **left early** (Job → "Who turned up?").
+- After the job's end date, workers marked as turned up become **completed**. This runs daily (`pg_cron`) and whenever someone opens their ratings.
+- Workers then rate the farm, and farms rate workers who turned up. Ratings are **blind**: neither side sees the other's rating until both have rated, or 14 days have passed.
+- Farm ratings are public to signed-in users. Worker ratings are visible only to farms the worker has applied to, and to the worker.
+- Each no-show counts as a 1-star reliability rating in the ranking, unless the worker has disputed it and the Croppr team hasn't decided yet.
+- Reviews can be reported; admins handle reports and disputes as described in the runbook.
+
 ## Admin tasks
 
 Approving farms, suspending users and handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).
@@ -154,6 +163,9 @@ Croppr sends push notifications in these cases:
 - **New applicant:** sent to the farm.
 - **Accepted / not this time:** sent to the worker.
 - **New chat message:** sent to the other person.
+- **Marked as a no-show:** sent to the worker, with a way to dispute it.
+- **Job completed:** asks the worker to rate the farm.
+- **Day one of a job:** reminds the farm to check in its crew (sent by the daily database job, 5:30am Queensland time).
 
 Tapping a notification opens the right screen.
 
