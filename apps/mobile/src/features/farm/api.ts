@@ -66,3 +66,25 @@ export function useSaveFarm(userId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-farm', userId] }),
   });
 }
+
+export interface FarmPageInput {
+  website: string;
+  accommodationDetails: string;
+}
+
+/** Farm page details (logo, photos, website, accommodation). These never trigger re-verification. */
+export function useSaveFarmPage(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (patch: {
+      website?: string | null;
+      accommodation_details?: string;
+      logo_path?: string | null;
+      photos?: string[];
+    }) => {
+      const { error } = await supabase.from('farms').update(patch).eq('owner_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-farm', userId] }),
+  });
+}

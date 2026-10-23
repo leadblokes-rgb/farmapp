@@ -125,6 +125,9 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
 function Bubble({ m, mine }: { m: Message; mine: boolean }) {
   return (
     <View style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
+      {m.broadcast_id ? (
+        <Text style={[styles.meta, mine && styles.mineMeta]}>📣 Message to the whole crew</Text>
+      ) : null}
       <Text variant="bodyLarge" style={mine ? styles.mineText : undefined}>
         {m.body}
       </Text>

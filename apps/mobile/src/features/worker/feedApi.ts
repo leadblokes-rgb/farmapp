@@ -149,3 +149,34 @@ export function useWithdrawApplication() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-applications'] }),
   });
 }
+
+/** A verified farm's public page: details, rating and open jobs. */
+export function useFarmPage(farmId: string | undefined) {
+  return useQuery({
+    queryKey: ['farm-page', farmId],
+    enabled: !!farmId,
+    queryFn: async () => {
+      const [farm, jobs] = await Promise.all([
+        supabase.from('farms_public').select('*').eq('id', farmId!).maybeSingle(),
+        supabase.rpc('farm_open_jobs', { p_farm_id: farmId! }),
+      ]);
+      if (farm.error) throw farm.error;
+      if (jobs.error) throw jobs.error;
+      return { farm: farm.data, jobs: jobs.data };
+    },
+  });
+}
+
+export function useApplyFromFarmPage(farmId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const { error } = await supabase.rpc('swipe_job', { p_job_id: jobId, p_direction: 'like' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      for (const key of [['farm-page', farmId], ['my-applications'], ['feed']])
+        qc.invalidateQueries({ queryKey: key });
+    },
+  });
+}

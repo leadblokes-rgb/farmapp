@@ -58,6 +58,5 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 ## 7. After the MVP (agreed to defer)
 - A dedicated admin web app (farm queue, reports, stats) to replace the dashboard SQL.
 - Automatic ABN checks through the ABR web service, and checks against labour hire registers.
-- Farm logo upload: the storage bucket and database column exist, but there's no UI yet.
 - Translations: many workers aren't native English speakers. French, German, Korean, Japanese, Spanish and Chinese would cover most of them.
 - A smarter, AI-based ranker: implement the `Ranker` interface in `packages/matching`.

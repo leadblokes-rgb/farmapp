@@ -4,6 +4,7 @@ import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
 import { farmToInput, useMyFarm, useSaveFarm } from '@/features/farm/api';
 import { FarmForm } from '@/features/farm/FarmForm';
+import { FarmPageEditor } from '@/features/farm/FarmPageEditor';
 import { VerificationStatusCard } from '@/features/farm/VerificationStatusCard';
 import { useUserId } from '@/providers/AuthProvider';
 import { Toast } from '@/components/Toast';
@@ -12,7 +13,7 @@ export default function FarmProfile() {
   const userId = useUserId();
   const farm = useMyFarm(userId);
   const save = useSaveFarm(userId);
-  const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   if (farm.isPending) return <Loading />;
   if (farm.isError || !farm.data) return <LoadError onRetry={() => farm.refetch()} />;
@@ -34,12 +35,13 @@ export default function FarmProfile() {
           }
           onSubmit={async (values) => {
             await save.mutateAsync(values);
-            setSaved(true);
+            setMessage('Farm details saved');
           }}
         />
+        <FarmPageEditor farm={farm.data} userId={userId} onSaved={setMessage} />
         <DangerZone />
       </Screen>
-      <Toast message={saved ? 'Farm details saved' : null} onDismiss={() => setSaved(false)} />
+      <Toast message={message} onDismiss={() => setMessage(null)} />
     </>
   );
 }

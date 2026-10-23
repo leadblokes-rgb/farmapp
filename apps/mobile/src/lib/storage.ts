@@ -78,3 +78,8 @@ export function useSignedUrl(bucket: 'avatars', path: string | null | undefined)
     },
   });
 }
+
+/** Public URL of a farm logo or photo (the farm-logos bucket is public). */
+export function farmImageUrl(path: string | null | undefined): string | null {
+  return path ? supabase.storage.from('farm-logos').getPublicUrl(path).data.publicUrl : null;
+}

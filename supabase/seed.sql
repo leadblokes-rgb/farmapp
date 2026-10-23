@@ -332,6 +332,14 @@ insert into public.worker_ratings (application_id, worker_id, farm_id, reliabili
    'Never missed a day.'),
   ('ab000000-0000-0000-0000-000000000004', '11111111-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000001', 4, 4, '');
 
+-- Farm pages (phase B).
+update public.farms set website = 'https://lockyerfresh.example',
+  accommodation_details = 'No on-farm accommodation. Gatton has hostels and share houses 10 minutes away; we can share contacts.'
+ where id = 'f0000000-0000-0000-0000-000000000001';
+update public.farms set website = 'https://bundysweetpotato.example',
+  accommodation_details = 'Shared 4-bed cabins on the farm, $160/week including power and wifi. Kitchen, laundry and a weekly bus to town.'
+ where id = 'f0000000-0000-0000-0000-000000000002';
+
 -- A sample report for the admin queue.
 insert into public.reports (reporter_id, target_job_id, target_user_id, reason, details)
 values ('11111111-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-00000000000e',

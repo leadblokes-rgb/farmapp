@@ -385,6 +385,7 @@ export type Database = {
       farms: {
         Row: {
           abn: string;
+          accommodation_details: string;
           business_name: string;
           contact_phone: string;
           created_at: string;
@@ -394,16 +395,19 @@ export type Database = {
           labour_hire_licence_number: string | null;
           logo_path: string | null;
           owner_id: string;
+          photos: string[];
           postcode: string;
           rejection_reason: string | null;
           updated_at: string;
           verification_status: Database['public']['Enums']['verification_status'];
           verified_at: string | null;
           verified_by: string | null;
+          website: string | null;
         };
         ComputedFields: never;
         Insert: {
           abn: string;
+          accommodation_details?: string;
           business_name: string;
           contact_phone: string;
           created_at?: string;
@@ -413,15 +417,18 @@ export type Database = {
           labour_hire_licence_number?: string | null;
           logo_path?: string | null;
           owner_id: string;
+          photos?: string[];
           postcode: string;
           rejection_reason?: string | null;
           updated_at?: string;
           verification_status?: Database['public']['Enums']['verification_status'];
           verified_at?: string | null;
           verified_by?: string | null;
+          website?: string | null;
         };
         Update: {
           abn?: string;
+          accommodation_details?: string;
           business_name?: string;
           contact_phone?: string;
           created_at?: string;
@@ -431,12 +438,14 @@ export type Database = {
           labour_hire_licence_number?: string | null;
           logo_path?: string | null;
           owner_id?: string;
+          photos?: string[];
           postcode?: string;
           rejection_reason?: string | null;
           updated_at?: string;
           verification_status?: Database['public']['Enums']['verification_status'];
           verified_at?: string | null;
           verified_by?: string | null;
+          website?: string | null;
         };
         Relationships: [
           {
@@ -565,6 +574,7 @@ export type Database = {
       messages: {
         Row: {
           body: string;
+          broadcast_id: string | null;
           conversation_id: string;
           created_at: string;
           id: string;
@@ -574,6 +584,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           body: string;
+          broadcast_id?: string | null;
           conversation_id: string;
           created_at?: string;
           id?: string;
@@ -582,6 +593,7 @@ export type Database = {
         };
         Update: {
           body?: string;
+          broadcast_id?: string | null;
           conversation_id?: string;
           created_at?: string;
           id?: string;
@@ -1316,18 +1328,21 @@ export type Database = {
       };
       farms_public: {
         Row: {
+          accommodation_details: string | null;
           business_name: string | null;
           description: string | null;
           id: string | null;
           is_labour_hire: boolean | null;
           locality: string | null;
           logo_path: string | null;
+          photos: string[] | null;
           postcode: string | null;
           rating_avg: number | null;
           rating_count: number | null;
           region_id: string | null;
           verification_status: Database['public']['Enums']['verification_status'] | null;
           verified_at: string | null;
+          website: string | null;
         };
         ComputedFields: never;
         Relationships: [
@@ -1346,6 +1361,7 @@ export type Database = {
         Args: { p_farm_id: string; p_note?: string };
         Returns: {
           abn: string;
+          accommodation_details: string;
           business_name: string;
           contact_phone: string;
           created_at: string;
@@ -1355,12 +1371,14 @@ export type Database = {
           labour_hire_licence_number: string | null;
           logo_path: string | null;
           owner_id: string;
+          photos: string[];
           postcode: string;
           rejection_reason: string | null;
           updated_at: string;
           verification_status: Database['public']['Enums']['verification_status'];
           verified_at: string | null;
           verified_by: string | null;
+          website: string | null;
         };
         SetofOptions: {
           from: '*';
@@ -1377,6 +1395,7 @@ export type Database = {
         Args: { p_farm_id: string; p_reason: string };
         Returns: {
           abn: string;
+          accommodation_details: string;
           business_name: string;
           contact_phone: string;
           created_at: string;
@@ -1386,12 +1405,14 @@ export type Database = {
           labour_hire_licence_number: string | null;
           logo_path: string | null;
           owner_id: string;
+          photos: string[];
           postcode: string;
           rejection_reason: string | null;
           updated_at: string;
           verification_status: Database['public']['Enums']['verification_status'];
           verified_at: string | null;
           verified_by: string | null;
+          website: string | null;
         };
         SetofOptions: {
           from: '*';
@@ -1417,6 +1438,7 @@ export type Database = {
           visa_valid_through_job_end: boolean;
         }[];
       };
+      broadcast_to_crew: { Args: { p_audience?: string; p_body: string; p_job_id: string }; Returns: number };
       can_rate_farm: { Args: { p_application_id: string }; Returns: boolean };
       can_rate_worker: { Args: { p_application_id: string }; Returns: boolean };
       complete_finished_jobs: { Args: Record<PropertyKey, never>; Returns: number };
@@ -1436,6 +1458,24 @@ export type Database = {
           job_title: string;
           likely_specified_work: boolean;
           postcode: string;
+        }[];
+      };
+      farm_open_jobs: {
+        Args: { p_farm_id: string };
+        Returns: {
+          accommodation_provided: boolean;
+          applied: boolean;
+          end_date: string;
+          hours_per_week: number;
+          id: string;
+          locality: string;
+          min_hourly_guarantee_cents: number;
+          pay_rate_cents: number;
+          pay_type: Database['public']['Enums']['pay_type'];
+          piece_rate_unit: string;
+          role_type: Database['public']['Enums']['job_role_type'];
+          start_date: string;
+          title: string;
         }[];
       };
       farm_reviews: {
@@ -1476,6 +1516,7 @@ export type Database = {
           end_date: string;
           farm_id: string;
           farm_is_labour_hire: boolean;
+          farm_logo_path: string;
           farm_name: string;
           farm_rating_avg: number;
           farm_rating_count: number;

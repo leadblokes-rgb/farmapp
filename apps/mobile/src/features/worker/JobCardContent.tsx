@@ -2,7 +2,9 @@ import { formatCents, jobRoleLabel } from '@croppr/shared';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import { RatingSummary } from '@/components/Stars';
+import { Image } from 'expo-image';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
+import { farmImageUrl } from '@/lib/storage';
 import { dateRangeLabel, payLabel } from '@/features/jobs/format';
 import type { RankedFeedJob } from './feedApi';
 
@@ -38,6 +40,9 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
   return (
     <View style={styles.wrap}>
       <View style={styles.farmRow}>
+        {j.farm_logo_path ? (
+          <Image source={{ uri: farmImageUrl(j.farm_logo_path)! }} style={styles.logo} contentFit="cover" />
+        ) : null}
         <Text variant="titleMedium" style={styles.farm} numberOfLines={2}>
           {j.farm_name}
         </Text>
@@ -99,6 +104,7 @@ const styles = StyleSheet.create({
   wrap: { gap: 8 },
   farmRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   farm: { flexShrink: 1, fontWeight: '600' },
+  logo: { width: 28, height: 28, borderRadius: 14 },
   title: { fontWeight: '800' },
   muted: { opacity: 0.75 },
   payBox: { backgroundColor: '#E8F5E9', borderRadius: 12, padding: 12, marginVertical: 4 },

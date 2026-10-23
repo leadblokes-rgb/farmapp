@@ -87,3 +87,20 @@ export function useApplicantAvailability(workerId: string | undefined) {
     },
   });
 }
+
+/** One message to every accepted worker (or every applicant still under review) on a job. */
+export function useBroadcast(jobId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ body, audience }: { body: string; audience: 'accepted' | 'applied' }) => {
+      const { data, error } = await supabase.rpc('broadcast_to_crew', {
+        p_job_id: jobId,
+        p_body: body,
+        p_audience: audience,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
+  });
+}

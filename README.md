@@ -140,6 +140,12 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 - Each no-show counts as a 1-star reliability rating in the ranking, unless the worker has disputed it and the Croppr team hasn't decided yet.
 - Reviews can be reported; admins handle reports and disputes as described in the runbook.
 
+## Farm tools
+
+- **Farm page:** logo, up to 6 photos, website and accommodation details (Farm tab → "Your farm page"). Workers open it from a job's details ("About <farm>") and can apply to any open job from there. Images are in the public `farm-logos` bucket. Editing the farm page never sends a farm back for verification.
+- **Repost:** "Repost" on a job copies it into a new job with the dates cleared.
+- **Message crew:** one message to every accepted worker, or every applicant still under review. Each worker gets it in their own chat, so replies stay private. Limited to 10 per job per day.
+
 ## Admin tasks
 
 Approving farms, suspending users and handling reports are done in the Supabase dashboard. Step-by-step instructions are in [`docs/admin-runbook.md`](docs/admin-runbook.md).

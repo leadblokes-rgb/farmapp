@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Divider, Modal, Portal, Text } from 'react-native-paper';
 import { FarmReviews } from '@/features/ratings/Reviews';
@@ -21,6 +22,17 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport }: Props) {
           <>
             <ScrollView contentContainerStyle={styles.body}>
               <JobCardContent item={item} />
+              <Button
+                mode="outlined"
+                icon="storefront-outline"
+                style={styles.report}
+                onPress={() => {
+                  onDismiss();
+                  router.push(`/worker/farm/${item.job.farm_id}`);
+                }}
+              >
+                About {item.job.farm_name}
+              </Button>
               <Divider />
               <Text variant="titleMedium" style={styles.bold}>
                 About the job

@@ -8,6 +8,7 @@ import { Meter } from '@/components/Meter';
 import { LoadError } from '@/components/Loading';
 import { WarningBanner } from '@/components/WarningBanner';
 import { ApplicantCard } from '@/features/farm/ApplicantCard';
+import { BroadcastDialog } from '@/features/farm/BroadcastDialog';
 import { useJob, useSetJobStatus, type JobStatus } from '@/features/farm/jobsApi';
 import { useDecide, useShortlist, type Applicant, type Decision } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
@@ -30,6 +31,7 @@ export default function JobShortlist() {
   const [confirm, setConfirm] = useState<Decision | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [barHeight, setBarHeight] = useState(0);
+  const [broadcasting, setBroadcasting] = useState(false);
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
   // Completed workers stay in the Accepted tab.
@@ -115,6 +117,13 @@ export default function JobShortlist() {
           <Button compact icon="pencil" onPress={() => router.push(`/farm/job/edit/${j.id}`)}>
             Edit
           </Button>
+          <Button
+            compact
+            icon="content-copy"
+            onPress={() => router.push({ pathname: '/farm/job/new', params: { from: j.id } })}
+          >
+            Repost
+          </Button>
           {j.status === 'open' ? (
             <>
               <Button
@@ -149,6 +158,16 @@ export default function JobShortlist() {
           {applicants.some((a) => a.status === 'accepted' && !a.attendance)
             ? 'Who turned up? Check in your crew'
             : 'Crew check-in'}
+        </Button>
+      ) : null}
+      {accepted + byTab('applied').length > 0 ? (
+        <Button
+          mode="outlined"
+          icon="bullhorn-outline"
+          contentStyle={styles.tall}
+          onPress={() => setBroadcasting(true)}
+        >
+          Message crew
         </Button>
       ) : null}
       <PendingReviews jobId={j.id} onMessage={setMessage} />
@@ -261,6 +280,16 @@ export default function JobShortlist() {
         </View>
       ) : null}
 
+      <BroadcastDialog
+        jobId={j.id}
+        visible={broadcasting}
+        counts={{ accepted, applied: byTab('applied').length }}
+        onDismiss={() => setBroadcasting(false)}
+        onSent={(m) => {
+          setBroadcasting(false);
+          setMessage(m);
+        }}
+      />
       <Portal>
         <Dialog visible={confirm !== null} onDismiss={() => setConfirm(null)}>
           <Dialog.Title>
