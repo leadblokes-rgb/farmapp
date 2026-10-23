@@ -141,6 +141,12 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 - Each no-show counts as a 1-star reliability rating in the ranking, unless the worker has disputed it and the Croppr team hasn't decided yet.
 - Reviews can be reported; admins handle reports and disputes as described in the runbook.
 
+## Terms and privacy
+
+- After signing in, everyone accepts the **Terms of use** and **Privacy policy** before choosing a role. They're asked again whenever the versions in `packages/shared/src/config/legal.ts` change.
+- The documents are `docs/legal/terms.md` and `docs/legal/privacy-policy.md`. They are **drafts** that need review by an Australian lawyer. After editing them, run `npm run build:legal` to copy them into the app.
+- Profile → "Privacy, terms and support" links to both documents and the support email (`legal.supportEmail`, also shown on the suspended screen).
+
 ## Saved jobs and job alerts
 
 - Workers swipe a job **up** (or tap the bookmark) to save it. Saved jobs leave the swipe feed and are listed under Matches → Saved, with Apply and Remove.

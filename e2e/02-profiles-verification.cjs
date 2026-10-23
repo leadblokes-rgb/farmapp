@@ -29,6 +29,13 @@ async function otpSignIn(page, roleButton, email) {
   await page.getByText('Email me a code').click();
   await page.getByText('Check your email').waitFor();
   await page.locator('input[autocomplete="one-time-code"]').fill(await latestCode(email));
+  // New accounts accept the terms and privacy policy first (see 11-consent.cjs).
+  const consent = page.getByText('Before you start');
+  if (await consent.waitFor({ timeout: 8000 }).then(() => true, () => false)) {
+    await page.getByLabel('I agree to the Terms of use').click();
+    await page.getByLabel('I’ve read the Privacy policy').click();
+    await page.getByRole('button', { name: 'Continue' }).click();
+  }
 }
 
 // Fill the Paper TextInput whose label text matches.

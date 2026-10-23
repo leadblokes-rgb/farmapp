@@ -28,9 +28,10 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 - [ ] **You:** Get legal advice on whether Croppr itself needs a labour hire licence in QLD or other states. A job platform usually doesn't, but check.
 
 ## 3. Legal and privacy (required by the app stores and the Privacy Act)
-- [ ] **You:** A privacy policy and terms of use. Croppr holds sensitive information (visa status, nationality, payslips), so the Australian Privacy Principles apply.
-- [ ] **Dev:** A consent step at sign-up linking those documents, and links in Profile.
-- [ ] **Dev:** Replace the placeholder support address `support@croppr.example` (on the suspended screen) with a real one, and add a "Contact support" link.
+- [ ] **You:** Have an Australian lawyer review the draft privacy policy and terms (`docs/legal/`). Croppr holds sensitive information (visa status, nationality, payslips), so the Australian Privacy Principles apply. Then set `draft: false` and bump the versions in `packages/shared/src/config/legal.ts`.
+- [x] **Dev:** A consent step at sign-up linking those documents, and links in Profile.
+- [x] **Dev:** "Contact support" links in Profile and on the suspended screen.
+- [ ] **You:** Set up a monitored support inbox and put its address in `legal.supportEmail` (currently `support@croppr.com.au`, a placeholder).
 - [ ] **You:** Decide how long data is kept (e.g. closed jobs, old chats, payslips) and whether to auto-delete it.
 - [ ] **You:** Fill in the App Store privacy labels and the Google Play data safety form.
 

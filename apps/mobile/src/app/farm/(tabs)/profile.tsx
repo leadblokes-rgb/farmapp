@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
+import { LegalLinks } from '@/features/legal/LegalLinks';
 import { farmToInput, useMyFarm, useSaveFarm } from '@/features/farm/api';
 import { FarmForm } from '@/features/farm/FarmForm';
 import { FarmPageEditor } from '@/features/farm/FarmPageEditor';
@@ -39,6 +40,7 @@ export default function FarmProfile() {
           }}
         />
         <FarmPageEditor farm={farm.data} userId={userId} onSaved={setMessage} />
+        <LegalLinks />
         <DangerZone />
       </Screen>
       <Toast message={message} onDismiss={() => setMessage(null)} />

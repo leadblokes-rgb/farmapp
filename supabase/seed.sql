@@ -383,3 +383,8 @@ values ('11111111-1111-1111-1111-111111111111', 'e1000000-0000-0000-0000-0000000
 
 -- Job alerts (phase C): Sam gets alerts for new jobs in the Lockyer Valley.
 insert into public.job_alerts (worker_id, region_ids) values ('11111111-1111-1111-1111-111111111111', array['lockyer-valley']);
+
+-- Demo accounts have already accepted the current (draft) terms and privacy policy
+-- (versions in packages/shared/src/config/legal.ts). newuser@ is left to see the consent screen.
+update public.profiles set terms_version = '2026-10-draft-1', privacy_version = '2026-10-draft-1', terms_accepted_at = now()
+ where id <> (select id from auth.users where email = 'newuser@demo.croppr.test');

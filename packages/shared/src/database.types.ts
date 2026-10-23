@@ -788,23 +788,32 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          privacy_version: string | null;
           role: Database['public']['Enums']['user_role'] | null;
           status: Database['public']['Enums']['account_status'];
+          terms_accepted_at: string | null;
+          terms_version: string | null;
           updated_at: string;
         };
         ComputedFields: never;
         Insert: {
           created_at?: string;
           id: string;
+          privacy_version?: string | null;
           role?: Database['public']['Enums']['user_role'] | null;
           status?: Database['public']['Enums']['account_status'];
+          terms_accepted_at?: string | null;
+          terms_version?: string | null;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           id?: string;
+          privacy_version?: string | null;
           role?: Database['public']['Enums']['user_role'] | null;
           status?: Database['public']['Enums']['account_status'];
+          terms_accepted_at?: string | null;
+          terms_version?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1455,6 +1464,7 @@ export type Database = {
       };
     };
     Functions: {
+      accept_legal: { Args: { p_privacy_version: string; p_terms_version: string }; Returns: undefined };
       admin_approve_farm: {
         Args: { p_farm_id: string; p_note?: string };
         Returns: {
@@ -1768,8 +1778,11 @@ export type Database = {
         Returns: {
           created_at: string;
           id: string;
+          privacy_version: string | null;
           role: Database['public']['Enums']['user_role'] | null;
           status: Database['public']['Enums']['account_status'];
+          terms_accepted_at: string | null;
+          terms_version: string | null;
           updated_at: string;
         };
         SetofOptions: {

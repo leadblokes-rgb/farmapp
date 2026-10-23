@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { needsLegalConsent } from '@croppr/shared';
 import { registerForPush, useNotificationDeepLinks } from '@/lib/push';
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { theme } from '@/theme';
@@ -58,7 +59,9 @@ function RootNavigator() {
 
   const signedIn = session !== null;
   const active = profile?.status === 'active';
-  const role = active ? profile?.role : null;
+  // Everyone accepts the current terms and privacy policy before anything else.
+  const consent = signedIn && active && !!profile && needsLegalConsent(profile);
+  const role = active && !consent ? profile?.role : null;
 
   // Where this user belongs right now. When their area changes (signed in, onboarded, signed out…)
   // we navigate there explicitly, so a fresh sign-in lands on the first tab rather than whichever
@@ -67,31 +70,44 @@ function RootNavigator() {
     ? '/'
     : !active
       ? '/suspended'
-      : role == null
-        ? '/choose-role'
-        : role === 'worker'
-          ? onboarded
-            ? '/worker'
-            : '/worker-onboarding'
-          : role === 'farm'
+      : consent
+        ? '/consent'
+        : role == null
+          ? '/choose-role'
+          : role === 'worker'
             ? onboarded
-              ? '/farm'
-              : '/farm-onboarding'
-            : '/admin';
+              ? '/worker'
+              : '/worker-onboarding'
+            : role === 'farm'
+              ? onboarded
+                ? '/farm'
+                : '/farm-onboarding'
+              : '/admin';
 
-  return <GuardedStack home={home} signedIn={signedIn} active={active} role={role} onboarded={onboarded} />;
+  return (
+    <GuardedStack
+      home={home}
+      signedIn={signedIn}
+      active={active}
+      consent={consent}
+      role={role}
+      onboarded={onboarded}
+    />
+  );
 }
 
 function GuardedStack({
   home,
   signedIn,
   active,
+  consent,
   role,
   onboarded,
 }: {
   home: Href;
   signedIn: boolean;
   active: boolean;
+  consent: boolean;
   role: string | null | undefined;
   onboarded: boolean;
 }) {
@@ -100,7 +116,8 @@ function GuardedStack({
   const homeArea = String(home).split('/')[1] || '(auth)';
 
   useEffect(() => {
-    if (navReady && segments[0] !== homeArea) router.replace(home);
+    // The legal documents can be read from anywhere (welcome screen, consent screen, profile).
+    if (navReady && segments[0] !== homeArea && segments[0] !== 'legal') router.replace(home);
   }, [navReady, home, homeArea, segments]);
 
   return (
@@ -111,7 +128,10 @@ function GuardedStack({
       <Stack.Protected guard={signedIn && !active}>
         <Stack.Screen name="suspended" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && active && role == null}>
+      <Stack.Protected guard={consent}>
+        <Stack.Screen name="consent" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && active && !consent && role == null}>
         <Stack.Screen name="choose-role" />
       </Stack.Protected>
       <Stack.Protected guard={role === 'worker' && !onboarded}>
@@ -129,6 +149,7 @@ function GuardedStack({
       <Stack.Protected guard={role === 'admin'}>
         <Stack.Screen name="admin" />
       </Stack.Protected>
+      <Stack.Screen name="legal" options={{ headerShown: true, headerBackButtonDisplayMode: 'minimal' }} />
     </Stack>
   );
 }

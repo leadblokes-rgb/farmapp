@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
+import { LegalLinks } from '@/features/legal/LegalLinks';
 import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
 import { GroupCard } from '@/features/worker/GroupCard';
 import { JobAlertsCard } from '@/features/worker/JobAlertsCard';
@@ -36,6 +37,7 @@ export default function WorkerProfile() {
           }}
         />
         <JobAlertsCard userId={userId} onSaved={setMessage} />
+        <LegalLinks />
         <DangerZone />
       </Screen>
       <Toast message={message} onDismiss={() => setMessage(null)} />
