@@ -12,4 +12,5 @@ export * from './config/visaRules';
 export * from './config/specifiedWorkPostcodes';
 export * from './config/legal';
 export * from './dayCounter';
+export * from './trackerValidation';
 export type { Database, Json } from './database.types';

@@ -20,6 +20,7 @@ All six MVP milestones are built and tested locally. This is what remains, rough
   - shorter shifts are ignored
   - each calendar day counts once
   - dates after today never count
+  - a part-time payslip counts only the days its hours support (e.g. 5 days but 12 hours = 1 day)
   
   Public guidance disagrees on part-time counting.
 - [ ] **You:** Confirm the award minimum in `packages/shared/src/config/payRules.ts` ($32.18/hr casual from 1 July 2026), and diarise a review every July.

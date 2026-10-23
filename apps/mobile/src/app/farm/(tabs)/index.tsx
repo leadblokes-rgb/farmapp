@@ -20,7 +20,6 @@ export default function Jobs() {
   const farm = useMyFarm(useUserId());
   const jobs = useMyJobs(farm.data?.id);
   const [message, setMessage] = useState<string | null>(null);
-  const [buttonHeight, setButtonHeight] = useState(0);
 
   if (farm.isPending) return <Loading />;
   if (farm.isError || !farm.data) return <LoadError onRetry={() => farm.refetch()} />;
@@ -49,12 +48,10 @@ export default function Jobs() {
         }
         renderItem={({ item }) => <JobCard job={item} />}
       />
-      <View onLayout={(e) => setButtonHeight(e.nativeEvent.layout.height)}>
-        <BigButton icon="plus" disabled={!verified} onPress={() => router.push('/farm/job/new')}>
-          Post a job
-        </BigButton>
-      </View>
-      <Toast message={message} onDismiss={() => setMessage(null)} bottomOffset={buttonHeight + 20} />
+      <BigButton icon="plus" disabled={!verified} onPress={() => router.push('/farm/job/new')}>
+        Post a job
+      </BigButton>
+      <Toast message={message} onDismiss={() => setMessage(null)} />
     </Screen>
   );
 }

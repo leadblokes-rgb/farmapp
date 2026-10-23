@@ -26,7 +26,6 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
   const [draft, setDraft] = useState('');
   const [reporting, setReporting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [barHeight, setBarHeight] = useState(0);
 
   const convo = conversations.data?.find((c) => c.conversation_id === conversationId);
   const newest = messages.data?.[0]?.id;
@@ -83,7 +82,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
             renderItem={({ item }) => <Bubble m={item} mine={item.sender_id === userId} />}
           />
         )}
-        <View style={styles.composer} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
+        <View style={styles.composer}>
           <TextInput
             mode="outlined"
             placeholder="Message"
@@ -117,7 +116,7 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
           setNotice('Thanks. The Croppr team will review your report.');
         }}
       />
-      <Toast message={notice} onDismiss={() => setNotice(null)} duration={3500} bottomOffset={barHeight} />
+      <Toast message={notice} onDismiss={() => setNotice(null)} duration={3500} />
     </SafeAreaView>
   );
 }

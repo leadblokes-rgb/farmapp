@@ -32,7 +32,6 @@ export default function Discover() {
   const [swipedIds, setSwipedIds] = useState<string[]>([]);
   const [last, setLast] = useState<{ item: RankedFeedJob; direction: SwipeDirection } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [barHeight, setBarHeight] = useState(0);
   const deck = useRef<SwipeDeckHandle>(null);
 
   const feed = useFeed(userId, filters);
@@ -132,7 +131,7 @@ export default function Discover() {
         )}
       </View>
 
-      <View style={styles.actions} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
+      <View style={styles.actions}>
         <IconButton
           icon="close"
           mode="outlined"
@@ -209,7 +208,7 @@ export default function Discover() {
           setMessage('Thanks. The Croppr team will review your report.');
         }}
       />
-      <Toast message={message} onDismiss={() => setMessage(null)} duration={2500} bottomOffset={barHeight} />
+      <Toast message={message} onDismiss={() => setMessage(null)} duration={2500} />
     </Screen>
   );
 }

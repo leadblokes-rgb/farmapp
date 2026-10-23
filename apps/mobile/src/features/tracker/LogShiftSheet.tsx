@@ -1,4 +1,4 @@
-import { isoToDisplay, todayIso } from '@croppr/shared';
+import { isoToDisplay, todayIso, trackerLimits, validateShift } from '@croppr/shared';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Button, HelperText, Modal, Portal, Text } from 'react-native-paper';
@@ -56,6 +56,7 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
   const [date, setDate] = useState<string | null>(todayIso());
   const [hours, setHours] = useState(defaults.hoursFor(employerId));
   const [confirmReplace, setConfirmReplace] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
   const chooseEmployer = (id: string) => {
     setEmployerId(id);
     setHours(defaults.hoursFor(id));
@@ -65,7 +66,10 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
   const employerName = employers.find((e) => e.id === employerId)?.name ?? 'this employer';
 
   function save() {
-    if (!employerId || !date) return;
+    if (!employerId) return;
+    const invalid = validateShift({ workDate: date, hours }, todayIso());
+    setProblem(invalid);
+    if (invalid || !date) return;
     if (existing && !confirmReplace) return setConfirmReplace(true);
     onSave({ employerId, workDate: date, hours });
   }
@@ -95,12 +99,12 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
         value={hours}
         onChange={setHours}
         min={0.5}
-        max={16}
+        max={trackerLimits.maxHoursPerDay}
         step={0.5}
         suffix="h"
       />
-      <HelperText type="error" visible={!!error}>
-        {error}
+      <HelperText type="error" visible={!!(problem ?? error)}>
+        {problem ?? error}
       </HelperText>
       {confirmReplace && existing ? (
         <Text variant="bodyLarge" style={styles.confirm}>
@@ -108,7 +112,7 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
           Replace it with {hours}h?
         </Text>
       ) : null}
-      <BigButton icon="check" disabled={!employerId || !date || saving} loading={saving} onPress={save}>
+      <BigButton icon="check" disabled={!employerId || saving} loading={saving} onPress={save}>
         {confirmReplace && existing ? `Replace with ${hours}h` : 'Save shift'}
       </BigButton>
       <Button mode="text" onPress={onDismiss} contentStyle={styles.tall}>

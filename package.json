@@ -19,7 +19,8 @@
     "format:check": "prettier --check \"apps/mobile/src/**/*.{ts,tsx}\" \"packages/*/src/**/*.ts\"",
     "build:functions": "node scripts/build-functions.mjs",
     "test:e2e": "node e2e/run-all.cjs",
-    "build:legal": "node scripts/build-legal.mjs"
+    "build:legal": "node scripts/build-legal.mjs",
+    "check:prod-bundle": "node scripts/check-prod-bundle.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

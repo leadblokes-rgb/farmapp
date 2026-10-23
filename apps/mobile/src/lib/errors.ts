@@ -1,9 +1,10 @@
 // Database CHECK constraints the user can trip from a form, in plain words.
 const CONSTRAINT_MESSAGES: Record<string, string> = {
-  shift_logs_hours_check: 'A shift can be at most 16 hours.',
+  shift_logs_hours_check: 'A shift can be at most 24 hours.',
   payslips_period_length_check:
-    'A pay period can be at most 62 days. Add longer periods as separate payslips.',
-  payslips_hours_check: 'That’s more than 16 hours per day worked. Check the total hours and days worked.',
+    'A pay period can be at most 31 days. Add longer periods as separate payslips.',
+  payslips_hours_check: 'That’s more than 24 hours per day worked. Check the total hours and days worked.',
+  payslips_days_worked_min_check: 'Enter how many days you worked.',
   payslips_check: 'The pay period ends before it starts.',
   payslips_check1: 'Days worked can’t be more than the days in the pay period.',
 };

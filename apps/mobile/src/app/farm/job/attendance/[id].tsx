@@ -31,7 +31,6 @@ export default function Attendance() {
   const shortlist = useShortlist(id);
   const mark = useMarkAttendance(id);
   const [message, setMessage] = useState<string | null>(null);
-  const [barHeight, setBarHeight] = useState(0);
 
   if (job.isPending || shortlist.isPending) return <ListSkeleton label="Loading your crew" />;
   if (job.isError || !job.data) return <LoadError onRetry={() => job.refetch()} />;
@@ -71,7 +70,7 @@ export default function Attendance() {
         renderItem={({ item }) => <CrewRow a={item} busy={mark.isPending} onMark={set} />}
       />
       {unmarked.length ? (
-        <View style={styles.bar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
+        <View style={styles.bar}>
           <Button
             mode="contained"
             icon="check-all"
@@ -89,11 +88,7 @@ export default function Attendance() {
           </Button>
         </View>
       ) : null}
-      <Toast
-        message={message}
-        onDismiss={() => setMessage(null)}
-        bottomOffset={unmarked.length ? barHeight : 0}
-      />
+      <Toast message={message} onDismiss={() => setMessage(null)} />
     </View>
   );
 }

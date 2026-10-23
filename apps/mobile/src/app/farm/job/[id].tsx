@@ -30,7 +30,6 @@ export default function JobShortlist() {
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<Decision | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [barHeight, setBarHeight] = useState(0);
   const [broadcasting, setBroadcasting] = useState(false);
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
@@ -255,7 +254,7 @@ export default function JobShortlist() {
       />
 
       {selected.length ? (
-        <View style={styles.bulkBar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}>
+        <View style={styles.bulkBar}>
           {tab === 'applied' ? (
             <Button
               mode="contained"
@@ -311,12 +310,7 @@ export default function JobShortlist() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-      <Toast
-        message={message}
-        onDismiss={() => setMessage(null)}
-        duration={3000}
-        bottomOffset={selected.length ? barHeight : 0}
-      />
+      <Toast message={message} onDismiss={() => setMessage(null)} duration={3000} />
     </View>
   );
 }

@@ -1,4 +1,5 @@
 import { isSpecifiedWorkPostcode, isWhmSubclass } from './config/specifiedWorkPostcodes';
+import { isoToDisplay } from './dates';
 import { visaRules as defaultRules, type TrackerGoal, type VisaRules } from './config/visaRules';
 
 // Pure, unit-tested estimate of specified-work days. All rules come from config/visaRules.ts.
@@ -74,7 +75,8 @@ export function estimateDays(
   };
 
   // 1) Payslips are the strongest evidence. A pay period counts every calendar day only if it was
-  //    full-time in both hours and days worked; otherwise the stated days worked are counted
+  //    full-time in both hours and days worked. Otherwise each day worked must meet the full-day
+  //    hours, like a shift: the days counted are capped at what the total hours support
   //    (placed from the start of the period).
   const payslipCover: { employerId: string; start: number; end: number }[] = [];
   for (const p of payslips) {
@@ -88,7 +90,19 @@ export function estimateDays(
     if (weeklyHours >= rules.fullTimeWeekHours && weeklyDays >= rules.fullTimeWeekMinDays) {
       for (let d = start; d <= end; d++) credit(d, p.employerId);
     } else {
-      for (let d = start; d < start + Math.min(p.daysWorked, length); d++) credit(d, p.employerId);
+      const days = Math.min(p.daysWorked, length);
+      const fullDays = Math.min(days, Math.floor(p.hoursTotal / rules.fullDayHours));
+      for (let d = start; d < start + fullDays; d++) credit(d, p.employerId);
+      if (rules.shortShifts === 'proportional') {
+        const extra = Math.min(days, p.hoursTotal / rules.fullDayHours) - fullDays;
+        if (extra > 0) fractional.set(p.employerId, (fractional.get(p.employerId) ?? 0) + extra);
+      }
+      if (fullDays < days) {
+        const name = eligible.get(p.employerId)!.name;
+        notes.push(
+          `Payslip from ${name} (${isoToDisplay(p.periodStart)}–${isoToDisplay(p.periodEnd)}): ${p.hoursTotal} hours only covers ${fullDays} full day${fullDays === 1 ? '' : 's'} of ${rules.fullDayHours}+ hours, so ${fullDays} of the ${days} days worked ${fullDays === 1 ? 'is' : 'are'} counted.`,
+        );
+      }
     }
   }
 

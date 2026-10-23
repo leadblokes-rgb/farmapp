@@ -5,21 +5,19 @@ interface Props {
   message: string | null;
   onDismiss: () => void;
   duration?: number;
-  /**
-   * Height of whatever sits at the bottom of the screen (bulk-action bar, swipe buttons, chat
-   * composer), so the toast appears above it instead of covering buttons. Measure it with onLayout.
-   */
-  bottomOffset?: number;
 }
 
-/** A short confirmation message. Every screen uses this instead of a bare Snackbar. */
-export function Toast({ message, onDismiss, duration = 3000, bottomOffset = 0 }: Props) {
+/**
+ * A short confirmation message at the top of the screen, so it never covers the swipe buttons,
+ * bulk-action bars or the chat composer at the bottom. Every screen uses this, not a bare Snackbar.
+ */
+export function Toast({ message, onDismiss, duration = 3000 }: Props) {
   return (
     <Snackbar
       visible={message !== null}
       onDismiss={onDismiss}
       duration={duration}
-      wrapperStyle={[styles.wrapper, { bottom: bottomOffset }]}
+      wrapperStyle={styles.wrapper}
     >
       {message}
     </Snackbar>
@@ -27,5 +25,5 @@ export function Toast({ message, onDismiss, duration = 3000, bottomOffset = 0 }:
 }
 
 const styles = StyleSheet.create({
-  wrapper: { zIndex: 10 },
+  wrapper: { top: 0, bottom: undefined, zIndex: 10 },
 });

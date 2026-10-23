@@ -83,17 +83,39 @@ let page;
   await page.getByText('Shift saved').waitFor();
   console.log('PASS saving over an existing shift asks before replacing');
 
-  // ---------- Payslip: implausible hours are rejected with a clear message ----------
+  // ---------- Payslips: validated before saving; days capped by the hours ----------
+  const total = async () => parseInt(await page.getByLabel(/ of \d+ days, estimated/).getAttribute('aria-label'));
+  const payslipCount = () => sql(`select count(*) from payslips where worker_id='${SAM}'`);
+  const daysBefore = await total();
+  const slipsBefore = payslipCount();
   await page.getByRole('button', { name: /Add a payslip/ }).click();
   await page.getByText('Copy the details from your payslip').waitFor();
   await page.getByRole('radio', { name: sunny }).click();
-  await page.getByLabel('Period start').fill(ddmmyyyy(-20));
-  await page.getByLabel('Period end').fill(ddmmyyyy(-7));
-  // The stepper starts at 5 days; 5 days × 16h = 80h, so 100h is implausible.
-  await page.getByLabel('Total hours').fill('100');
+  await page.getByLabel('Total hours').fill('12');
   await page.getByRole('button', { name: /Save payslip/ }).click();
-  await page.getByText(/more than 16 per day worked/).waitFor();
-  console.log('PASS payslip with more than 16h per day worked is rejected');
+  await page.getByText('Enter the pay period start and end dates.').waitFor();
+  await sleep(1000);
+  if (payslipCount() !== slipsBefore) throw new Error('payslip saved without dates');
+  console.log('PASS a payslip without dates is not saved');
+
+  await page.getByLabel('Period start').fill(ddmmyyyy(-12));
+  await page.getByLabel('Period end').fill(ddmmyyyy(-6));
+  // The stepper starts at 5 days; 5 days × 24h = 120h.
+  await page.getByLabel('Total hours').fill('130');
+  await page.getByRole('button', { name: /Save payslip/ }).click();
+  await page.getByText(/more than 24 hours a day/).waitFor();
+  if (payslipCount() !== slipsBefore) throw new Error('impossible payslip saved');
+  console.log('PASS payslip with more than 24h per day worked is rejected');
+
+  // 5 days worked but only 12 hours: counts 1 day, and says why.
+  await page.getByLabel('Total hours').fill('12');
+  await page.getByRole('button', { name: /Save payslip/ }).click();
+  await page.getByText(/12 hours only covers 1 full day/).waitFor({ timeout: 20000 });
+  await sleep(800);
+  const daysAfter = await total();
+  if (daysAfter !== daysBefore + 1) throw new Error(`5 days / 12 hours payslip added ${daysAfter - daysBefore} days, expected 1`);
+  await page.screenshot({ path: `${OUT}/v11-2b-payslip-note.png`, fullPage: true });
+  console.log('PASS a 5-day, 12-hour payslip counts 1 day and explains why');
 
   // The database enforces the same rules, whatever the app sends.
   let dbRejected = false;
@@ -107,7 +129,6 @@ let page;
   }
   if (!dbRejected) throw new Error('database accepted a future shift');
   console.log('PASS database rejects future shifts');
-  await page.goBack();
 
   // ---------- Toast sits above the chat composer ----------
   await page.getByRole('tab', { name: /Matches/ }).click();
@@ -139,6 +160,19 @@ let page;
   );
   if (clipped) throw new Error('job card text is truncated at 320px');
   console.log('PASS job card text fits at 320px');
+
+  // ---------- "Applied to …" toast at the top, clear of the swipe buttons ----------
+  const applyBtn = narrow.getByRole('button', { name: 'Apply for this job' });
+  const buttonsTop = (await applyBtn.boundingBox()).y;
+  await applyBtn.click();
+  const applied = narrow.getByText(/^Applied to /);
+  await applied.waitFor();
+  await sleep(400);
+  const box = await applied.boundingBox();
+  if (box.y + box.height > buttonsTop) throw new Error(`toast (bottom ${box.y + box.height}) overlaps the swipe buttons (top ${buttonsTop})`);
+  if (box.y > 568 / 3) throw new Error(`toast not at the top of the screen (y=${box.y})`);
+  await narrow.screenshot({ path: `${OUT}/v11-5-toast-top.png` });
+  console.log('PASS "Applied to" toast shows at the top, clear of the swipe buttons');
 
   if (errors.length) throw new Error('page errors: ' + errors.join(' | '));
   console.log('page errors: none');

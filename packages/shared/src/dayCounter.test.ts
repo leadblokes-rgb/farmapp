@@ -168,4 +168,47 @@ describe('estimateDays', () => {
     );
     expect(r.totalDays).toBe(4);
   });
+
+  it('counts only the days a payslip’s hours support (5 days but 12 hours = 1 day)', () => {
+    const r = estimateDays(
+      [farm],
+      [],
+      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 5, hoursTotal: 12 }],
+      opts,
+    );
+    expect(r.totalDays).toBe(1);
+    expect(r.notes.join(' ')).toMatch(/12 hours only covers 1 full day of 7\+ hours, so 1 of the 5 days worked is counted/);
+  });
+
+  it('counts nothing from a payslip with less than one full day of hours', () => {
+    const r = estimateDays(
+      [farm],
+      [],
+      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 3, hoursTotal: 6 }],
+      opts,
+    );
+    expect(r.totalDays).toBe(0);
+  });
+
+  it('still counts a full-time payslip week (35+ hours over 5 days) as 7 days', () => {
+    const r = estimateDays(
+      [farm],
+      [],
+      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 5, hoursTotal: 38 }],
+      opts,
+    );
+    expect(r.totalDays).toBe(7);
+    expect(r.notes.join(' ')).not.toMatch(/only covers/);
+  });
+
+  it('counts payslip hours proportionally if the rules say so', () => {
+    const rules = { ...visaRules, shortShifts: 'proportional' as const };
+    const r = estimateDays(
+      [farm],
+      [],
+      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-14', daysWorked: 5, hoursTotal: 21 }],
+      { rules, today },
+    );
+    expect(r.totalDays).toBe(3);
+  });
 });
