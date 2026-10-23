@@ -4,7 +4,8 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 **You** = a decision or account only you can provide. **Dev** = code or config work.
 
 ## 1. Try it on real phones (start here)
-- [ ] **Dev:** Run `npx eas-cli init` in `apps/mobile` (links an Expo account and adds the EAS project id), add `eas.json` build profiles, and make a development build for Android and iOS.
+- [x] **Dev:** `eas.json` build profiles (development, preview, production) and `expo-dev-client`.
+- [ ] **You:** Follow [`dev-builds.md`](dev-builds.md): `eas init`, register your iPhone, build and install the development build, and set the two push Vault secrets on hosted Supabase.
 - [ ] **You:** Test on real devices outdoors:
   - swipe feel, tap targets in sun or with gloves
   - camera for the photo and payslip

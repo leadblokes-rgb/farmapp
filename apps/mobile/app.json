@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "au.croppr.app"
+      "bundleIdentifier": "au.croppr.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,8 +33,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Croppr uses your photos so you can add a profile picture.",
-          "cameraPermission": "Croppr uses your camera so you can take a profile picture."
+          "photosPermission": "Croppr uses your photos so you can add a profile picture or a payslip.",
+          "cameraPermission": "Croppr uses your camera so you can take a profile picture or a photo of a payslip."
         }
       ],
       [
@@ -49,7 +52,13 @@
           "backgroundColor": "#FFFFFF"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "color": "#17482F"
+        }
+      ]
     ],
     "scheme": "croppr"
   }

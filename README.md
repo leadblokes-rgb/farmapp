@@ -87,7 +87,7 @@ You don't need Docker if you use a free project on supabase.com.
 
 ## Expo SDK version
 
-The app is on **Expo SDK 57**, so it opens in the current App Store/Play Store **Expo Go**. SDK 58 came out on 29 Sep 2026, before Expo Go supported it. Upgrade with `cd apps/mobile && npx expo install expo@^58 --fix` once Expo Go supports SDK 58 (check Expo Go → Settings → Supported SDK). Development builds aren't limited by Expo Go.
+The app is on **Expo SDK 57**, so it opens in the current App Store/Play Store **Expo Go**. SDK 58 came out on 29 Sep 2026, before Expo Go supported it. Upgrade with `cd apps/mobile && npx expo install expo@^58 --fix` once Expo Go supports SDK 58 (check Expo Go → Settings → Supported SDK). Development builds aren't limited by Expo Go (see [`docs/dev-builds.md`](docs/dev-builds.md)).
 
 ## Branding
 
@@ -165,11 +165,7 @@ How it works:
 
 Every attempt is logged in `notification_log` (`select * from notification_log order by id desc`).
 
-**To receive pushes on a phone:**
-
-1. Run `cd apps/mobile && npx eas-cli init` once. This adds the EAS project id to `app.json`; without it the app skips push registration.
-2. Build a development build: `npx eas-cli build --profile development`, or `npx expo run:android` / `run:ios`. Expo Go doesn't support remote push on Android, so use a development build.
-3. Sign in on a physical device and allow notifications.
+**To receive pushes on a phone**, use a development build (Expo Go can't receive them on Android, and needs extra setup on iOS). Step-by-step instructions for Windows and iPhone are in [`docs/dev-builds.md`](docs/dev-builds.md). Build profiles are in `apps/mobile/eas.json`.
 
 Locally, `seed.sql` stores the function URL and service key in Supabase Vault.
 
