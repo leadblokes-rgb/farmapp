@@ -211,4 +211,14 @@ describe('estimateDays', () => {
     );
     expect(r.totalDays).toBe(3);
   });
+
+  it('flags employers the database tagged as outside eligible postcodes', () => {
+    const r = estimateDays(
+      [{ id: 'city', name: 'City packing', countsAsSpecified: true, postcode: '4000', postcodeEligible: false }],
+      [],
+      [],
+      { today, visaType: '417' },
+    );
+    expect(r.notes.join(' ')).toMatch(/City packing \(4000\) isn’t an eligible postcode for 417 plant & animal cultivation/);
+  });
 });

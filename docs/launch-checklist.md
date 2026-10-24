@@ -24,7 +24,7 @@ All six MVP milestones are built and tested locally. This is what remains, rough
   
   Public guidance disagrees on part-time counting.
 - [ ] **You:** Confirm the award minimum in `packages/shared/src/config/payRules.ts` ($32.18/hr casual from 1 July 2026), and diarise a review every July.
-- [x] **Dev:** Eligible specified-work postcodes (plant & animal cultivation) in `packages/shared/src/config/specifiedWorkPostcodes.ts`.
+- [x] **Dev:** Eligible specified-work postcode lists (plant & animal cultivation) in the database, with version, last-checked date and source; updated from the dashboard (`docs/admin-runbook.md`).
 - [ ] **You:** Have the migration agent check that postcode list against the current Home Affairs instrument (F2022L00271 / LIN 22/037). It was compiled from secondary sources because the official site couldn't be reached from the build environment.
 - [ ] **You:** Get legal advice on whether Croppr itself needs a labour hire licence in QLD or other states. A job platform usually doesn't, but check.
 

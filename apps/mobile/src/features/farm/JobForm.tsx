@@ -1,7 +1,6 @@
 import {
   JOB_ROLES,
   belowAwardWarning,
-  isSpecifiedWorkPostcodeForAnyWhm,
   formatCents,
   jobSchema,
   payRules,
@@ -21,7 +20,7 @@ import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { Stepper } from '@/components/form/Stepper';
 import { SwitchRow } from '@/components/form/SwitchRow';
 import { FieldMessage, TextField } from '@/components/form/TextField';
-import { usePostcode } from '@/features/common/api';
+import { usePostcode, useSpecifiedWorkCheck } from '@/features/common/api';
 import { zodResolver } from '@/lib/zodResolver';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
@@ -63,16 +62,20 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
       'likelySpecifiedWork',
     ],
   });
-  // When the farm enters a new postcode, pre-tick "specified work" from the eligible postcode list
-  // (plant & animal cultivation). The farm can still change it.
+  // When the farm enters a new postcode or type of work, pre-tick "specified work" from the
+  // eligible postcode lists (in the database). The farm can still change it.
+  const roleType = useWatch({ control, name: 'roleType' });
   const postcodeValid = /^\d{4}$/.test(postcode);
-  const eligiblePostcode = postcodeValid && isSpecifiedWorkPostcodeForAnyWhm(postcode);
-  const lastPostcode = useRef(postcode);
+  const check = useSpecifiedWorkCheck(postcode, roleType);
+  const eligiblePostcode =
+    postcodeValid && !!check.data && (check.data.eligible_417 || check.data.eligible_462);
+  const checkKey = `${postcode}|${roleType}`;
+  const appliedKey = useRef(checkKey);
   useEffect(() => {
-    if (postcode === lastPostcode.current) return;
-    lastPostcode.current = postcode;
-    if (/^\d{4}$/.test(postcode)) setValue('likelySpecifiedWork', isSpecifiedWorkPostcodeForAnyWhm(postcode));
-  }, [postcode, setValue]);
+    if (!postcodeValid || !check.data || appliedKey.current === checkKey) return;
+    appliedKey.current = checkKey;
+    setValue('likelySpecifiedWork', check.data.eligible_417 || check.data.eligible_462);
+  }, [checkKey, check.data, postcodeValid, setValue]);
   const place = usePostcode(postcode);
   const awardWarning = belowAwardWarning({
     payType,
@@ -308,7 +311,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
             />
           )}
         />
-        {postcodeValid && likelySpecifiedWork && !eligiblePostcode ? (
+        {postcodeValid && check.data && likelySpecifiedWork && !eligiblePostcode ? (
           <WarningBanner>
             This postcode isn’t on the eligible list for plant and animal cultivation. Workers on 417/462
             visas will see that. Only leave this on if it’s another kind of specified work.

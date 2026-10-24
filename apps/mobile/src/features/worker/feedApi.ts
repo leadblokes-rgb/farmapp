@@ -1,9 +1,4 @@
-import {
-  effectiveHourlyCents,
-  specifiedWorkForJob,
-  type Database,
-  type SpecifiedWorkCheck,
-} from '@croppr/shared';
+import { effectiveHourlyCents, type Database } from '@croppr/shared';
 import { ranker, type MatchJob, type MatchWorker, type Ranked } from '@croppr/matching';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -39,8 +34,25 @@ export interface RankedFeedJob {
   job: FeedJob;
   score: number;
   breakdown: Ranked<MatchJob>['breakdown'];
-  /** Eligible specified-work postcode for the viewing worker's visa (plant & animal cultivation). */
+  /** Specified-work postcode check for the viewing worker's own visa (from the database lists). */
   specified: SpecifiedWorkCheck;
+}
+
+export interface SpecifiedWorkCheck {
+  /** null when it doesn't apply (the worker isn't on a 417/462 visa). */
+  eligible: boolean | null;
+  /** e.g. "Eligible postcode for 417 plant & animal cultivation" */
+  label: string;
+}
+
+function specifiedFor(job: FeedJob): SpecifiedWorkCheck {
+  if (!job.viewer_visa_subclass || job.specified_work_eligible == null) return { eligible: null, label: '' };
+  return job.specified_work_eligible
+    ? {
+        eligible: true,
+        label: `Eligible postcode for ${job.viewer_visa_subclass} ${job.specified_work_label ?? 'specified work'}`,
+      }
+    : { eligible: false, label: '' };
 }
 
 function toMatchJob(j: FeedJob): MatchJob {
@@ -90,13 +102,8 @@ type FeedArgs = Database['public']['Functions']['job_feed']['Args'];
 
 /** Candidate jobs from the database (filtered), ordered by the matching module (ranked). */
 async function loadRankedJobs(userId: string, args: FeedArgs): Promise<RankedFeedJob[]> {
-  const [worker, visa, feed] = await Promise.all([
-    loadMatchWorker(userId),
-    supabase.from('worker_private').select('visa_type').eq('user_id', userId).maybeSingle(),
-    supabase.rpc('job_feed', args),
-  ]);
+  const [worker, feed] = await Promise.all([loadMatchWorker(userId), supabase.rpc('job_feed', args)]);
   if (feed.error) throw feed.error;
-  const visaType = visa.data?.visa_type ?? null;
   const byId = new Map(feed.data.map((j) => [j.id, j]));
   return ranker.rankJobsForWorker(worker, feed.data.map(toMatchJob)).map((r) => {
     const job = byId.get(r.item.id)!;
@@ -104,7 +111,7 @@ async function loadRankedJobs(userId: string, args: FeedArgs): Promise<RankedFee
       job,
       score: r.score,
       breakdown: r.breakdown,
-      specified: specifiedWorkForJob({ postcode: job.postcode, roleType: job.role_type }, visaType),
+      specified: specifiedFor(job),
     };
   });
 }

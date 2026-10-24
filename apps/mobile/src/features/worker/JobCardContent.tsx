@@ -88,6 +88,8 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
       </Fact>
       <Fact icon="account-group" compact={compact}>{`${j.workers_needed} workers needed`}</Fact>
 
+      {/* Specified work: the eligible-postcode list (for the worker's own visa) comes first; the
+          farm's own estimate is only a fallback. Nothing is shown to workers not on a 417/462. */}
       {item.specified.eligible === true ? (
         <View style={styles.specified}>
           <Icon source="passport" size={20} color="#5C3B00" />
@@ -95,21 +97,17 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
             {item.specified.label}
           </Text>
         </View>
-      ) : item.specified.eligible === false ? (
-        <Text variant="bodyMedium" style={styles.muted}>
-          {item.specified.label}
-        </Text>
-      ) : j.likely_specified_work ? (
-        <View style={styles.specified}>
+      ) : item.specified.eligible === false && j.likely_specified_work ? (
+        <View style={[styles.specified, styles.estimate]}>
           <Icon source="passport" size={20} color="#5C3B00" />
           <Text variant="bodyMedium" style={styles.specifiedText}>
-            {compact ? 'Likely specified work' : 'Likely counts as specified work (farm’s estimate)'}
+            Farm’s estimate: may count as specified work
           </Text>
         </View>
       ) : null}
       {!compact && item.specified.eligible !== null ? (
         <Text variant="bodySmall" style={styles.muted}>
-          Based on the postcode only. Other kinds of specified work aren’t checked; confirm with Home Affairs.
+          Estimate only, based on the postcode and type of work. Check with Home Affairs before relying on it.
         </Text>
       ) : null}
     </View>
@@ -139,4 +137,5 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   specifiedText: { flexShrink: 1, color: '#3B2600', fontWeight: '600' },
+  estimate: { backgroundColor: '#F3EBDD' },
 });

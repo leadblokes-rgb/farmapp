@@ -51,7 +51,6 @@ export default function EmployerDetail() {
       </Button>
       {editing ? (
         <EmployerForm
-          visaType={tracker.data?.visaType}
           initial={{
             name: employer.name,
             postcode: employer.postcode ?? '',

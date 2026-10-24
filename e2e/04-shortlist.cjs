@@ -86,7 +86,7 @@ let page;
   await page.getByText('Availability', { exact: true }).waitFor();
   await page.screenshot({ path: `${OUT}/m4-2-applicant.png` });
   await page.getByRole('button', { name: /No longer coming: decline/ }).click();
-  await page.getByText(/declined$/).waitFor();
+  await page.getByText('Status: declined').waitFor();
   console.log('PASS applicant detail with score breakdown; accepted -> declined');
 
   // Shortlist access for another farm via direct API is covered by pgTAP + function 403.

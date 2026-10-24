@@ -12,6 +12,7 @@ export interface TrackerData {
     postcode: string | null;
     abn: string | null;
     counts_as_specified: boolean;
+    postcode_eligible: boolean | null;
   }[];
   shifts: { id: string; employer_id: string; work_date: string; hours: number; notes: string }[];
   payslips: {
@@ -34,7 +35,7 @@ export function useTracker(userId: string) {
         supabase.from('worker_private').select('tracker_goal, visa_type').eq('user_id', userId).maybeSingle(),
         supabase
           .from('employers_worked')
-          .select('id, name, postcode, abn, counts_as_specified')
+          .select('id, name, postcode, abn, counts_as_specified, postcode_eligible')
           .order('created_at'),
         supabase
           .from('shift_logs')
@@ -56,6 +57,7 @@ export function useTracker(userId: string) {
           name: e.name,
           countsAsSpecified: e.counts_as_specified,
           postcode: e.postcode,
+          postcodeEligible: e.postcode_eligible,
         })),
         shiftRows.map((s) => ({ employerId: s.employer_id, workDate: s.work_date, hours: s.hours })),
         payslipRows.map((p) => ({

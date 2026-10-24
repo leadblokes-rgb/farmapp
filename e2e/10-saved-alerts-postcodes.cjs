@@ -83,14 +83,19 @@ let worker, farm;
   farm = await open("I'm a farm or employer", 'Demo farm (verified)');
   await farm.getByRole('button', { name: /Post a job/ }).click({ timeout: 30000 });
   const sw = farm.getByRole('switch', { name: 'Likely counts as specified work' });
+  const checked = async (want) => {
+    for (let i = 0; i < 20; i++) {
+      if ((await sw.getAttribute('aria-checked')) === want) return true;
+      await sleep(250);
+    }
+    return false;
+  };
   await farm.getByLabel('Work location postcode').fill('4000');
-  await sleep(500);
-  if ((await sw.getAttribute('aria-checked')) !== 'false') throw new Error('not unticked for Brisbane CBD');
+  if (!(await checked('false'))) throw new Error('not unticked for Brisbane CBD');
   await sw.click();
   await farm.getByText(/isn’t on the eligible list/).waitFor();
   await farm.getByLabel('Work location postcode').fill('4343');
-  await sleep(500);
-  if ((await sw.getAttribute('aria-checked')) !== 'true') throw new Error('not ticked for Gatton');
+  if (!(await checked('true'))) throw new Error('not ticked for Gatton');
   if (await farm.getByText(/isn’t on the eligible list/).count()) throw new Error('warning still shown');
   await farm.screenshot({ path: `${OUT}/c-2-job-form.png` });
   console.log('PASS job form ticks specified work from the postcode');

@@ -1,3 +1,4 @@
+import type { Database } from '@croppr/shared';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
@@ -30,6 +31,28 @@ export function usePostcode(postcode: string) {
         .maybeSingle();
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+type JobRoleType = Database['public']['Enums']['job_role_type'];
+
+/**
+ * Is this postcode (and type of work) on the eligible specified-work lists? From the database, so
+ * list updates don't need an app release. Includes the signed-in worker's own visa subclass.
+ */
+export function useSpecifiedWorkCheck(postcode: string, roleType: JobRoleType = 'picking') {
+  return useQuery({
+    queryKey: ['specified-work-check', postcode, roleType],
+    enabled: /^\d{4}$/.test(postcode),
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('specified_work_check', {
+        p_postcode: postcode,
+        p_role_type: roleType,
+      });
+      if (error) throw error;
+      return data[0] ?? null;
     },
   });
 }

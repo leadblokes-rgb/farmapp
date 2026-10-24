@@ -153,6 +153,42 @@ select * from admin_contact_share_attempts;   -- per person, last 30 days, most 
 
 One or two attempts are usually innocent. A farm that keeps trying across many workers is trying to hire off Croppr: send a warning, and suspend it if it carries on (section 2). The filter catches most attempts but not all; tricks like writing digits as emoji get through, so treat this list as a signal rather than proof.
 
+## 3c. Specified-work postcode lists
+
+The eligible postcode lists (plant & animal cultivation, one per visa subclass) are in the database. See what's current:
+
+```sql
+select id, visa_subclass, version, last_checked, source_url, needs_expert_review
+from specified_work_lists where is_current;
+```
+
+**Checked against Home Affairs and nothing changed:**
+
+```sql
+update specified_work_lists set last_checked = current_date where is_current;
+```
+
+**The list changed:** load the new version, check it, then switch over. Jobs and tracker employers are re-tagged automatically.
+
+```sql
+-- 1. Add the new version (not current yet). Repeat for 462 if it changed too.
+insert into specified_work_lists (category, visa_subclass, label, version, last_checked, source_url, needs_expert_review)
+values ('plant_animal_cultivation', '417', 'plant & animal cultivation', '2027-03', current_date,
+        'https://www.legislation.gov.au/...', false)
+returning id;
+
+-- 2. Its postcode ranges (one row per range; a single postcode is from = to).
+insert into specified_work_postcodes (list_id, postcode_from, postcode_to) values
+  (<new id>, 2311, 2312),
+  (<new id>, 2328, 2411);  -- … and so on
+
+-- 3. Spot-check, then make it current.
+select public.specified_work_label('4343', 'picking', '417');
+select admin_activate_specified_work_list(<new id>, 'Updated from LIN 22/037 compilation of March 2027');
+```
+
+Old versions are kept for the record.
+
 ## 4. Make someone an admin
 
 App admins aren't needed for the MVP, because dashboard access is what matters. If you need one, for example for the future admin app:

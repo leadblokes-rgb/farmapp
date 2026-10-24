@@ -9,7 +9,6 @@ export * from './config/jobRoles';
 export * from './config/payRules';
 export * from './money';
 export * from './config/visaRules';
-export * from './config/specifiedWorkPostcodes';
 export * from './config/legal';
 export * from './dayCounter';
 export * from './trackerValidation';

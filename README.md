@@ -117,7 +117,7 @@ npm run test:e2e        # browser end-to-end suites (see e2e/README.md)
 |---|---|---|
 | `packages/shared/src/config/payRules.ts` | Horticulture Award casual minimum, used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
 | `packages/shared/src/config/visaRules.ts` | Specified-work day counting: 88/179 targets, full-time week = 7 days, full-day hours, short-shift handling, disclaimer text | Whenever Home Affairs changes its guidance |
-| `packages/shared/src/config/specifiedWorkPostcodes.ts` | Eligible postcodes for plant & animal cultivation (417 and 462). Used on job cards, the job form and the day tracker. Mirrored in SQL (`specified_work_postcodes`); a unit test keeps the two in sync | Whenever Home Affairs updates the specified-work instrument |
+| Database: `specified_work_lists` + `specified_work_postcodes` | Eligible postcodes for plant & animal cultivation (417 and 462), each list with a version, last-checked date and source URL. Update them in the dashboard without an app release (see `docs/admin-runbook.md`); jobs and tracker employers are re-tagged automatically | Whenever Home Affairs updates the specified-work instrument, and at least every few months |
 | `packages/matching/src/weights.ts` | How much each factor counts in match scores | As you learn what farms value |
 
 ## Matching
@@ -155,7 +155,11 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 
 ## Specified-work postcodes
 
-Croppr checks one kind of specified work automatically: **plant and animal cultivation in an eligible regional postcode**, for the worker's own visa subclass (417 or 462). Job cards say "Eligible postcode for 417 plant & animal cultivation"; the job form pre-ticks "likely counts as specified work"; the tracker pre-sets new employers and flags ones outside the list. Other specified work (tourism, construction, fishing, recovery work…) isn't detected, and the app says so.
+Eligibility = **postcode + type of work + the worker's visa subclass** (417 or 462), worked out in the database from the current lists in `specified_work_lists`:
+
+- Jobs are tagged for both subclasses whenever their postcode or role type changes, and again whenever a list changes. A worker sees "Eligible postcode for 417 plant & animal cultivation" for their own visa only. If the postcode isn't on the list but the farm ticked "likely specified work", they see "Farm's estimate: may count as specified work". Workers not on a 417/462 see nothing.
+- Tracker employers are tagged from their postcode and the worker's visa (re-checked if the visa changes). New employers start with "counts as specified work" set to match, and the estimate flags employers outside the list.
+- Only plant and animal cultivation is detected (`specified_work_role_categories` maps job types to it). Other specified work (tourism, construction, fishing, recovery work…) isn't, and the app always says it's an estimate.
 
 ## Farm tools
 

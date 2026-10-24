@@ -286,6 +286,7 @@ export type Database = {
           job_id: string | null;
           name: string;
           postcode: string | null;
+          postcode_eligible: boolean | null;
           worker_id: string;
         };
         ComputedFields: never;
@@ -298,6 +299,7 @@ export type Database = {
           job_id?: string | null;
           name: string;
           postcode?: string | null;
+          postcode_eligible?: boolean | null;
           worker_id: string;
         };
         Update: {
@@ -309,6 +311,7 @@ export type Database = {
           job_id?: string | null;
           name?: string;
           postcode?: string | null;
+          postcode_eligible?: boolean | null;
           worker_id?: string;
         };
         Relationships: [
@@ -546,6 +549,8 @@ export type Database = {
           car_required: boolean;
           created_at: string;
           description: string;
+          eligible_417: boolean;
+          eligible_462: boolean;
           end_date: string;
           farm_id: string;
           hours_per_week: number;
@@ -574,6 +579,8 @@ export type Database = {
           car_required?: boolean;
           created_at?: string;
           description?: string;
+          eligible_417?: boolean;
+          eligible_462?: boolean;
           end_date: string;
           farm_id: string;
           hours_per_week: number;
@@ -601,6 +608,8 @@ export type Database = {
           car_required?: boolean;
           created_at?: string;
           description?: string;
+          eligible_417?: boolean;
+          eligible_462?: boolean;
           end_date?: string;
           farm_id?: string;
           hours_per_week?: number;
@@ -1081,25 +1090,89 @@ export type Database = {
           },
         ];
       };
-      specified_work_postcodes: {
+      specified_work_lists: {
         Row: {
           category: string;
-          postcode_from: number;
-          postcode_to: number;
+          created_at: string;
+          id: number;
+          is_current: boolean;
+          label: string;
+          last_checked: string;
+          needs_expert_review: boolean;
+          notes: string;
+          source_url: string;
+          version: string;
           visa_subclass: string;
         };
         ComputedFields: never;
         Insert: {
           category: string;
-          postcode_from: number;
-          postcode_to: number;
+          created_at?: string;
+          id?: never;
+          is_current?: boolean;
+          label: string;
+          last_checked: string;
+          needs_expert_review?: boolean;
+          notes?: string;
+          source_url: string;
+          version: string;
           visa_subclass: string;
         };
         Update: {
           category?: string;
+          created_at?: string;
+          id?: never;
+          is_current?: boolean;
+          label?: string;
+          last_checked?: string;
+          needs_expert_review?: boolean;
+          notes?: string;
+          source_url?: string;
+          version?: string;
+          visa_subclass?: string;
+        };
+        Relationships: [];
+      };
+      specified_work_postcodes: {
+        Row: {
+          list_id: number;
+          postcode_from: number;
+          postcode_to: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          list_id: number;
+          postcode_from: number;
+          postcode_to: number;
+        };
+        Update: {
+          list_id?: number;
           postcode_from?: number;
           postcode_to?: number;
-          visa_subclass?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'specified_work_postcodes_list_id_fkey';
+            columns: ['list_id'];
+            isOneToOne: false;
+            referencedRelation: 'specified_work_lists';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      specified_work_role_categories: {
+        Row: {
+          category: string;
+          role_type: Database['public']['Enums']['job_role_type'];
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          role_type: Database['public']['Enums']['job_role_type'];
+        };
+        Update: {
+          category?: string;
+          role_type?: Database['public']['Enums']['job_role_type'];
         };
         Relationships: [];
       };
@@ -1528,6 +1601,10 @@ export type Database = {
     };
     Functions: {
       accept_legal: { Args: { p_privacy_version: string; p_terms_version: string }; Returns: undefined };
+      admin_activate_specified_work_list: {
+        Args: { p_list_id: number; p_note?: string };
+        Returns: undefined;
+      };
       admin_approve_farm: {
         Args: { p_farm_id: string; p_note?: string };
         Returns: {
@@ -1620,6 +1697,7 @@ export type Database = {
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dispute_no_show: { Args: { p_application_id: string; p_details?: string }; Returns: number };
+      employer_postcode_eligible: { Args: { p_postcode: string; p_worker_id: string }; Returns: boolean };
       employer_suggestions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -1712,9 +1790,12 @@ export type Database = {
           postcode: string;
           region_name: string;
           role_type: Database['public']['Enums']['job_role_type'];
+          specified_work_eligible: boolean;
+          specified_work_label: string;
           start_date: string;
           title: string;
           transport_provided: boolean;
+          viewer_visa_subclass: string;
           workers_needed: number;
         }[];
       };
@@ -1855,6 +1936,25 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      specified_work_check: {
+        Args: { p_postcode: string; p_role_type?: Database['public']['Enums']['job_role_type'] };
+        Returns: {
+          eligible_417: boolean;
+          eligible_462: boolean;
+          label: string;
+          last_checked: string;
+          list_version: string;
+          my_visa_subclass: string;
+        }[];
+      };
+      specified_work_label: {
+        Args: {
+          p_postcode: string;
+          p_role_type: Database['public']['Enums']['job_role_type'];
+          p_subclass: string;
+        };
+        Returns: string;
       };
       start_conversation: { Args: { p_application_id: string }; Returns: string };
       submit_report: {
