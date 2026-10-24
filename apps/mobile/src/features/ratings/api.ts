@@ -146,3 +146,56 @@ export function useMarkAttendance(jobId: string) {
     },
   });
 }
+
+export type PendingOutcome = Fns['pending_outcomes']['Returns'][number];
+export type WorkAnswer = Database['public']['Enums']['work_answer'];
+
+/** "Did this work out?" questions the signed-in user still has to answer. */
+export function usePendingOutcomes() {
+  return useQuery({
+    queryKey: ['pending-outcomes'],
+    queryFn: async () => {
+      await supabase.rpc('complete_finished_jobs');
+      const { data, error } = await supabase.rpc('pending_outcomes');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useAnswerOutcome() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ applicationId, answer }: { applicationId: string; answer: WorkAnswer }) => {
+      const { data, error } = await supabase.rpc('answer_work_outcome', {
+        p_application_id: applicationId,
+        p_answer: answer,
+      });
+      if (error) throw error;
+      return data as 'waiting' | 'completed' | 'not_worked' | 'disputed';
+    },
+    onSuccess: () => {
+      for (const key of [
+        'pending-outcomes',
+        'pending-reviews',
+        'my-applications',
+        'shortlist',
+        'job-outcomes',
+        'tracker',
+      ])
+        qc.invalidateQueries({ queryKey: [key] });
+    },
+  });
+}
+
+/** Outcomes for a farm's job (shortlist badges). */
+export function useJobOutcomes(jobId: string) {
+  return useQuery({
+    queryKey: ['job-outcomes', jobId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('job_outcomes', { p_job_id: jobId });
+      if (error) throw error;
+      return new Map(data.map((o) => [o.application_id, o]));
+    },
+  });
+}

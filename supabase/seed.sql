@@ -286,7 +286,7 @@ where c.application_id = 'ab000000-0000-0000-0000-000000000001';
 insert into public.jobs (id, farm_id, title, role_type, description, postcode, start_date, end_date, workers_needed,
                          pay_type, pay_rate_cents, hours_per_week, likely_specified_work, status) values
   ('a0000000-0000-0000-0000-000000000010', 'f0000000-0000-0000-0000-000000000001', 'Strawberry runners (last season)', 'planting',
-   'Planting strawberry runners.', '4343', current_date - 60, current_date - 10, 6, 'hourly', 3250, 38, true, 'closed'),
+   'Planting strawberry runners.', '4343', current_date - 60, current_date - 3, 6, 'hourly', 3250, 38, true, 'closed'),
   ('a0000000-0000-0000-0000-000000000011', 'f0000000-0000-0000-0000-000000000002', 'Sweet potato grading (last season)', 'packing',
    'Grading in the shed.', '4670', current_date - 90, current_date - 40, 4, 'hourly', 3218, 38, true, 'closed'),
   ('a0000000-0000-0000-0000-000000000012', 'f0000000-0000-0000-0000-000000000001', 'Celery harvest', 'picking',
@@ -312,9 +312,21 @@ insert into public.attendance (application_id, status, marked_at) values
   ('ab000000-0000-0000-0000-000000000006', 'left_early', now() - interval '60 days'),
   ('ab000000-0000-0000-0000-000000000007', 'showed', now() - interval '90 days'),
   ('ab000000-0000-0000-0000-000000000008', 'showed', now() - interval '90 days');
+-- Jobs that have ended become 'ended' and wait for "Did this work out?" answers.
 select public.complete_finished_jobs();
+-- Tom, Min-jun (Lockyer) and both Bundy workers: both sides said it worked -> completed, verified.
+update public.work_outcomes set worker_answer = 'worked', worker_answered_at = now(), farm_answer = 'worked', farm_answered_at = now()
+ where application_id in ('ab000000-0000-0000-0000-000000000003', 'ab000000-0000-0000-0000-000000000004',
+                          'ab000000-0000-0000-0000-000000000007', 'ab000000-0000-0000-0000-000000000008');
+select public.apply_work_outcome(id, 'worked', true, 'both')
+from unnest(array['ab000000-0000-0000-0000-000000000003', 'ab000000-0000-0000-0000-000000000004',
+                  'ab000000-0000-0000-0000-000000000007', 'ab000000-0000-0000-0000-000000000008']::uuid[]) as id;
 update public.applications set completed_at = now() - interval '39 days'
  where id in ('ab000000-0000-0000-0000-000000000007', 'ab000000-0000-0000-0000-000000000008');
+-- Lockyer has answered for Liam (didn't turn up) and Aroha (left early); the workers haven't yet.
+-- Nobody has answered for Sam, so the demo worker and demo farm both see "Did this work out?".
+update public.work_outcomes set farm_answer = 'did_not_work', farm_answered_at = now() where application_id = 'ab000000-0000-0000-0000-000000000005';
+update public.work_outcomes set farm_answer = 'left_early', farm_answered_at = now() where application_id = 'ab000000-0000-0000-0000-000000000006';
 
 -- Tom and Min-jun rated Lockyer and Lockyer rated them, so those ratings are revealed.
 -- Sam hasn't rated yet (and Lockyer hasn't rated Sam or Aroha), so both see "Rate" prompts.

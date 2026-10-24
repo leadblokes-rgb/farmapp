@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { ListSkeleton } from '@/components/Skeleton';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { DisputeDialog } from '@/features/ratings/DisputeDialog';
+import { OutcomePrompts } from '@/features/ratings/OutcomePrompts';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { useMyApplications, useSavedJobs, useWithdrawApplication } from '@/features/worker/feedApi';
 import { SavedJobs } from '@/features/worker/SavedJobs';
@@ -21,6 +22,7 @@ const STATUS = {
   declined: { label: 'Not this time', color: '#EEEEEE' },
   withdrawn: { label: 'Withdrawn', color: '#EEEEEE' },
   completed: { label: 'Completed', color: '#C8E6C9' },
+  ended: { label: 'Job ended', color: '#E3F2FD' },
 } as const;
 
 type View_ = 'messages' | 'applications' | 'saved';
@@ -38,6 +40,7 @@ export default function Matches() {
 
   const switcher = (
     <View style={styles.switcher}>
+      <OutcomePrompts onMessage={setMessage} />
       <PendingReviews onMessage={setMessage} />
       <SingleChoiceChips<View_>
         value={view}
@@ -109,6 +112,17 @@ export default function Matches() {
                   {item.locality ? ` · ${item.locality}` : ''}
                 </Text>
                 <Text variant="bodyLarge">{dateRangeLabel(item.start_date, item.end_date)}</Text>
+                {item.work_verified ? (
+                  <Text variant="bodyMedium" style={styles.verified}>
+                    ✓ Verified by you and the farm
+                  </Text>
+                ) : item.outcome_disputed ? (
+                  <Text variant="bodyMedium">
+                    You and the farm answered differently. The Croppr team is looking into it.
+                  </Text>
+                ) : item.status === 'ended' && item.my_answer && !item.outcome ? (
+                  <Text variant="bodyMedium">Thanks for answering. Waiting for the farm to confirm.</Text>
+                ) : null}
                 {item.attendance === 'left_early' ? (
                   <Text variant="bodyMedium">The farm marked you as leaving early.</Text>
                 ) : null}
@@ -178,6 +192,7 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontWeight: '700' },
   withdraw: { alignSelf: 'flex-start' },
   tall: { minHeight: 48 },
+  verified: { color: '#17482F', fontWeight: '700' },
   noShow: { backgroundColor: '#FDECEA', borderRadius: 10, padding: 10, gap: 6, marginTop: 4 },
   noShowText: { fontWeight: '700', color: '#7A1C14' },
 });

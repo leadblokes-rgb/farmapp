@@ -16,6 +16,7 @@ import {
   useSetGoal,
   useTracker,
 } from '@/features/tracker/api';
+import { OutcomePrompts } from '@/features/ratings/OutcomePrompts';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { Disclaimer } from '@/features/tracker/Disclaimer';
 import { LogShiftSheet } from '@/features/tracker/LogShiftSheet';
@@ -47,6 +48,7 @@ export default function Days() {
     <>
       <Screen scroll edges={[]}>
         <Disclaimer />
+        <OutcomePrompts onMessage={setMessage} />
         <PendingReviews onMessage={setMessage} />
         {notWhm ? (
           <Text variant="bodyMedium">
@@ -148,6 +150,11 @@ export default function Days() {
                   <Text variant="bodyMedium">
                     {b.countsAsSpecified ? 'Specified work' : 'Not specified work (not counted)'}
                   </Text>
+                  {t.employers.find((x) => x.id === b.employerId)?.verified ? (
+                    <Text variant="bodyMedium" style={styles.verified}>
+                      ✓ Verified by you and the farm
+                    </Text>
+                  ) : null}
                 </View>
                 <Text variant="headlineSmall" style={styles.bold}>
                   {b.days}d
@@ -195,6 +202,7 @@ export default function Days() {
 }
 
 const styles = StyleSheet.create({
+  verified: { color: '#17482F', fontWeight: '700' },
   progress: { alignItems: 'center', gap: 6, paddingVertical: 8 },
   big: { fontSize: 64, fontWeight: '900', color: '#17482F', lineHeight: 70 },
   togo: { fontWeight: '700' },

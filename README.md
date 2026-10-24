@@ -136,8 +136,11 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 ## Ratings, check-in and completion
 
 - On a job's first day the farm marks each accepted worker as **turned up**, **no-show** or **left early** (Job → "Who turned up?").
-- After the job's end date, workers marked as turned up become **completed**. This runs daily (`pg_cron`) and whenever someone opens their ratings.
-- Workers then rate the farm, and farms rate workers who turned up. Ratings are **blind**: neither side sees the other's rating until both have rated, or 14 days have passed.
+- After the job's end date, accepted workers become **Ended** and both sides are asked **"Did this work out?"** (worked / left early / didn't work). This runs daily (`pg_cron`) and whenever someone opens the app's prompts.
+  - Same answer from both: worked or left early **completes** the job as a **verified work record** ("Verified by you and the farm", also shown in the Days tab); "didn't work" counts as a no-show.
+  - Different answers: it goes to the admin reports queue, and nothing counts until an admin decides.
+  - After 7 days, a single answer is used (unverified); with no answers, the farm's day-one check-in is used.
+- Once they've answered that it worked, workers can rate the farm, and farms can rate workers who turned up. Ratings are **blind**: neither side sees the other's rating until both have rated, or 14 days have passed.
 - Farm ratings are public to signed-in users. Worker ratings are visible only to farms the worker has applied to, and to the worker.
 - Each no-show counts as a 1-star reliability rating in the ranking, unless the worker has disputed it and the Croppr team hasn't decided yet.
 - Reviews can be reported; admins handle reports and disputes as described in the runbook.

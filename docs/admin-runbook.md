@@ -128,6 +128,12 @@ select sender_id, body, created_at from messages where conversation_id = '<conve
   select admin_resolve_no_show_dispute(<report_id>, 'upheld', 'Farm sign-in sheet shows absent');
   ```
   The worker sees the outcome in the app.
+- **"Did this work out?" disagreement** (`reason = 'work_outcome_dispute'`). After a job ended, the worker and the farm answered differently. `details` shows both answers, e.g. "Worker says: worked. Farm says: did_not_work." Nothing counts against either side until you decide. Check the chat (`conversation_id`), payslips the worker may have, or call the farm. Then:
+  ```sql
+  -- outcome: 'worked', 'left_early' or 'did_not_work'
+  select admin_resolve_work_outcome(<report_id>, 'worked', 'Payslip shows 5 shifts');
+  ```
+  'worked' and 'left_early' complete the job (not marked "verified by both"); 'did_not_work' counts as a no-show.
 - **Inappropriate review** (`reason = 'inappropriate_review'`). `review_comment` shows the text and `review_kind` says whether it's a review of a farm or of a worker. Hide reviews that are abusive, share private details, or are clearly false:
   ```sql
   select admin_hide_review('<review_kind>', '<review_application_id>', 'Abusive language');

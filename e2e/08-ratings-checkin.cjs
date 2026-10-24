@@ -27,7 +27,15 @@ let worker, farm;
   await worker.getByText(/\(2 reviews\)/).first().waitFor({ timeout: 15000 });
   console.log('PASS job card shows the farm rating');
 
+  // ---------- "Did this work out?" (job ended 3 days ago) ----------
   await worker.getByRole('tab', { name: /Matches/ }).click();
+  await worker.getByText('Did this work out?').waitFor({ timeout: 15000 });
+  await worker.screenshot({ path: `${OUT}/a-0-did-it-work-out.png` });
+  await worker.getByRole('button', { name: 'Yes, I worked it' }).click();
+  await worker.getByText(/We’ll confirm it once the farm answers/).waitFor();
+  if (sql(`select worker_answer from work_outcomes where application_id='${SAM_PAST}'`) !== 'worked') throw new Error('answer not saved');
+  console.log('PASS worker answers "Did this work out?"');
+
   await worker.getByRole('button', { name: 'Rate your time at Lockyer Fresh Farms' }).click({ timeout: 15000 });
   await worker.getByRole('radio', { name: 'Overall: 4 stars' }).click();
   await worker.getByText('Yes', { exact: true }).click();
@@ -57,6 +65,12 @@ let worker, farm;
 
   // ---------- Farm rates the worker -> both revealed ----------
   farm = await open("I'm a farm or employer", 'Demo farm (verified)');
+  await farm.getByText('Did this work out?').waitFor({ timeout: 30000 });
+  await farm.getByRole('button', { name: 'Sam Taylor: Yes, they worked' }).click();
+  await farm.getByText(/Confirmed by both of you/).waitFor();
+  const outcome = sql(`select a.status || '|' || w.verified from applications a join work_outcomes w on w.application_id = a.id where a.id='${SAM_PAST}'`);
+  if (outcome !== 'completed|true') throw new Error('not completed and verified: ' + outcome);
+  console.log('PASS farm confirms; the job is completed and verified');
   await farm.getByText('Rate your crew (2)').waitFor({ timeout: 30000 });
   await farm.getByRole('button', { name: /Rate Sam Taylor/ }).click();
   await farm.getByRole('radio', { name: /Reliability \(on time, turned up\): 5 stars/ }).click();

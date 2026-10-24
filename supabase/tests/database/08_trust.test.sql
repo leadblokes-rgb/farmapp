@@ -61,13 +61,21 @@ select is(public.mark_attendance(array['a1888888-0000-0000-0000-000000000013'::u
 select is(public.mark_attendance(array['a1888888-0000-0000-0000-000000000014'::uuid], 'no_show'), 1, 'mark no-show');
 
 -- ---------- Completion ----------
-select is(public.complete_finished_jobs(), 2, 'only "showed" workers on ended jobs complete');
+select is(public.complete_finished_jobs(), 4, 'every accepted worker on an ended job becomes "ended"');
+-- Both sides say W1 and W2 worked it (see 15_work_outcomes for every combination).
+select pg_temp.act_as('88888888-0000-0000-0000-000000000011');
+select public.answer_work_outcome('a1888888-0000-0000-0000-000000000011', 'worked');
+select pg_temp.act_as('88888888-0000-0000-0000-000000000012');
+select public.answer_work_outcome('a1888888-0000-0000-0000-000000000012', 'worked');
+select pg_temp.act_as('88888888-0000-0000-0000-000000000001');
+select public.answer_work_outcome('a1888888-0000-0000-0000-000000000011', 'worked');
+select public.answer_work_outcome('a1888888-0000-0000-0000-000000000012', 'worked');
 select pg_temp.as_dashboard();
 select results_eq(
   $$ select worker_id::text, status::text from public.applications where job_id = 'a8888888-0000-0000-0000-000000000001' order by worker_id $$,
   $$ values ('88888888-0000-0000-0000-000000000011', 'completed'), ('88888888-0000-0000-0000-000000000012', 'completed'),
-            ('88888888-0000-0000-0000-000000000013', 'accepted'), ('88888888-0000-0000-0000-000000000014', 'accepted') $$,
-  'left-early and no-show workers stay accepted');
+            ('88888888-0000-0000-0000-000000000013', 'ended'), ('88888888-0000-0000-0000-000000000014', 'ended') $$,
+  'confirmed workers complete; the rest wait for answers');
 select is((select status::text from public.applications where id = 'a2888888-0000-0000-0000-000000000011'), 'accepted',
   'a running job does not complete');
 

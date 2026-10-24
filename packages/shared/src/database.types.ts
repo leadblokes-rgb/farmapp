@@ -1216,6 +1216,71 @@ export type Database = {
           },
         ];
       };
+      work_outcomes: {
+        Row: {
+          application_id: string;
+          created_at: string;
+          dispute_report_id: number | null;
+          farm_answer: Database['public']['Enums']['work_answer'] | null;
+          farm_answered_at: string | null;
+          outcome: Database['public']['Enums']['work_answer'] | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          verified: boolean;
+          worker_answer: Database['public']['Enums']['work_answer'] | null;
+          worker_answered_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          created_at?: string;
+          dispute_report_id?: number | null;
+          farm_answer?: Database['public']['Enums']['work_answer'] | null;
+          farm_answered_at?: string | null;
+          outcome?: Database['public']['Enums']['work_answer'] | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          verified?: boolean;
+          worker_answer?: Database['public']['Enums']['work_answer'] | null;
+          worker_answered_at?: string | null;
+        };
+        Update: {
+          application_id?: string;
+          created_at?: string;
+          dispute_report_id?: number | null;
+          farm_answer?: Database['public']['Enums']['work_answer'] | null;
+          farm_answered_at?: string | null;
+          outcome?: Database['public']['Enums']['work_answer'] | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          verified?: boolean;
+          worker_answer?: Database['public']['Enums']['work_answer'] | null;
+          worker_answered_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'work_outcomes_application_id_fkey';
+            columns: ['application_id'];
+            isOneToOne: true;
+            referencedRelation: 'applications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'work_outcomes_dispute_report_id_fkey';
+            columns: ['dispute_report_id'];
+            isOneToOne: false;
+            referencedRelation: 'admin_open_reports';
+            referencedColumns: ['report_id'];
+          },
+          {
+            foreignKeyName: 'work_outcomes_dispute_report_id_fkey';
+            columns: ['dispute_report_id'];
+            isOneToOne: false;
+            referencedRelation: 'reports';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       worker_availability: {
         Row: {
           end_date: string;
@@ -1686,14 +1751,31 @@ export type Database = {
         Args: { p_note: string; p_report_id: number; p_status: Database['public']['Enums']['report_status'] };
         Returns: undefined;
       };
+      admin_resolve_work_outcome: {
+        Args: { p_note: string; p_outcome: Database['public']['Enums']['work_answer']; p_report_id: number };
+        Returns: undefined;
+      };
       admin_suspend_user: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
       admin_unsuspend_user: { Args: { p_note?: string; p_user_id: string }; Returns: undefined };
+      answer_work_outcome: {
+        Args: { p_answer: Database['public']['Enums']['work_answer']; p_application_id: string };
+        Returns: string;
+      };
       applicant_visa_summary: {
         Args: { p_application_id: string };
         Returns: {
           visa_type: Database['public']['Enums']['visa_type'];
           visa_valid_through_job_end: boolean;
         }[];
+      };
+      apply_work_outcome: {
+        Args: {
+          p_answer: Database['public']['Enums']['work_answer'];
+          p_application_id: string;
+          p_resolved_by: string;
+          p_verified: boolean;
+        };
+        Returns: undefined;
       };
       broadcast_to_crew: { Args: { p_audience?: string; p_body: string; p_job_id: string }; Returns: number };
       can_rate_farm: { Args: { p_application_id: string }; Returns: boolean };
@@ -1810,6 +1892,16 @@ export type Database = {
           workers_needed: number;
         }[];
       };
+      job_outcomes: {
+        Args: { p_job_id: string };
+        Returns: {
+          application_id: string;
+          disputed: boolean;
+          farm_answer: Database['public']['Enums']['work_answer'];
+          outcome: Database['public']['Enums']['work_answer'];
+          verified: boolean;
+        }[];
+      };
       job_owner: { Args: { p_job_id: string }; Returns: string };
       job_shortlist: {
         Args: { p_job_id: string };
@@ -1863,9 +1955,13 @@ export type Database = {
           job_id: string;
           job_status: Database['public']['Enums']['job_status'];
           locality: string;
+          my_answer: Database['public']['Enums']['work_answer'];
+          outcome: Database['public']['Enums']['work_answer'];
+          outcome_disputed: boolean;
           start_date: string;
           status: Database['public']['Enums']['application_status'];
           title: string;
+          work_verified: boolean;
         }[];
       };
       my_conversations: {
@@ -1896,6 +1992,18 @@ export type Database = {
       owns_employer: { Args: { p_employer_id: string }; Returns: boolean };
       owns_farm: { Args: { p_farm_id: string }; Returns: boolean };
       owns_job: { Args: { p_job_id: string }; Returns: boolean };
+      pending_outcomes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          application_id: string;
+          end_date: string;
+          job_id: string;
+          job_title: string;
+          kind: string;
+          subject_name: string;
+          suggested: Database['public']['Enums']['work_answer'];
+        }[];
+      };
       pending_reviews: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -2009,7 +2117,7 @@ export type Database = {
     };
     Enums: {
       account_status: 'active' | 'suspended';
-      application_status: 'applied' | 'accepted' | 'declined' | 'withdrawn' | 'completed';
+      application_status: 'applied' | 'accepted' | 'declined' | 'withdrawn' | 'completed' | 'ended';
       attendance_status: 'showed' | 'no_show' | 'left_early';
       employment_type: 'casual' | 'part_time' | 'full_time';
       job_role_type: 'picking' | 'packing' | 'pruning' | 'planting' | 'machinery' | 'livestock' | 'general';
@@ -2024,13 +2132,15 @@ export type Database = {
         | 'fake_profile'
         | 'other'
         | 'no_show_dispute'
-        | 'inappropriate_review';
+        | 'inappropriate_review'
+        | 'work_outcome_dispute';
       report_status: 'open' | 'actioned' | 'dismissed';
       swipe_direction: 'like' | 'pass';
       travel_mode: 'solo' | 'group';
       user_role: 'worker' | 'farm' | 'admin';
       verification_status: 'pending' | 'verified' | 'rejected';
       visa_type: '417' | '462' | 'other' | 'citizen_pr';
+      work_answer: 'worked' | 'left_early' | 'did_not_work';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -2145,7 +2255,7 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ['active', 'suspended'],
-      application_status: ['applied', 'accepted', 'declined', 'withdrawn', 'completed'],
+      application_status: ['applied', 'accepted', 'declined', 'withdrawn', 'completed', 'ended'],
       attendance_status: ['showed', 'no_show', 'left_early'],
       employment_type: ['casual', 'part_time', 'full_time'],
       job_role_type: ['picking', 'packing', 'pruning', 'planting', 'machinery', 'livestock', 'general'],
@@ -2161,6 +2271,7 @@ export const Constants = {
         'other',
         'no_show_dispute',
         'inappropriate_review',
+        'work_outcome_dispute',
       ],
       report_status: ['open', 'actioned', 'dismissed'],
       swipe_direction: ['like', 'pass'],
@@ -2168,6 +2279,7 @@ export const Constants = {
       user_role: ['worker', 'farm', 'admin'],
       verification_status: ['pending', 'verified', 'rejected'],
       visa_type: ['417', '462', 'other', 'citizen_pr'],
+      work_answer: ['worked', 'left_early', 'did_not_work'],
     },
   },
 } as const;

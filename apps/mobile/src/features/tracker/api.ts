@@ -13,6 +13,9 @@ export interface TrackerData {
     abn: string | null;
     counts_as_specified: boolean;
     postcode_eligible: boolean | null;
+    job_id: string | null;
+    /** Linked to a job both sides confirmed worked (a verified work record). */
+    verified: boolean;
   }[];
   shifts: { id: string; employer_id: string; work_date: string; hours: number; notes: string }[];
   payslips: {
@@ -31,11 +34,11 @@ export function useTracker(userId: string) {
   return useQuery({
     queryKey: ['tracker', userId],
     queryFn: async (): Promise<TrackerData> => {
-      const [priv, employers, shifts, payslips] = await Promise.all([
+      const [priv, employers, shifts, payslips, verified] = await Promise.all([
         supabase.from('worker_private').select('tracker_goal, visa_type').eq('user_id', userId).maybeSingle(),
         supabase
           .from('employers_worked')
-          .select('id, name, postcode, abn, counts_as_specified, postcode_eligible')
+          .select('id, name, postcode, abn, counts_as_specified, postcode_eligible, job_id')
           .order('created_at'),
         supabase
           .from('shift_logs')
@@ -45,8 +48,13 @@ export function useTracker(userId: string) {
           .from('payslips')
           .select('id, employer_id, period_start, period_end, days_worked, hours_total, file_path')
           .order('period_start', { ascending: false }),
+        // Jobs both sides confirmed ("Did this work out?"): employers added from them are verified.
+        supabase.from('work_outcomes').select('applications!inner(job_id, worker_id)').eq('verified', true),
       ]);
-      for (const r of [priv, employers, shifts, payslips]) if (r.error) throw r.error;
+      for (const r of [priv, employers, shifts, payslips, verified]) if (r.error) throw r.error;
+      const verifiedJobs = new Set(
+        (verified.data ?? []).map((v) => (v.applications as unknown as { job_id: string }).job_id),
+      );
 
       const goal = (priv.data?.tracker_goal ?? 'second') as TrackerGoal;
       const shiftRows = (shifts.data ?? []).map((s) => ({ ...s, hours: Number(s.hours) }));
@@ -72,7 +80,10 @@ export function useTracker(userId: string) {
       return {
         goal,
         visaType: priv.data?.visa_type ?? null,
-        employers: employers.data ?? [],
+        employers: (employers.data ?? []).map((e) => ({
+          ...e,
+          verified: !!e.job_id && verifiedJobs.has(e.job_id),
+        })),
         shifts: shiftRows,
         payslips: payslipRows,
         estimate,

@@ -10,6 +10,7 @@ import { Toast } from '@/components/Toast';
 import { useMyFarm } from '@/features/farm/api';
 import { useMyJobs, type JobWithCounts } from '@/features/farm/jobsApi';
 import { VerificationStatusCard } from '@/features/farm/VerificationStatusCard';
+import { OutcomePrompts } from '@/features/ratings/OutcomePrompts';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { dateRangeLabel, payLabel } from '@/features/jobs/format';
 import { useUserId } from '@/providers/AuthProvider';
@@ -34,7 +35,14 @@ export default function Jobs() {
         refreshing={jobs.isRefetching}
         onRefresh={() => jobs.refetch()}
         ListHeaderComponent={
-          verified ? <PendingReviews onMessage={setMessage} /> : <VerificationStatusCard farm={farm.data} />
+          verified ? (
+            <View style={styles.prompts}>
+              <OutcomePrompts onMessage={setMessage} />
+              <PendingReviews onMessage={setMessage} />
+            </View>
+          ) : (
+            <VerificationStatusCard farm={farm.data} />
+          )
         }
         ListEmptyComponent={
           jobs.isPending ? undefined : (
@@ -95,4 +103,5 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontWeight: '700' },
   applicants: { color: '#17482F', fontWeight: '700' },
   dim: { opacity: 0.7 },
+  prompts: { gap: 12 },
 });

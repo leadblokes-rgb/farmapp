@@ -6,6 +6,8 @@
 //   no_show_marked       -> the worker (with a way to dispute it)
 //   application_completed -> the worker ("How was it? Leave a rating")
 //   check_in_reminder    -> the farm owner, on a job's first day
+//   work_outcome_request -> the worker, when a job ends ("Did this work out?")
+//   work_outcome_request_farm -> the farm owner, once per ended job
 //   job_alert            -> every worker whose job alert matches a new job (max 3 a day each)
 // Every attempt is written to public.notification_log.
 
@@ -92,6 +94,33 @@ async function build(event: string, payload: Record<string, string>): Promise<No
           body: `You finished ${a.job.title}. Leave a rating to help other workers.`,
           url: '/worker/matches',
         };
+  }
+
+  if (event === 'work_outcome_request') {
+    const [a] = await rest<any[]>(
+      `applications?id=eq.${payload.application_id}&select=id,worker_id,job:jobs(title,farm:farms(business_name))`,
+      { headers: { Prefer: 'return=representation' } },
+    );
+    if (!a) return null;
+    return {
+      recipientId: a.worker_id,
+      title: `Did ${a.job.title} work out?`,
+      body: `Tell us how it went at ${a.job.farm.business_name}. It confirms your work record.`,
+      url: '/worker/matches',
+    };
+  }
+
+  if (event === 'work_outcome_request_farm') {
+    const [j] = await rest<any[]>(`jobs?id=eq.${payload.job_id}&select=id,title,farm:farms(owner_id)`, {
+      headers: { Prefer: 'return=representation' },
+    });
+    if (!j) return null;
+    return {
+      recipientId: j.farm.owner_id,
+      title: `${j.title} has ended`,
+      body: 'Did your crew work out? Tap to confirm who worked.',
+      url: `/farm/job/${j.id}`,
+    };
   }
 
   if (event === 'check_in_reminder') {

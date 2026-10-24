@@ -12,6 +12,7 @@ import { BroadcastDialog } from '@/features/farm/BroadcastDialog';
 import { useJob, useSetJobStatus, type JobStatus } from '@/features/farm/jobsApi';
 import { useDecide, useShortlist, type Applicant, type Decision } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
+import { OutcomePrompts } from '@/features/ratings/OutcomePrompts';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
@@ -33,9 +34,11 @@ export default function JobShortlist() {
   const [broadcasting, setBroadcasting] = useState(false);
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
-  // Completed workers stay in the Accepted tab.
+  // Workers whose job has ended or completed stay in the Accepted tab.
   const byTab = (t: Tab) =>
-    applicants.filter((a) => a.status === t || (t === 'accepted' && a.status === 'completed'));
+    applicants.filter(
+      (a) => a.status === t || (t === 'accepted' && (a.status === 'completed' || a.status === 'ended')),
+    );
   const visible = byTab(tab);
   const accepted = byTab('accepted').length;
 
@@ -169,6 +172,7 @@ export default function JobShortlist() {
           Message crew
         </Button>
       ) : null}
+      <OutcomePrompts jobId={j.id} onMessage={setMessage} />
       <PendingReviews jobId={j.id} onMessage={setMessage} />
       {shortlist.data?.rankingFailed ? (
         <WarningBanner>Couldn’t refresh match scores. Showing the last ranking.</WarningBanner>
@@ -225,7 +229,7 @@ export default function JobShortlist() {
           <View>
             <ApplicantCard
               a={item}
-              selectable={tab !== 'declined' && item.status !== 'completed'}
+              selectable={item.status === 'applied' || item.status === 'accepted'}
               selected={selected.includes(item.application_id)}
               onToggle={() => toggle(item.application_id)}
               onOpen={() =>
