@@ -21,6 +21,7 @@ import { SwipeDeck, type SwipeDeckHandle, type SwipeDirection } from '@/features
 import { useUserId } from '@/providers/AuthProvider';
 import { friendlyError } from '@/lib/errors';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
 
 export default function Discover() {
   const userId = useUserId();
@@ -54,14 +55,14 @@ export default function Discover() {
     if (direction === 'save') {
       save.mutate(
         { jobId: item.job.id, saved: true },
-        { onSuccess: () => setMessage('Saved for later. Find it in Matches → Saved.'), onError: restore },
+        { onSuccess: () => setMessage(t('discover.savedForLater')), onError: restore },
       );
       return;
     }
     swipe.mutate(
       { jobId: item.job.id, direction },
       {
-        onSuccess: () => direction === 'like' && setMessage(`Applied to ${item.job.title}`),
+        onSuccess: () => direction === 'like' && setMessage(t('discover.applied', { title: item.job.title })),
         onError: restore,
       },
     );
@@ -73,7 +74,7 @@ export default function Discover() {
     const onSuccess = () => {
       setSwipedIds((ids) => ids.filter((id) => id !== item.job.id));
       setLast(null);
-      setMessage('Undone');
+      setMessage(t('discover.undone'));
     };
     const onError = (e: unknown) => setMessage(friendlyError(e));
     if (direction === 'save') save.mutate({ jobId: item.job.id, saved: false }, { onSuccess, onError });
@@ -86,7 +87,7 @@ export default function Discover() {
     <Screen edges={[]}>
       <View style={styles.toolbar}>
         <Text variant="titleMedium" style={styles.count}>
-          {feed.isPending ? 'Finding jobs…' : `${queue.length} job${queue.length === 1 ? '' : 's'} for you`}
+          {feed.isPending ? t('discover.finding') : t('discover.count', { count: queue.length })}
         </Text>
         <View>
           <Button
@@ -95,7 +96,7 @@ export default function Discover() {
             onPress={() => setFiltersOpen(true)}
             contentStyle={styles.filterButton}
           >
-            Filters
+            {t('discover.filters')}
           </Button>
           {filterCount ? <Badge style={styles.badge}>{filterCount}</Badge> : null}
         </View>
@@ -108,11 +109,9 @@ export default function Discover() {
           <LoadError onRetry={() => feed.refetch()} />
         ) : queue.length === 0 ? (
           <View style={styles.empty}>
-            <Text variant="headlineSmall">You&apos;re all caught up</Text>
+            <Text variant="headlineSmall">{t('discover.caughtUp')}</Text>
             <Text variant="bodyLarge" style={styles.center}>
-              {filterCount
-                ? 'Try widening your filters to see more jobs.'
-                : 'Check back soon: farms post new jobs every day.'}
+              {filterCount ? t('discover.widen') : t('discover.checkBack')}
             </Text>
             <Button
               mode="contained"
@@ -123,7 +122,7 @@ export default function Discover() {
               }}
               contentStyle={styles.tall}
             >
-              Refresh
+              {t('discover.refresh')}
             </Button>
           </View>
         ) : (
@@ -140,7 +139,7 @@ export default function Discover() {
           style={[styles.round, styles.skip]}
           disabled={!queue.length}
           onPress={() => deck.current?.swipe('pass')}
-          accessibilityLabel="Skip this job"
+          accessibilityLabel={t('discover.skip')}
         />
         <IconButton
           icon="undo"
@@ -149,7 +148,7 @@ export default function Discover() {
           style={styles.smallRound}
           disabled={!last || undo.isPending || save.isPending}
           onPress={handleUndo}
-          accessibilityLabel="Undo last swipe"
+          accessibilityLabel={t('discover.undo')}
         />
         <IconButton
           icon="bookmark-outline"
@@ -158,7 +157,7 @@ export default function Discover() {
           style={styles.smallRound}
           disabled={!queue.length}
           onPress={() => deck.current?.swipe('save')}
-          accessibilityLabel="Save for later"
+          accessibilityLabel={t('discover.save')}
         />
         <IconButton
           icon="check"
@@ -169,7 +168,7 @@ export default function Discover() {
           style={styles.round}
           disabled={!queue.length}
           onPress={() => deck.current?.swipe('like')}
-          accessibilityLabel="Apply for this job"
+          accessibilityLabel={t('discover.apply')}
         />
       </View>
 
@@ -200,12 +199,12 @@ export default function Discover() {
       />
       <ReportDialog
         visible={reporting !== null}
-        subject={reporting ? `“${reporting.job.title}”` : 'job'}
+        subject={reporting ? t('saved.quoted', { title: reporting.job.title }) : t('saved.job')}
         jobId={reporting?.job.id}
         onDismiss={() => setReporting(null)}
         onDone={() => {
           setReporting(null);
-          setMessage('Thanks. The Croppr team will review your report.');
+          setMessage(t('chat.reported'));
         }}
       />
       <Toast message={message} onDismiss={() => setMessage(null)} duration={2500} />

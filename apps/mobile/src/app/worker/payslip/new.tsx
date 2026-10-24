@@ -1,4 +1,4 @@
-import { todayIso, trackerLimits, validatePayslip } from '@croppr/shared';
+import { payslipIssue, todayIso, trackerLimits } from '@croppr/shared';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -15,6 +15,8 @@ import { useAddPayslip, useTracker, type PayslipInput } from '@/features/tracker
 import { useUserId } from '@/providers/AuthProvider';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { t } from '@/i18n';
+import { sharedText } from '@/i18n/shared';
 
 export default function NewPayslip() {
   const { employerId } = useLocalSearchParams<{ employerId?: string }>();
@@ -55,13 +57,13 @@ export default function NewPayslip() {
 
   function save() {
     const hoursTotal = hours.trim() === '' ? null : Number(hours.replace(',', '.'));
-    if (!selected) return setError('Add an employer first');
+    if (!selected) return setError(t('payslip.addEmployerFirst'));
     // Nothing is saved unless every check passes (the database enforces the same limits).
-    const problem = validatePayslip(
+    const problem = payslipIssue(
       { periodStart: start, periodEnd: end, daysWorked: days, hoursTotal },
       todayIso(),
     );
-    if (problem) return setError(problem);
+    if (problem) return setError(sharedText(problem));
     setError(null);
     add.mutate(
       {
@@ -78,21 +80,30 @@ export default function NewPayslip() {
 
   return (
     <Screen scroll edges={['bottom']}>
-      <Stack.Screen options={{ title: 'Add payslip' }} />
-      <Text variant="bodyLarge">
-        Copy the details from your payslip and attach a photo or PDF. Only you can see it.
-      </Text>
+      <Stack.Screen options={{ title: t('payslip.title') }} />
+      <Text variant="bodyLarge">{t('payslip.intro')}</Text>
       <SingleChoiceChips
         options={employers.map((e) => ({ key: e.id, label: e.name }))}
         value={selected}
         onChange={setEmployer}
       />
       <View style={styles.row}>
-        <DateField label="Period start" value={start} maxDate={end ?? todayIso()} onChange={setStart} />
-        <DateField label="Period end" value={end} minDate={start} maxDate={todayIso()} onChange={setEnd} />
+        <DateField
+          label={t('payslip.periodStart')}
+          value={start}
+          maxDate={end ?? todayIso()}
+          onChange={setStart}
+        />
+        <DateField
+          label={t('payslip.periodEnd')}
+          value={end}
+          minDate={start}
+          maxDate={todayIso()}
+          onChange={setEnd}
+        />
       </View>
       <Stepper
-        label="Days worked"
+        label={t('payslip.daysWorked')}
         value={days}
         onChange={setDays}
         min={1}
@@ -100,14 +111,16 @@ export default function NewPayslip() {
       />
       <TextInput
         mode="outlined"
-        label="Total hours"
-        accessibilityLabel="Total hours"
+        label={t('payslip.totalHours')}
+        accessibilityLabel={t('payslip.totalHours')}
         value={hours}
-        onChangeText={(t) => setHours(t.replace(/[^\d.,]/g, ''))}
+        onChangeText={(text) => setHours(text.replace(/[^\d.,]/g, ''))}
         keyboardType="decimal-pad"
         style={styles.input}
       />
-      <Text variant="titleMedium">Attach payslip {file ? `(${file.name})` : '(optional)'}</Text>
+      <Text variant="titleMedium">
+        {file ? t('payslip.attachNamed', { name: file.name }) : t('payslip.attachOptional')}
+      </Text>
       <View style={styles.row}>
         <Button
           mode="outlined"
@@ -116,7 +129,7 @@ export default function NewPayslip() {
           contentStyle={styles.tall}
           onPress={() => pickPhoto(true)}
         >
-          Photo
+          {t('payslip.photo')}
         </Button>
         <Button
           mode="outlined"
@@ -125,7 +138,7 @@ export default function NewPayslip() {
           contentStyle={styles.tall}
           onPress={() => pickPhoto(false)}
         >
-          Gallery
+          {t('payslip.gallery')}
         </Button>
         <Button
           mode="outlined"
@@ -134,14 +147,14 @@ export default function NewPayslip() {
           contentStyle={styles.tall}
           onPress={pickPdf}
         >
-          PDF
+          {t('payslip.pdf')}
         </Button>
       </View>
       <HelperText type="error" visible={error !== null}>
         {error}
       </HelperText>
       <BigButton onPress={save} loading={add.isPending} disabled={add.isPending}>
-        Save payslip
+        {t('payslip.save')}
       </BigButton>
     </Screen>
   );

@@ -3,27 +3,22 @@ import { Button, Icon, Text } from 'react-native-paper';
 import { friendlyError } from '@/lib/errors';
 import { MIN_TAP } from '@/theme';
 import { useAnswerOutcome, usePendingOutcomes, type PendingOutcome, type WorkAnswer } from './api';
+import { t } from '@/i18n';
 
-const CHOICES: Record<'worker' | 'farm', { answer: WorkAnswer; label: string; icon: string }[]> = {
-  worker: [
-    { answer: 'worked', label: 'Yes, I worked it', icon: 'check-circle-outline' },
-    { answer: 'left_early', label: 'I left early', icon: 'clock-alert-outline' },
-    { answer: 'did_not_work', label: 'I didn’t end up working', icon: 'close-circle-outline' },
-  ],
-  farm: [
-    { answer: 'worked', label: 'Yes, they worked', icon: 'check-circle-outline' },
-    { answer: 'left_early', label: 'They left early', icon: 'clock-alert-outline' },
-    { answer: 'did_not_work', label: 'They didn’t turn up', icon: 'close-circle-outline' },
-  ],
-};
+const CHOICES: { answer: WorkAnswer; icon: string }[] = [
+  { answer: 'worked', icon: 'check-circle-outline' },
+  { answer: 'left_early', icon: 'clock-alert-outline' },
+  { answer: 'did_not_work', icon: 'close-circle-outline' },
+];
 
 const RESULT: Record<string, (o: PendingOutcome) => string> = {
   waiting: (o) =>
-    `Thanks. We’ll confirm it once ${o.kind === 'worker' ? 'the farm answers' : `${o.subject_name.split(' ')[0]} answers`}.`,
-  completed: () => 'Confirmed by both of you: it’s now a verified work record.',
-  not_worked: () => 'Thanks, noted.',
-  disputed: () =>
-    'Your answers were different. The Croppr team will look into it; nothing counts until then.',
+    o.kind === 'worker'
+      ? t('outcome.waitingFarm')
+      : t('outcome.waitingWorker', { name: o.subject_name.split(' ')[0] }),
+  completed: () => t('outcome.completed'),
+  not_worked: () => t('outcome.notWorked'),
+  disputed: () => t('outcome.disputed'),
 };
 
 /** "Did this work out?" after a job ends, for workers (Matches, Days) and farms (Jobs, job page). */
@@ -38,24 +33,31 @@ export function OutcomePrompts({ jobId, onMessage }: { jobId?: string; onMessage
       <View style={styles.row}>
         <Icon source="handshake-outline" size={24} color="#17482F" />
         <Text variant="titleMedium" style={styles.title}>
-          Did this work out?
+          {t('outcome.title')}
         </Text>
       </View>
       {items.map((o) => (
         <View key={o.application_id} style={styles.item}>
           <Text variant="bodyLarge" style={styles.bold}>
             {o.kind === 'worker'
-              ? `${o.job_title} at ${o.subject_name}`
-              : `${o.subject_name} · ${o.job_title}`}
+              ? t('outcome.workerItem', { job: o.job_title, farm: o.subject_name })
+              : t('outcome.farmItem', { name: o.subject_name, job: o.job_title })}
           </Text>
-          {CHOICES[o.kind as 'worker' | 'farm'].map((c) => (
+          {CHOICES.map((c) => ({
+            ...c,
+            label: t(`outcome.choices.${o.kind as 'worker' | 'farm'}.${c.answer}`),
+          })).map((c) => (
             <Button
               key={c.answer}
               mode={o.suggested === c.answer ? 'contained' : 'outlined'}
               icon={c.icon}
               contentStyle={styles.tall}
               disabled={answer.isPending}
-              accessibilityLabel={`${o.kind === 'farm' ? `${o.subject_name}: ` : ''}${c.label}`}
+              accessibilityLabel={
+                o.kind === 'farm'
+                  ? t('outcome.farmChoiceLabel', { name: o.subject_name, choice: c.label })
+                  : c.label
+              }
               onPress={() =>
                 answer.mutate(
                   { applicationId: o.application_id, answer: c.answer },
@@ -68,7 +70,7 @@ export function OutcomePrompts({ jobId, onMessage }: { jobId?: string; onMessage
           ))}
           {o.suggested ? (
             <Text variant="bodySmall" style={styles.muted}>
-              Highlighted from your day-one check-in.
+              {t('outcome.suggested')}
             </Text>
           ) : null}
         </View>

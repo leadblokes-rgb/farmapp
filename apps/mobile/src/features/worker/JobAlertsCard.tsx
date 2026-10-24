@@ -9,6 +9,7 @@ import { RegionSelect } from '@/features/common/RegionSelect';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
 
 interface Alert {
   enabled: boolean;
@@ -82,34 +83,31 @@ function Form({
     },
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ['job-alert', userId] });
-      onSaved(v.enabled ? 'Job alerts on' : 'Job alerts off');
+      onSaved(v.enabled ? t('alerts.on') : t('alerts.off'));
     },
   });
 
   return (
-    <Section
-      title="Job alerts"
-      note="One summary a day (about 6pm) of new jobs that match. Uses the dates you’re available on your profile."
-    >
-      <SwitchRow label="Tell me about new jobs" value={a.enabled} onChange={(v) => set('enabled', v)} />
+    <Section title={t('alerts.title')} note={t('alerts.note')}>
+      <SwitchRow label={t('alerts.enabled')} value={a.enabled} onChange={(v) => set('enabled', v)} />
       {a.enabled ? (
         <>
-          <Text variant="bodyLarge">Regions (none selected = anywhere)</Text>
+          <Text variant="bodyLarge">{t('alerts.regions')}</Text>
           <RegionSelect selected={a.regionIds} onChange={(ids) => set('regionIds', ids)} />
           <MoneyField
-            label="Minimum hourly pay (optional)"
-            suffix="/hr"
+            label={t('alerts.minPay')}
+            suffix={t('form.perHour')}
             value={a.minHourlyCents}
             onChange={(v) => set('minHourlyCents', v)}
           />
           <SwitchRow
-            label="Only jobs with accommodation"
+            label={t('alerts.accommodationOnly')}
             value={a.accommodationOnly}
             onChange={(v) => set('accommodationOnly', v)}
           />
           <SwitchRow
-            label="Tell me straight away about great matches"
-            description="Jobs that really suit you (pay, distance, dates) come through as soon as they’re posted. Everything else waits for the daily summary."
+            label={t('alerts.instant')}
+            description={t('alerts.instantNote')}
             value={a.instantTopMatches}
             onChange={(v) => set('instantTopMatches', v)}
           />
@@ -124,7 +122,7 @@ function Form({
         loading={save.isPending}
         onPress={() => save.mutate(a)}
       >
-        Save job alerts
+        {t('alerts.save')}
       </Button>
     </Section>
   );

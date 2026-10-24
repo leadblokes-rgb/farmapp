@@ -5,6 +5,7 @@ import { Button, Card, HelperText, Text, TextInput } from 'react-native-paper';
 import { supabase } from '@/lib/supabase';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { t } from '@/i18n';
 
 /** Link up with friends so farms see you're travelling together (each person still applies). */
 export function GroupCard({ userId }: { userId: string }) {
@@ -50,29 +51,29 @@ export function GroupCard({ userId }: { userId: string }) {
     <Card mode="outlined">
       <Card.Content style={styles.content}>
         <Text variant="titleLarge" style={styles.bold}>
-          Travelling with friends?
+          {t('group.title')}
         </Text>
         {inGroup ? (
           <>
             <Text variant="bodyLarge">
-              Your group: {members.map((m) => (m.is_me ? 'You' : m.member_name)).join(', ')}
+              {t('group.yourGroup', {
+                members: members.map((m) => (m.is_me ? t('group.you') : m.member_name)).join(', '),
+              })}
             </Text>
             <Text variant="bodyLarge">
-              Group code: <Text style={styles.code}>{members[0]!.invite_code}</Text>
+              {t('group.code')}
+              <Text style={styles.code}>{members[0]!.invite_code}</Text>
             </Text>
-            <Text variant="bodyMedium">
-              Farms see your group together on their shortlist so they can hire you all at once. Each person
-              still swipes and applies for themselves.
-            </Text>
+            <Text variant="bodyMedium">{t('group.together')}</Text>
             <Button
               mode="outlined"
               icon="share-variant"
               contentStyle={styles.tall}
               onPress={() =>
-                Share.share({ message: `Join my group on Croppr with code ${members[0]!.invite_code}` })
+                Share.share({ message: t('group.shareMessage', { code: members[0]!.invite_code }) })
               }
             >
-              Share code
+              {t('group.share')}
             </Button>
             <Button
               mode="text"
@@ -80,14 +81,12 @@ export function GroupCard({ userId }: { userId: string }) {
               contentStyle={styles.tall}
               onPress={() => run.mutate('leave')}
             >
-              Leave group
+              {t('group.leave')}
             </Button>
           </>
         ) : (
           <>
-            <Text variant="bodyMedium">
-              Link up so farms know you want to work together. One person creates a group and shares the code.
-            </Text>
+            <Text variant="bodyMedium">{t('group.intro')}</Text>
             <Button
               mode="contained"
               icon="account-multiple-plus"
@@ -95,15 +94,15 @@ export function GroupCard({ userId }: { userId: string }) {
               onPress={() => run.mutate('create')}
               loading={run.isPending && run.variables === 'create'}
             >
-              Create a group
+              {t('group.create')}
             </Button>
             <View style={styles.row}>
               <TextInput
                 mode="outlined"
-                label="Friend's group code"
-                accessibilityLabel="Friend's group code"
+                label={t('group.friendCode')}
+                accessibilityLabel={t('group.friendCode')}
                 value={code}
-                onChangeText={(t) => setCode(t.toUpperCase())}
+                onChangeText={(text) => setCode(text.toUpperCase())}
                 autoCapitalize="characters"
                 maxLength={6}
                 style={styles.flex}
@@ -115,7 +114,7 @@ export function GroupCard({ userId }: { userId: string }) {
                 contentStyle={styles.tall}
                 style={styles.join}
               >
-                Join
+                {t('group.join')}
               </Button>
             </View>
           </>

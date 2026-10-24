@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Screen } from './Screen';
+import { t } from '@/i18n';
 
 /** Placeholder for tabs whose features land in a later milestone. */
 export function ComingSoon({
@@ -20,7 +21,7 @@ export function ComingSoon({
           {description}
         </Text>
         <Text variant="labelLarge" style={styles.muted}>
-          Coming in milestone {milestone}
+          {t('common.comingSoon', { milestone })}
         </Text>
       </View>
     </Screen>

@@ -7,6 +7,7 @@ import { friendlyError } from '@/lib/errors';
 import { removeUserFiles, signedUrl, uploadUserFileFromUri } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
 
 const TYPES = [
   'application/pdf',
@@ -53,7 +54,7 @@ export function ResumeCard({ userId, onMessage }: { userId: string; onMessage: (
     },
     onSuccess: (_d, file) => {
       qc.invalidateQueries({ queryKey: ['resume', userId] });
-      onMessage(file ? 'Resume added' : 'Resume removed');
+      onMessage(file ? t('resume.added') : t('resume.removed'));
     },
   });
 
@@ -61,22 +62,18 @@ export function ResumeCard({ userId, onMessage }: { userId: string; onMessage: (
     const r = await DocumentPicker.getDocumentAsync({ type: TYPES, copyToCacheDirectory: true });
     const a = !r.canceled ? r.assets[0] : null;
     if (!a) return;
-    if (a.size && a.size > 5 * 1024 * 1024)
-      return onMessage('That file is over 5 MB. Try a PDF or a smaller photo.');
+    if (a.size && a.size > 5 * 1024 * 1024) return onMessage(t('resume.tooBig'));
     save.mutate({ uri: a.uri, name: a.name, mimeType: a.mimeType ?? 'application/pdf' });
   }
 
   const current = resume.data?.resume_path ? resume.data : null;
   return (
-    <Section
-      title="Resume"
-      note="Optional. Import your resume (PDF, Word or a photo). Only farms you apply to can open it."
-    >
+    <Section title={t('resume.title')} note={t('resume.note')}>
       {current ? (
         <View style={styles.row}>
           <Icon source="file-account-outline" size={28} color="#17482F" />
           <Text variant="bodyLarge" style={styles.flex} numberOfLines={2}>
-            {current.resume_name ?? 'Resume'}
+            {current.resume_name ?? t('resume.title')}
           </Text>
         </View>
       ) : null}
@@ -89,7 +86,7 @@ export function ResumeCard({ userId, onMessage }: { userId: string; onMessage: (
           disabled={save.isPending}
           onPress={pick}
         >
-          {current ? 'Replace' : 'Import resume'}
+          {current ? t('resume.replace') : t('resume.import')}
         </Button>
         {current ? (
           <>
@@ -99,7 +96,7 @@ export function ResumeCard({ userId, onMessage }: { userId: string; onMessage: (
               contentStyle={styles.tall}
               onPress={() => openResume(current.resume_path!).catch((e) => onMessage(friendlyError(e)))}
             >
-              View
+              {t('resume.view')}
             </Button>
             <Button
               mode="text"
@@ -109,7 +106,7 @@ export function ResumeCard({ userId, onMessage }: { userId: string; onMessage: (
               disabled={save.isPending}
               onPress={() => save.mutate(null)}
             >
-              Remove
+              {t('resume.remove')}
             </Button>
           </>
         ) : null}

@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card, Icon, Text } from 'react-native-paper';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import type { Farm } from './api';
+import { t } from '@/i18n';
 
 export function VerificationStatusCard({ farm }: { farm: Farm }) {
   if (farm.verification_status === 'verified') {
@@ -9,9 +10,7 @@ export function VerificationStatusCard({ farm }: { farm: Farm }) {
       <Card mode="outlined" style={styles.verified}>
         <Card.Content style={styles.content}>
           <VerifiedBadge />
-          <Text variant="bodyLarge">
-            {farm.business_name} is verified. Workers see the Verified badge on your jobs.
-          </Text>
+          <Text variant="bodyLarge">{t('verification.verified', { name: farm.business_name })}</Text>
         </Card.Content>
       </Card>
     );
@@ -28,18 +27,17 @@ export function VerificationStatusCard({ farm }: { farm: Farm }) {
             color={rejected ? '#B00020' : '#8D5A00'}
           />
           <Text variant="titleMedium" style={styles.bold}>
-            {rejected ? 'Verification unsuccessful' : 'Waiting for verification'}
+            {rejected ? t('verification.rejected') : t('verification.waiting')}
           </Text>
         </View>
         {rejected ? (
           <>
             <Text variant="bodyLarge">{farm.rejection_reason}</Text>
-            <Text variant="bodyMedium">Update your details in the Farm tab to resubmit.</Text>
+            <Text variant="bodyMedium">{t('verification.resubmit')}</Text>
           </>
         ) : (
           <Text variant="bodyLarge">
-            We&apos;re checking your ABN{farm.is_labour_hire ? ' and labour hire licence' : ''}. This usually
-            takes one business day. You can post jobs once you&apos;re verified.
+            {farm.is_labour_hire ? t('verification.checkingLabourHire') : t('verification.checking')}
           </Text>
         )}
       </Card.Content>

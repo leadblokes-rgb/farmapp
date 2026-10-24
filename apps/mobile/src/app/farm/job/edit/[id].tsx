@@ -5,6 +5,7 @@ import { useMyFarm } from '@/features/farm/api';
 import { jobToInput, useJob, useSaveJob } from '@/features/farm/jobsApi';
 import { JobForm } from '@/features/farm/JobForm';
 import { useUserId } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 export default function EditJob() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,10 +18,10 @@ export default function EditJob() {
 
   return (
     <Screen scroll edges={['bottom']}>
-      <Stack.Screen options={{ title: 'Edit job' }} />
+      <Stack.Screen options={{ title: t('jobs.edit') }} />
       <JobForm
         initial={jobToInput(job.data)}
-        submitLabel="Save changes"
+        submitLabel={t('common.saveChanges')}
         onSubmit={async (values) => {
           await save.mutateAsync({ id, values });
           router.back();

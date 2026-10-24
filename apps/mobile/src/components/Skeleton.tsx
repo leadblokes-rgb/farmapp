@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, View, type DimensionValue } from 'react-native';
 import { Screen } from './Screen';
+import { t } from '@/i18n';
 
 /** A grey placeholder block that gently pulses while content loads. */
 export function Bone({
@@ -30,7 +31,7 @@ export function Bone({
 export function DaysSkeleton() {
   return (
     <Screen edges={[]}>
-      <View accessibilityLabel="Loading your days" accessible style={styles.stack}>
+      <View accessibilityLabel={t('common.loadingDays')} accessible style={styles.stack}>
         <Bone height={44} radius={12} />
         <Bone width="70%" height={36} radius={18} />
         <View style={styles.centre}>
@@ -47,10 +48,10 @@ export function DaysSkeleton() {
 }
 
 /** A list of card-shaped placeholders (shortlist, Matches). */
-export function ListSkeleton({ count = 4, label = 'Loading' }: { count?: number; label?: string }) {
+export function ListSkeleton({ count = 4, label }: { count?: number; label?: string }) {
   return (
     <Screen edges={[]}>
-      <View accessibilityLabel={label} accessible style={styles.stack}>
+      <View accessibilityLabel={label ?? t('common.loading')} accessible style={styles.stack}>
         <CardBones count={count} />
       </View>
     </Screen>
@@ -60,7 +61,7 @@ export function ListSkeleton({ count = 4, label = 'Loading' }: { count?: number;
 /** Discover: one swipe card. */
 export function CardSkeleton() {
   return (
-    <View accessibilityLabel="Loading jobs" accessible style={[styles.card, styles.flex]}>
+    <View accessibilityLabel={t('common.loadingJobs')} accessible style={[styles.card, styles.flex]}>
       <Bone width="50%" height={20} />
       <Bone width="85%" height={30} />
       <Bone width="40%" height={18} />

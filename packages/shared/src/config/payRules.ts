@@ -1,3 +1,4 @@
+import { message, messageText, type Message } from '../messages';
 // ⚠️ SINGLE SOURCE for minimum pay checks. Review every July after the Fair Work Annual Wage Review.
 //
 // Croppr only WARNS farms when a job looks underpaid; it is not legal or payroll advice.
@@ -53,18 +54,26 @@ export function effectiveHourlyCents(job: {
   return job.payType === 'hourly' ? job.payRateCents : (job.minHourlyGuaranteeCents ?? 0);
 }
 
-/** Warning text when a job's hourly figure is below the award minimum, else null. */
-export function belowAwardWarning(job: {
+/** Warning when a job's hourly figure is below the award minimum, else null. */
+export function belowAwardIssue(job: {
   payType: PayType;
   payRateCents: number;
   minHourlyGuaranteeCents: number | null;
   employmentType?: EmploymentType;
-}): string | null {
+}): Message | null {
   const type = job.employmentType ?? 'casual';
   const hourly = effectiveHourlyCents(job);
   const minCents = awardMinHourlyCents(type);
   if (!hourly || hourly >= minCents) return null;
-  const min = (minCents / 100).toFixed(2);
-  const what = job.payType === 'hourly' ? 'This hourly rate' : 'This guaranteed hourly minimum';
-  return `${what} is below the Horticulture Award ${employmentTypeLabel(type).toLowerCase()} minimum of $${min}/hr (from ${payRules.effectiveFrom}). Check your obligations with the Fair Work Ombudsman before posting.`;
+  const kind = job.payType === 'hourly' ? 'hourly' : 'guarantee';
+  return message(`pay.belowAward.${kind}.${type}`, {
+    min: (minCents / 100).toFixed(2),
+    from: payRules.effectiveFrom,
+  });
+}
+
+/** The same warning as English text. */
+export function belowAwardWarning(job: Parameters<typeof belowAwardIssue>[0]): string | null {
+  const issue = belowAwardIssue(job);
+  return issue && messageText(issue);
 }

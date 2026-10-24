@@ -10,12 +10,13 @@ import { markRead, useConversations, useMessages, useSendMessage, type Message }
 import { ReportDialog } from './ReportDialog';
 import { friendlyError } from '@/lib/errors';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
 
 function time(iso: string) {
   const d = new Date(iso);
   const sameDay = d.toDateString() === new Date().toDateString();
   const hm = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  return sameDay ? hm : `${d.getDate()}/${d.getMonth() + 1} ${hm}`;
+  return sameDay ? hm : t('chat.dateTime', { day: d.getDate(), month: d.getMonth() + 1, time: hm });
 }
 
 export function ChatScreen({ conversationId }: { conversationId: string }) {
@@ -55,23 +56,34 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: convo?.other_name ?? 'Chat',
+          title: convo?.other_name ?? t('chat.title'),
           headerRight: () => (
-            <IconButton icon="flag-outline" accessibilityLabel="Report" onPress={() => setReporting(true)} />
+            <IconButton
+              icon="flag-outline"
+              accessibilityLabel={t('chat.report')}
+              onPress={() => setReporting(true)}
+            />
           ),
         }}
       />
       {convo ? (
         <Text variant="bodyMedium" style={styles.context}>
-          {convo.job_title} ·{' '}
-          {convo.application_status === 'completed' ? 'Completed' : hired ? 'Accepted' : 'Applied'}
+          {t('chat.context', {
+            job: convo.job_title,
+            status:
+              convo.application_status === 'completed'
+                ? t('chat.status.completed')
+                : hired
+                  ? t('chat.status.accepted')
+                  : t('chat.status.applied'),
+          })}
         </Text>
       ) : null}
       {convo && !hired ? (
         <Text variant="bodySmall" style={styles.filterNote} accessibilityRole="text">
           {profile?.role === 'farm'
-            ? `Phone numbers, emails, links and social handles are hidden (#####) until you accept ${convo.other_name.split(' ')[0]}.`
-            : 'Phone numbers, emails, links and social handles are hidden (#####) until the farm accepts you.'}
+            ? t('chat.hiddenFarm', { name: convo.other_name.split(' ')[0] })
+            : t('chat.hiddenWorker')}
         </Text>
       ) : null}
       <KeyboardAvoidingView
@@ -89,15 +101,15 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
             data={messages.data}
             keyExtractor={(m) => m.id}
             contentContainerStyle={styles.list}
-            ListEmptyComponent={<Text style={styles.empty}>Say hello 👋</Text>}
+            ListEmptyComponent={<Text style={styles.empty}>{t('chat.sayHello')}</Text>}
             renderItem={({ item }) => <Bubble m={item} mine={item.sender_id === userId} />}
           />
         )}
         <View style={styles.composer}>
           <TextInput
             mode="outlined"
-            placeholder="Message"
-            accessibilityLabel="Message"
+            placeholder={t('chat.message')}
+            accessibilityLabel={t('chat.message')}
             value={draft}
             onChangeText={setDraft}
             multiline
@@ -113,18 +125,18 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
             style={styles.send}
             onPress={submit}
             disabled={!draft.trim()}
-            accessibilityLabel="Send message"
+            accessibilityLabel={t('chat.send')}
           />
         </View>
       </KeyboardAvoidingView>
       <ReportDialog
         visible={reporting}
-        subject={convo?.other_name ?? 'this person'}
+        subject={convo?.other_name ?? t('chat.thisPerson')}
         conversationId={conversationId}
         onDismiss={() => setReporting(false)}
         onDone={() => {
           setReporting(false);
-          setNotice('Thanks. The Croppr team will review your report.');
+          setNotice(t('chat.reported'));
         }}
       />
       <Toast message={notice} onDismiss={() => setNotice(null)} duration={3500} />
@@ -135,18 +147,16 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
 function Bubble({ m, mine }: { m: Message; mine: boolean }) {
   return (
     <View style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
-      {m.broadcast_id ? (
-        <Text style={[styles.meta, mine && styles.mineMeta]}>📣 Message to the whole crew</Text>
-      ) : null}
+      {m.broadcast_id ? <Text style={[styles.meta, mine && styles.mineMeta]}>{t('chat.toCrew')}</Text> : null}
       <Text variant="bodyLarge" style={mine ? styles.mineText : undefined}>
         {m.body}
       </Text>
       {m.contact_masked ? (
-        <Text style={[styles.meta, mine && styles.mineMeta]}>Contact details hidden until hired</Text>
+        <Text style={[styles.meta, mine && styles.mineMeta]}>{t('chat.contactHidden')}</Text>
       ) : null}
       <Text style={[styles.meta, mine && styles.mineMeta]}>
         {time(m.created_at)}
-        {mine && m.read_at ? ' · Seen' : ''}
+        {mine && m.read_at ? t('chat.seen') : ''}
       </Text>
     </View>
   );

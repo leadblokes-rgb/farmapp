@@ -4,6 +4,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { Button, List, Modal, Portal, Searchbar, Text } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
 import { FieldMessage } from './TextField';
+import { t } from '@/i18n';
 
 interface Props {
   label: string;
@@ -30,12 +31,12 @@ export function CountryPicker({ label, value, onChange, error }: Props) {
         contentStyle={styles.button}
         textColor={error ? '#B00020' : undefined}
       >
-        {value ? countryName(value) : 'Choose…'}
+        {value ? countryName(value) : t('form.choose')}
       </Button>
       <FieldMessage error={error} />
       <Portal>
         <Modal visible={open} onDismiss={() => setOpen(false)} contentContainerStyle={styles.modal}>
-          <Searchbar placeholder="Search" value={query} onChangeText={setQuery} autoFocus />
+          <Searchbar placeholder={t('form.search')} value={query} onChangeText={setQuery} autoFocus />
           <FlatList
             data={filtered}
             keyExtractor={(c) => c.code}

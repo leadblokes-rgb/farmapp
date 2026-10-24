@@ -1,0 +1,108 @@
+{
+  "labels": {
+    "roles": {
+      "picking": "Picking",
+      "packing": "Packing",
+      "pruning": "Pruning",
+      "planting": "Planting",
+      "machinery": "Machinery / driving",
+      "livestock": "Livestock",
+      "general": "General farm hand"
+    },
+    "skills": {
+      "picking": "Fruit & veg picking",
+      "packing": "Packing shed",
+      "pruning": "Pruning",
+      "planting": "Planting",
+      "tractor": "Tractor driving",
+      "forklift": "Forklift licence",
+      "livestock": "Livestock",
+      "irrigation": "Irrigation",
+      "chainsaw": "Chainsaw",
+      "hr_licence": "Heavy rigid licence",
+      "first_aid": "First aid certificate",
+      "quality_control": "Quality control"
+    },
+    "visaTypes": {
+      "417": "Working Holiday (417)",
+      "462": "Work and Holiday (462)",
+      "other": "Other visa with work rights",
+      "citizen_pr": "Australian / NZ citizen or permanent resident"
+    },
+    "employmentTypes": {
+      "casual": "Casual",
+      "part_time": "Part-time",
+      "full_time": "Full-time"
+    },
+    "employmentDescriptions": {
+      "casual": "Paid the 25% casual loading instead of paid leave",
+      "part_time": "Regular hours, with paid leave",
+      "full_time": "38 hours a week, with paid leave"
+    }
+  },
+  "validation": {
+    "invalid": "Check this field",
+    "date": "Enter a date as DD/MM/YYYY",
+    "postcode": "Enter a 4-digit postcode",
+    "endAfterStart": "End date must be on or after the start date",
+    "name": "Enter your name",
+    "nationality": "Choose your nationality",
+    "visaType": "Choose your visa type",
+    "notNegative": "Can’t be negative",
+    "max1000": "Keep it under 1000 characters",
+    "max2000": "Keep it under 2000 characters",
+    "regions": "Pick at least one region",
+    "availability": "Add at least one date range you’re available",
+    "visaExpiry": "Enter your visa expiry date",
+    "groupSize": "A group has at least 2 people",
+    "businessName": "Enter the business name",
+    "abn": "That ABN doesn’t look right. Check the 11 digits.",
+    "phone": "Enter an Australian phone number",
+    "licence": "Labour hire providers must enter their licence number",
+    "jobTitle": "Give the job a short title",
+    "roleType": "Choose a role type",
+    "employmentType": "Choose casual, part-time or full-time",
+    "payRate": "Enter the pay rate",
+    "guarantee": "Piece-rate jobs must state the minimum hourly amount you guarantee",
+    "pieceUnit": "What is the rate per? e.g. bin, tray, kg"
+  },
+  "tracker": {
+    "payslipDates": "Enter the pay period start and end dates.",
+    "payslipBackwards": "The pay period ends before it starts.",
+    "payslipFuture": "The pay period can’t be in the future.",
+    "payslipTooLong": "A pay period can be at most {{max}} days. Add longer periods as separate payslips.",
+    "payslipDays": "Enter how many days you worked.",
+    "payslipTooManyDays": "You can’t have worked {{days}} days in a {{periodDays}}-day period.",
+    "payslipHours": "Enter the total hours on the payslip.",
+    "payslipTooManyHours_one": "{{hours}} hours is more than {{max}} hours a day for {{count}} day. Check the hours and days worked.",
+    "payslipTooManyHours_other": "{{hours}} hours is more than {{max}} hours a day for {{count}} days. Check the hours and days worked.",
+    "shiftDate": "Choose the date you worked.",
+    "shiftFuture": "You can’t log a shift in the future.",
+    "shiftHours": "Enter the hours you worked.",
+    "shiftTooLong": "A shift can be at most {{max}} hours."
+  },
+  "notes": {
+    "payslipPartTime_one": "Payslip from {{name}} ({{start}}–{{end}}): {{hours}} hours only covers {{count}} full day of {{dayHours}}+ hours, so {{count}} of the {{days}} days worked is counted.",
+    "payslipPartTime_other": "Payslip from {{name}} ({{start}}–{{end}}): {{hours}} hours only covers {{count}} full days of {{dayHours}}+ hours, so {{count}} of the {{days}} days worked are counted.",
+    "shortShifts": "Shifts under {{dayHours}} hours in a part-time week aren't counted. Check with Home Affairs if most of your shifts are short.",
+    "future": "Dates after today aren’t counted yet.",
+    "notEligiblePostcode": "{{name}} ({{postcode}}) isn’t an eligible postcode for {{visa}} plant & animal cultivation. Only count it if it’s another kind of specified work.",
+    "notSpecified": "Work you marked as not specified work is not counted.",
+    "notEligiblePostcodeNoVisa": "{{name}} ({{postcode}}) isn’t an eligible postcode for plant & animal cultivation. Only count it if it’s another kind of specified work."
+  },
+  "pay": {
+    "belowAward": {
+      "hourly": {
+        "casual": "This hourly rate is below the Horticulture Award casual minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting.",
+        "part_time": "This hourly rate is below the Horticulture Award part-time minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting.",
+        "full_time": "This hourly rate is below the Horticulture Award full-time minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting."
+      },
+      "guarantee": {
+        "casual": "This guaranteed hourly minimum is below the Horticulture Award casual minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting.",
+        "part_time": "This guaranteed hourly minimum is below the Horticulture Award part-time minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting.",
+        "full_time": "This guaranteed hourly minimum is below the Horticulture Award full-time minimum of ${{min}}/hr (from {{from}}). Check your obligations with the Fair Work Ombudsman before posting."
+      }
+    }
+  },
+  "disclaimer": "Estimate only, not immigration advice. Home Affairs decides what counts. Keep your payslips and check the official guidance or ask a registered migration agent."
+}

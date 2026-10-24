@@ -16,6 +16,7 @@ import { EmployerForm } from '@/features/tracker/EmployerForm';
 import { signedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
 
 export default function EmployerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,11 +44,15 @@ export default function EmployerDetail() {
         {employer.name}
       </Text>
       <Text variant="bodyLarge">
-        {days} day{days === 1 ? '' : 's'} counted (estimate) ·{' '}
-        {employer.counts_as_specified ? 'specified work' : 'not counted'}
+        {t('employerDetail.counted', {
+          count: days,
+          status: employer.counts_as_specified
+            ? t('employerDetail.specified')
+            : t('employerDetail.notCounted'),
+        })}
       </Text>
       <Button mode="text" icon="pencil" onPress={() => setEditing((e) => !e)} style={styles.left}>
-        {editing ? 'Hide edit' : 'Edit employer'}
+        {editing ? t('employerDetail.hideEdit') : t('employerDetail.edit')}
       </Button>
       {editing ? (
         <EmployerForm
@@ -57,7 +62,7 @@ export default function EmployerDetail() {
             abn: employer.abn ?? '',
             countsAsSpecified: employer.counts_as_specified,
           }}
-          submitLabel="Save"
+          submitLabel={t('employerDetail.save')}
           onSubmit={async (v) => {
             await save.mutateAsync({ id, v });
             setEditing(false);
@@ -67,29 +72,30 @@ export default function EmployerDetail() {
 
       <Divider />
       <Text variant="titleLarge" style={styles.bold}>
-        Payslips ({payslips.length})
+        {t('employerDetail.payslips', { count: payslips.length })}
       </Text>
       {payslips.length === 0 ? (
-        <Text variant="bodyMedium">Payslips are the best evidence for your visa application.</Text>
+        <Text variant="bodyMedium">{t('employerDetail.payslipsEvidence')}</Text>
       ) : null}
       {payslips.map((p) => (
         <View key={p.id} style={styles.row}>
           <View style={styles.flex}>
             <Text variant="bodyLarge">{dateRangeLabel(p.period_start, p.period_end)}</Text>
             <Text variant="bodyMedium">
-              {p.days_worked} days · {p.hours_total} hrs{p.file_path ? ' · file attached' : ''}
+              {t('employerDetail.payslipLine', { days: p.days_worked, hours: p.hours_total })}
+              {p.file_path ? t('employerDetail.fileAttached') : ''}
             </Text>
           </View>
           {p.file_path ? (
             <IconButton
               icon="eye"
-              accessibilityLabel="View payslip file"
+              accessibilityLabel={t('employerDetail.viewFile')}
               onPress={async () => Linking.openURL(await signedUrl('payslips', p.file_path!))}
             />
           ) : null}
           <IconButton
             icon="delete-outline"
-            accessibilityLabel="Delete payslip"
+            accessibilityLabel={t('employerDetail.deletePayslip')}
             onPress={() => deletePayslip.mutate({ id: p.id, filePath: p.file_path })}
           />
         </View>
@@ -100,21 +106,21 @@ export default function EmployerDetail() {
         contentStyle={styles.tall}
         onPress={() => router.push({ pathname: '/worker/payslip/new', params: { employerId: id } })}
       >
-        Add payslip
+        {t('employerDetail.addPayslip')}
       </Button>
 
       <Divider />
       <Text variant="titleLarge" style={styles.bold}>
-        Shifts ({shifts.length})
+        {t('employerDetail.shifts', { count: shifts.length })}
       </Text>
       {shifts.map((s) => (
         <View key={s.id} style={styles.row}>
           <Text variant="bodyLarge" style={styles.flex}>
-            {shortDate(s.work_date)} · {s.hours} h
+            {t('employerDetail.shiftLine', { date: shortDate(s.work_date), hours: s.hours })}
           </Text>
           <IconButton
             icon="delete-outline"
-            accessibilityLabel={`Delete shift on ${s.work_date}`}
+            accessibilityLabel={t('employerDetail.deleteShift', { date: shortDate(s.work_date) })}
             onPress={() => deleteShift.mutate(s.id)}
           />
         </View>
@@ -127,18 +133,18 @@ export default function EmployerDetail() {
         contentStyle={styles.tall}
         onPress={() => setConfirmDelete(true)}
       >
-        Delete employer and its records
+        {t('employerDetail.delete')}
       </Button>
       <Portal>
         <Dialog visible={confirmDelete} onDismiss={() => setConfirmDelete(false)}>
-          <Dialog.Title>Delete {employer.name}?</Dialog.Title>
+          <Dialog.Title>{t('employerDetail.confirmTitle', { name: employer.name })}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyLarge">
-              This deletes its {shifts.length} shifts and {payslips.length} payslips.
+              {t('employerDetail.confirmBody', { shifts: shifts.length, payslips: payslips.length })}
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setConfirmDelete(false)}>Cancel</Button>
+            <Button onPress={() => setConfirmDelete(false)}>{t('form.cancel')}</Button>
             <Button
               textColor="#B00020"
               onPress={async () => {
@@ -148,7 +154,7 @@ export default function EmployerDetail() {
                 router.back();
               }}
             >
-              Delete
+              {t('employerDetail.confirm')}
             </Button>
           </Dialog.Actions>
         </Dialog>

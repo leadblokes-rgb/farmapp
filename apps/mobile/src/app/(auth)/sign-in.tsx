@@ -7,6 +7,7 @@ import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 // Demo sign-in exists only in development builds: in production `__DEV__` is false, the bundler
 // drops this require, and the demo accounts never ship.
@@ -25,7 +26,7 @@ export default function SignIn() {
   async function sendCode() {
     const address = normaliseEmail(email);
     if (!isValidEmail(address)) {
-      setError('Please enter a valid email address.');
+      setError(t('signIn.invalidEmail'));
       return;
     }
     setError(null);
@@ -46,12 +47,16 @@ export default function SignIn() {
   return (
     <Screen scroll edges={['bottom']}>
       <Text variant="headlineMedium">
-        {role === 'farm' ? 'Sign in as a farm' : role === 'worker' ? 'Sign in to find work' : 'Sign in'}
+        {role === 'farm'
+          ? t('signIn.titleFarm')
+          : role === 'worker'
+            ? t('signIn.titleWorker')
+            : t('signIn.title')}
       </Text>
-      <Text variant="bodyLarge">We&apos;ll email you a 6-digit code. No password needed.</Text>
+      <Text variant="bodyLarge">{t('signIn.intro')}</Text>
       <TextInput
         mode="outlined"
-        label="Email"
+        label={t('signIn.email')}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -66,7 +71,7 @@ export default function SignIn() {
         {error}
       </HelperText>
       <BigButton onPress={sendCode} loading={sending} disabled={sending}>
-        Email me a code
+        {t('signIn.send')}
       </BigButton>
 
       {DemoSignIn ? <DemoSignIn /> : null}

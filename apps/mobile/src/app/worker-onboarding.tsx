@@ -3,6 +3,7 @@ import { Screen } from '@/components/Screen';
 import { EMPTY_WORKER_PROFILE, useSaveWorkerProfile } from '@/features/worker/api';
 import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { RequireSession, useAuth, useUserId } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 export default function WorkerOnboarding() {
   return (
@@ -19,11 +20,11 @@ function WorkerOnboardingScreen() {
 
   return (
     <Screen scroll>
-      <Text variant="headlineMedium">Set up your profile</Text>
-      <Text variant="bodyLarge">Farms use this to pick their crew. It takes about 3 minutes.</Text>
+      <Text variant="headlineMedium">{t('onboarding.worker.title')}</Text>
+      <Text variant="bodyLarge">{t('onboarding.worker.intro')}</Text>
       <WorkerProfileForm
         initial={EMPTY_WORKER_PROFILE}
-        submitLabel="Save and start finding work"
+        submitLabel={t('onboarding.worker.submit')}
         onSubmit={async (values, photo) => {
           await save.mutateAsync({ values, photo });
           await refreshProfile();

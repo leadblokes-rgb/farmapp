@@ -1,4 +1,5 @@
 import { isoToDisplay } from './dates';
+import { message, messageText, type Message } from './messages';
 import { visaRules as defaultRules, type TrackerGoal, type VisaRules } from './config/visaRules';
 
 // Pure, unit-tested estimate of specified-work days. All rules come from config/visaRules.ts.
@@ -38,7 +39,9 @@ export interface DayEstimate {
   /** 0–1 */
   progress: number;
   byEmployer: { employerId: string; name: string; days: number; countsAsSpecified: boolean }[];
+  /** Notes in English (see noteMessages for the translatable form). */
   notes: string[];
+  noteMessages: Message[];
 }
 
 const DAY_MS = 86_400_000;
@@ -62,7 +65,7 @@ export function estimateDays(
   { goal = 'second', rules = defaultRules, today, visaType }: EstimateOptions,
 ): DayEstimate {
   const eligible = new Map(employers.filter((e) => e.countsAsSpecified).map((e) => [e.id, e]));
-  const notes: string[] = [];
+  const notes: Message[] = [];
   const todayN = toDay(today);
   let futureIgnored = false;
 
@@ -104,7 +107,15 @@ export function estimateDays(
       if (fullDays < days) {
         const name = eligible.get(p.employerId)!.name;
         notes.push(
-          `Payslip from ${name} (${isoToDisplay(p.periodStart)}–${isoToDisplay(p.periodEnd)}): ${p.hoursTotal} hours only covers ${fullDays} full day${fullDays === 1 ? '' : 's'} of ${rules.fullDayHours}+ hours, so ${fullDays} of the ${days} days worked ${fullDays === 1 ? 'is' : 'are'} counted.`,
+          message('notes.payslipPartTime', {
+            name,
+            start: isoToDisplay(p.periodStart),
+            end: isoToDisplay(p.periodEnd),
+            hours: p.hoursTotal,
+            count: fullDays,
+            dayHours: rules.fullDayHours,
+            days,
+          }),
         );
       }
     }
@@ -149,22 +160,22 @@ export function estimateDays(
     (s) => eligible.has(s.employerId) && s.hours > 0 && s.hours < rules.fullDayHours,
   );
   if (ignoredShort && rules.shortShifts === 'ignore') {
-    notes.push(
-      `Shifts under ${rules.fullDayHours} hours in a part-time week aren't counted. Check with Home Affairs if most of your shifts are short.`,
-    );
+    notes.push(message('notes.shortShifts', { dayHours: rules.fullDayHours }));
   }
   if (futureIgnored) {
-    notes.push('Dates after today aren’t counted yet.');
+    notes.push(message('notes.future'));
   }
   for (const e of employers) {
     if (e.countsAsSpecified && e.postcodeEligible === false) {
       notes.push(
-        `${e.name} (${e.postcode}) isn’t an eligible postcode for ${visaType ? `${visaType} ` : ''}plant & animal cultivation. Only count it if it’s another kind of specified work.`,
+        visaType
+          ? message('notes.notEligiblePostcode', { name: e.name, postcode: e.postcode ?? '', visa: visaType })
+          : message('notes.notEligiblePostcodeNoVisa', { name: e.name, postcode: e.postcode ?? '' }),
       );
     }
   }
   if (employers.some((e) => !e.countsAsSpecified)) {
-    notes.push('Work you marked as not specified work is not counted.');
+    notes.push(message('notes.notSpecified'));
   }
 
   const byEmployer = employers.map((e) => {
@@ -183,6 +194,7 @@ export function estimateDays(
     remaining: Math.max(0, target - totalDays),
     progress: Math.min(1, totalDays / target),
     byEmployer,
-    notes,
+    notes: notes.map(messageText),
+    noteMessages: notes,
   };
 }

@@ -1,4 +1,3 @@
-import { employmentTypeLabel, jobRoleLabel } from '@croppr/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
@@ -14,8 +13,8 @@ import { OutcomePrompts } from '@/features/ratings/OutcomePrompts';
 import { PendingReviews } from '@/features/ratings/PendingReviews';
 import { dateRangeLabel, payLabel } from '@/features/jobs/format';
 import { useUserId } from '@/providers/AuthProvider';
-
-const STATUS_LABEL = { open: 'Open', filled: 'Filled', closed: 'Closed' } as const;
+import { t } from '@/i18n';
+import { employmentLabel, roleLabel } from '@/i18n/shared';
 
 export default function Jobs() {
   const farm = useMyFarm(useUserId());
@@ -47,9 +46,9 @@ export default function Jobs() {
         ListEmptyComponent={
           jobs.isPending ? undefined : (
             <View style={styles.empty}>
-              <Text variant="headlineSmall">No jobs yet</Text>
+              <Text variant="headlineSmall">{t('farmJobs.emptyTitle')}</Text>
               <Text variant="bodyLarge" style={styles.center}>
-                Post a job and Croppr will build you a ranked shortlist of available workers.
+                {t('farmJobs.emptyBody')}
               </Text>
             </View>
           )
@@ -57,7 +56,7 @@ export default function Jobs() {
         renderItem={({ item }) => <JobCard job={item} />}
       />
       <BigButton icon="plus" disabled={!verified} onPress={() => router.push('/farm/job/new')}>
-        Post a job
+        {t('farmJobs.post')}
       </BigButton>
       <Toast message={message} onDismiss={() => setMessage(null)} />
     </Screen>
@@ -78,16 +77,17 @@ function JobCard({ job }: { job: JobWithCounts }) {
           <Text variant="titleLarge" style={styles.title}>
             {job.title}
           </Text>
-          <Chip compact>{STATUS_LABEL[job.status]}</Chip>
+          <Chip compact>{t(`farmJobs.status.${job.status}`)}</Chip>
         </View>
         <Text variant="bodyLarge">
-          {jobRoleLabel(job.role_type)} · {dateRangeLabel(job.start_date, job.end_date)}
+          {roleLabel(job.role_type)} · {dateRangeLabel(job.start_date, job.end_date)}
         </Text>
         <Text variant="bodyLarge">
-          {pay.main} · {employmentTypeLabel(job.employment_type)} · {job.workers_needed} needed
+          {pay.main} · {employmentLabel(job.employment_type)} ·{' '}
+          {t('farmJobs.needed', { count: job.workers_needed })}
         </Text>
         <Text variant="titleMedium" style={styles.applicants}>
-          {applicants} applicant{applicants === 1 ? '' : 's'}
+          {t('farmJobs.applicants', { count: applicants })}
         </Text>
       </Card.Content>
     </Card>

@@ -7,6 +7,7 @@ import { Screen } from '@/components/Screen';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 export default function ChooseRole() {
   const { refreshProfile, signOut } = useAuth();
@@ -27,15 +28,15 @@ export default function ChooseRole() {
 
   return (
     <Screen>
-      <Text variant="headlineMedium">How will you use Croppr?</Text>
-      <Text variant="bodyLarge">You can&apos;t change this later, so pick the one that fits.</Text>
+      <Text variant="headlineMedium">{t('chooseRole.title')}</Text>
+      <Text variant="bodyLarge">{t('chooseRole.intro')}</Text>
       <BigButton
         icon="account-search"
         onPress={() => choose('worker')}
         loading={saving === 'worker'}
         disabled={saving !== null}
       >
-        I&apos;m looking for farm work
+        {t('chooseRole.worker')}
       </BigButton>
       <BigButton
         icon="barn"
@@ -44,13 +45,13 @@ export default function ChooseRole() {
         loading={saving === 'farm'}
         disabled={saving !== null}
       >
-        I&apos;m a farm or employer
+        {t('chooseRole.farm')}
       </BigButton>
       <HelperText type="error" visible={error !== null}>
         {error}
       </HelperText>
       <BigButton mode="text" onPress={signOut} style={styles.signOut}>
-        Sign out
+        {t('common.signOut')}
       </BigButton>
     </Screen>
   );

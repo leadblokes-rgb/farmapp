@@ -4,6 +4,7 @@ import { Button, Icon, Text } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
 import { usePendingReviews, type PendingReview } from './api';
 import { RatingSheet } from './RatingSheet';
+import { t } from '@/i18n';
 
 interface Props {
   /** Only reviews for this job (farm job page). */
@@ -24,7 +25,7 @@ export function PendingReviews({ jobId, onMessage }: Props) {
       <View style={styles.row}>
         <Icon source="star-outline" size={24} color="#5C3B00" />
         <Text variant="titleMedium" style={styles.title}>
-          {workers ? `Rate your crew (${items.length})` : 'How did it go?'}
+          {workers ? t('ratings.pending.crew', { count: items.length }) : t('ratings.pending.howDidItGo')}
         </Text>
       </View>
       {items.map((r) => (
@@ -37,11 +38,13 @@ export function PendingReviews({ jobId, onMessage }: Props) {
           onPress={() => setOpen(r)}
           accessibilityLabel={
             r.kind === 'farm'
-              ? `Rate your time at ${r.subject_name}`
-              : `Rate ${r.subject_name} for ${r.job_title}`
+              ? t('ratings.pending.rateFarm', { name: r.subject_name })
+              : t('ratings.pending.rateWorkerFor', { name: r.subject_name, job: r.job_title })
           }
         >
-          {r.kind === 'farm' ? `Rate your time at ${r.subject_name}` : `Rate ${r.subject_name}`}
+          {r.kind === 'farm'
+            ? t('ratings.pending.rateFarm', { name: r.subject_name })
+            : t('ratings.pending.rateWorker', { name: r.subject_name })}
         </Button>
       ))}
       <RatingSheet

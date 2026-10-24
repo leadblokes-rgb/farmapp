@@ -3,18 +3,19 @@ import { router } from 'expo-router';
 import { Linking, StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Section } from '@/components/form/Section';
+import { t } from '@/i18n';
 
 /** Profile → "Privacy, terms and support". */
 export function LegalLinks() {
   return (
-    <Section title="Privacy, terms and support">
+    <Section title={t('legal.linksTitle')}>
       <Button
         mode="text"
         icon="file-document-outline"
         style={styles.left}
         onPress={() => router.push('/legal/terms')}
       >
-        Terms of use
+        {t('legal.terms')}
       </Button>
       <Button
         mode="text"
@@ -22,7 +23,7 @@ export function LegalLinks() {
         style={styles.left}
         onPress={() => router.push('/legal/privacy')}
       >
-        Privacy policy
+        {t('legal.privacy')}
       </Button>
       <Button
         mode="text"
@@ -30,7 +31,7 @@ export function LegalLinks() {
         style={styles.left}
         onPress={() => Linking.openURL(`mailto:${legal.supportEmail}`)}
       >
-        Contact support ({legal.supportEmail})
+        {t('legal.contact', { email: legal.supportEmail })}
       </Button>
     </Section>
   );

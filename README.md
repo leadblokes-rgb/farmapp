@@ -157,6 +157,25 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 - **Job alerts** (Profile → Job alerts): regions, minimum pay and accommodation, plus the worker's availability dates from their profile. By default matching jobs wait for **one daily digest** (08:00 UTC, about 6pm in Queensland; pg_cron `croppr-job-digest` → `send_job_alert_digest()`). `send-push` scores each match with the ranker; jobs scoring at least `JOB_ALERT_INSTANT_MIN_SCORE` (80, in `packages/matching/src/weights.ts`) push straight away if the worker kept "Tell me straight away about great matches" on, with a hidden cap of `JOB_ALERT_MAX_INSTANT_PER_DAY` (3). Everything else goes into `job_alert_queue` for the digest.
 - **Notification settings** (Profile → Notifications, workers and farms): messages, updates and (farms) check-in reminders, stored in `notification_prefs`. `send-push` logs muted notices with outcome `muted`.
 
+## Translations
+
+All text the app shows comes from translation files, ready for other languages (none added yet):
+
+- `apps/mobile/src/i18n/en.json`: the app's screens.
+- `packages/shared/src/i18n/en.json`: text produced by shared rules (form validation, day-tracker notes, pay warnings) and the labels for job roles, skills, visa and employment types. The app loads it as the `shared` section.
+- Components call `t('area.key')` from `@/i18n` (or `sharedText()` / `roleLabel()` etc. from `@/i18n/shared`). Keys are type-checked against the English files, so a typo fails `npm run typecheck`.
+- `npm run lint` fails on hard-coded text in JSX, text props (`label`, `title`, `placeholder`…) and toast/error calls.
+- Match explanations from `packages/matching` carry a `code` and `params` (shown with `matchNote()`), with the English `note` as a fallback.
+- **Adding a language:** copy both `en.json` files (e.g. to `zh.json`), translate the values (keep the `{{placeholders}}`, and add plural forms like `_one` / `_other` as the language needs), then add the language to `resources` in `apps/mobile/src/i18n/index.ts`. The phone's language is picked automatically (`expo-localization`), falling back to English.
+- Not covered yet: the legal documents (`docs/legal`), push notification text (`send-push`), country names and region names (database data).
+
+## Website
+
+`website/` is a static site: a landing page, plus `privacy.html`, `terms.html` and `support.html` (with account-deletion instructions, which Google Play asks for). The App Store and Google Play need the privacy policy and support URLs.
+
+- The legal and support pages are generated from `docs/legal/*.md` and `legal.supportEmail` by `npm run build:legal` (a unit test checks they're in sync). Edit `website/index.html` and `website/styles.css` by hand.
+- Host it anywhere that serves static files (Netlify, Cloudflare Pages, Vercel or GitHub Pages: point it at the `website` folder, no build step), on your domain, e.g. `croppr.com.au`.
+
 ## Specified-work postcodes
 
 Eligibility = **postcode + type of work + the worker's visa subclass** (417 or 462), worked out in the database from the current lists in `specified_work_lists`:

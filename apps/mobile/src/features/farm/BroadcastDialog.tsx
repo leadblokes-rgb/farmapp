@@ -4,6 +4,7 @@ import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { friendlyError } from '@/lib/errors';
 import { useBroadcast } from './shortlistApi';
+import { t } from '@/i18n';
 
 type Audience = 'accepted' | 'applied';
 
@@ -25,33 +26,33 @@ export function BroadcastDialog({ jobId, visible, counts, onDismiss, onSent }: P
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss}>
-        <Dialog.Title>Message your crew</Dialog.Title>
+        <Dialog.Title>{t('broadcast.title')}</Dialog.Title>
         <Dialog.Content style={styles.body}>
           <SingleChoiceChips<Audience>
             value={audience}
             onChange={setAudience}
             options={[
-              { key: 'accepted', label: `Accepted (${counts.accepted})` },
-              { key: 'applied', label: `Still to review (${counts.applied})` },
+              { key: 'accepted', label: t('broadcast.accepted', { count: counts.accepted }) },
+              { key: 'applied', label: t('broadcast.applied', { count: counts.applied }) },
             ]}
           />
           <TextInput
             mode="outlined"
-            label="Message"
-            accessibilityLabel="Crew message"
-            placeholder="e.g. Start 6am Monday at the main shed. Bring a hat and water."
+            label={t('broadcast.message')}
+            accessibilityLabel={t('broadcast.label')}
+            placeholder={t('broadcast.placeholder')}
             value={body}
             onChangeText={setBody}
             multiline
             maxLength={2000}
           />
           <Text variant="bodyMedium" style={styles.muted}>
-            Each worker gets this in their own chat with you, so replies stay private.
+            {t('broadcast.private')}
           </Text>
           {broadcast.isError ? <Text style={styles.error}>{friendlyError(broadcast.error)}</Text> : null}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onDismiss}>Cancel</Button>
+          <Button onPress={onDismiss}>{t('form.cancel')}</Button>
           <Button
             mode="contained"
             disabled={!body.trim() || n === 0 || broadcast.isPending}
@@ -62,13 +63,13 @@ export function BroadcastDialog({ jobId, visible, counts, onDismiss, onSent }: P
                 {
                   onSuccess: (sent) => {
                     setBody('');
-                    onSent(`Sent to ${sent} worker${sent === 1 ? '' : 's'}`);
+                    onSent(t('broadcast.sent', { count: sent }));
                   },
                 },
               )
             }
           >
-            Send to {n}
+            {t('broadcast.sendTo', { count: n })}
           </Button>
         </Dialog.Actions>
       </Dialog>

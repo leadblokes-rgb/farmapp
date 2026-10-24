@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
 import { FieldMessage } from './TextField';
+import { t } from '@/i18n';
 
 interface Props {
   label: string;
@@ -25,15 +26,15 @@ export function PostcodeField({ label, value, onChange, error, hint, allowLocati
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setLocError('Location permission was not given. Type your postcode instead.');
+        setLocError(t('form.location.denied'));
         return;
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
       const [place] = await Location.reverseGeocodeAsync(pos.coords);
       if (place?.postalCode && /^\d{4}$/.test(place.postalCode)) onChange(place.postalCode);
-      else setLocError('Couldn’t find a postcode for your location. Type it instead.');
+      else setLocError(t('form.location.noPostcode'));
     } catch {
-      setLocError('Couldn’t get your location. Type your postcode instead.');
+      setLocError(t('form.location.failed'));
     } finally {
       setLocating(false);
     }
@@ -45,7 +46,7 @@ export function PostcodeField({ label, value, onChange, error, hint, allowLocati
         mode="outlined"
         label={label}
         value={value}
-        onChangeText={(t) => onChange(t.replace(/\D/g, '').slice(0, 4))}
+        onChangeText={(v) => onChange(v.replace(/\D/g, '').slice(0, 4))}
         keyboardType="number-pad"
         maxLength={4}
         error={!!error}
@@ -62,7 +63,7 @@ export function PostcodeField({ label, value, onChange, error, hint, allowLocati
           disabled={locating}
           contentStyle={styles.button}
         >
-          Use my location
+          {t('form.location.use')}
         </Button>
       ) : null}
     </View>

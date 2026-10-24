@@ -4,25 +4,23 @@ import { Button, Text } from 'react-native-paper';
 import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 export default function Suspended() {
   const { signOut } = useAuth();
   return (
     <Screen>
-      <Text variant="headlineMedium">Account suspended</Text>
-      <Text variant="bodyLarge">
-        Your account has been suspended by the Croppr team. If you think this is a mistake, contact us at{' '}
-        {legal.supportEmail}.
-      </Text>
+      <Text variant="headlineMedium">{t('suspended.title')}</Text>
+      <Text variant="bodyLarge">{t('suspended.body', { email: legal.supportEmail })}</Text>
       <Button
         mode="outlined"
         icon="email-outline"
         onPress={() => Linking.openURL(`mailto:${legal.supportEmail}`)}
       >
-        Contact support
+        {t('suspended.contact')}
       </Button>
       <BigButton mode="outlined" onPress={signOut}>
-        Sign out
+        {t('common.signOut')}
       </BigButton>
     </Screen>
   );

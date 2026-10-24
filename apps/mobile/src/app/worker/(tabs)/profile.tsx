@@ -12,6 +12,7 @@ import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { useSignedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
 
 export default function WorkerProfile() {
   const userId = useUserId();
@@ -32,10 +33,10 @@ export default function WorkerProfile() {
           key={profile.dataUpdatedAt}
           initial={profile.data.values}
           photoUrl={photoUrl.data}
-          submitLabel="Save changes"
+          submitLabel={t('common.saveChanges')}
           onSubmit={async (values, photo) => {
             await save.mutateAsync({ values, photo });
-            setMessage('Profile saved');
+            setMessage(t('workerProfile.saved'));
           }}
         />
         <ResumeCard userId={userId} onMessage={setMessage} />

@@ -6,6 +6,8 @@ import { MIN_TAP } from '@/theme';
 import type { RankedFeedJob } from './feedApi';
 import { JobCardContent } from './JobCardContent';
 import type { SwipeDirection } from './SwipeDeck';
+import { matchNote } from '@/features/jobs/matchNote';
+import { t } from '@/i18n';
 
 interface Props {
   item: RankedFeedJob | null;
@@ -18,7 +20,7 @@ interface Props {
   skipLabel?: string;
 }
 
-export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, skipLabel = 'Skip' }: Props) {
+export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, skipLabel }: Props) {
   return (
     <Portal>
       <Modal visible={item !== null} onDismiss={onDismiss} contentContainerStyle={styles.modal}>
@@ -35,22 +37,22 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, sk
                   router.push(`/worker/farm/${item.job.farm_id}`);
                 }}
               >
-                About {item.job.farm_name}
+                {t('jobDetail.aboutFarm', { farm: item.job.farm_name })}
               </Button>
               <Divider />
               <Text variant="titleMedium" style={styles.bold}>
-                About the job
+                {t('jobDetail.aboutJob')}
               </Text>
-              <Text variant="bodyLarge">{item.job.description || 'No description given.'}</Text>
+              <Text variant="bodyLarge">{item.job.description || t('jobDetail.noDescription')}</Text>
               <Divider />
               <FarmReviews farmId={item.job.farm_id} />
               <Divider />
               <Text variant="titleMedium" style={styles.bold}>
-                Why you&apos;re seeing this ({Math.round(item.score)}% match)
+                {t('jobDetail.why', { score: Math.round(item.score) })}
               </Text>
               {Object.entries(item.breakdown).map(([key, b]) => (
                 <Text key={key} variant="bodyMedium">
-                  • {b.note}
+                  • {matchNote(b)}
                 </Text>
               ))}
               <Button
@@ -60,11 +62,11 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, sk
                 onPress={() => onReport(item)}
                 style={styles.report}
               >
-                Report this job
+                {t('jobDetail.report')}
               </Button>
               {onSave ? (
                 <Button mode="text" icon="bookmark-outline" onPress={onSave} style={styles.report}>
-                  Save for later
+                  {t('jobDetail.save')}
                 </Button>
               ) : null}
             </ScrollView>
@@ -77,7 +79,7 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, sk
                 contentStyle={styles.tall}
                 onPress={() => onDecide('pass')}
               >
-                {skipLabel}
+                {skipLabel ?? t('jobDetail.skip')}
               </Button>
               <Button
                 mode="contained"
@@ -86,7 +88,7 @@ export function JobDetailSheet({ item, onDismiss, onDecide, onReport, onSave, sk
                 contentStyle={styles.tall}
                 onPress={() => onDecide('like')}
               >
-                Apply
+                {t('jobDetail.apply')}
               </Button>
             </View>
           </>

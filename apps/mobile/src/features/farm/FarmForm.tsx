@@ -11,6 +11,7 @@ import { TextField } from '@/components/form/TextField';
 import { usePostcode } from '@/features/common/api';
 import { zodResolver } from '@/lib/zodResolver';
 import { friendlyError } from '@/lib/errors';
+import { t } from '@/i18n';
 
 interface Props {
   initial: FarmInput;
@@ -42,29 +43,23 @@ export function FarmForm({ initial, submitLabel, legalNote, onSubmit }: Props) {
 
   return (
     <View style={styles.form}>
-      <Section
-        title="Business details"
-        note={
-          legalNote ??
-          'We check your ABN (and labour hire licence, if you have one) before you can post jobs.'
-        }
-      >
+      <Section title={t('farmForm.business')} note={legalNote ?? t('farmForm.businessNote')}>
         <TextField
           control={control}
           name="businessName"
-          label="Business or trading name"
+          label={t('farmForm.name')}
           autoComplete="organization"
         />
         <TextField
           control={control}
           name="abn"
-          label="ABN"
+          label={t('farmForm.abn')}
           keyboardType="number-pad"
           maxLength={14}
           hint={
             abn.replace(/\s/g, '').length === 11 && isValidAbn(abn)
-              ? '✓ ABN format looks right'
-              : '11 digits, e.g. 51 824 753 556'
+              ? t('farmForm.abnOk')
+              : t('farmForm.abnHint')
           }
         />
         <Controller
@@ -72,8 +67,8 @@ export function FarmForm({ initial, submitLabel, legalNote, onSubmit }: Props) {
           name="isLabourHire"
           render={({ field }) => (
             <SwitchRow
-              label="We are a labour hire provider"
-              description="Supplying workers to other growers. Queensland requires a labour hire licence."
+              label={t('farmForm.labourHire')}
+              description={t('farmForm.labourHireNote')}
               value={field.value}
               onChange={field.onChange}
             />
@@ -83,47 +78,51 @@ export function FarmForm({ initial, submitLabel, legalNote, onSubmit }: Props) {
           <TextField
             control={control}
             name="labourHireLicenceNumber"
-            label="Labour hire licence number"
+            label={t('farmForm.licence')}
             autoCapitalize="characters"
-            hint="We check this against the Queensland labour hire licence register."
+            hint={t('farmForm.licenceHint')}
           />
         ) : null}
       </Section>
 
-      <Section title="Contact and location">
+      <Section title={t('farmForm.contact')}>
         <TextField
           control={control}
           name="contactPhone"
-          label="Contact phone"
+          label={t('farmForm.phone')}
           keyboardType="phone-pad"
           autoComplete="tel"
-          hint="Only Croppr staff see this. Workers contact you through in-app chat."
+          hint={t('farmForm.phoneHint')}
         />
         <Controller
           control={control}
           name="postcode"
           render={({ field, fieldState }) => (
             <PostcodeField
-              label="Farm postcode"
+              label={t('farmForm.postcode')}
               value={field.value}
               onChange={field.onChange}
               error={fieldState.error?.message}
-              hint={place.data ? `${place.data.locality}, ${place.data.state}` : undefined}
+              hint={
+                place.data
+                  ? t('form.place', { locality: place.data.locality, state: place.data.state })
+                  : undefined
+              }
             />
           )}
         />
         <TextField
           control={control}
           name="description"
-          label="About your farm (optional)"
+          label={t('farmForm.about')}
           multiline
           numberOfLines={4}
-          hint="What you grow, seasons, what workers can expect."
+          hint={t('farmForm.aboutHint')}
         />
       </Section>
 
       <HelperText type="error" visible={submitError !== null || Object.keys(errors).length > 0}>
-        {submitError ?? 'Please fix the highlighted fields above.'}
+        {submitError ?? t('form.fixFields')}
       </HelperText>
       <BigButton onPress={() => submit()} loading={isSubmitting} disabled={isSubmitting}>
         {submitLabel}

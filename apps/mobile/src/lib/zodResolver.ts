@@ -1,9 +1,11 @@
 import type { FieldErrors, FieldValues, Resolver } from 'react-hook-form';
 import type { z } from 'zod';
+import { validationText } from '@/i18n/shared';
 
 /**
  * Minimal react-hook-form resolver for zod schemas (avoids @hookform/resolvers' heavy peer deps).
- * Maps each zod issue to the field at its path; the first message per field wins.
+ * Maps each zod issue to the field at its path; the first message per field wins. Messages from
+ * the shared schemas are translation codes ("validation.*"), shown in the user's language.
  */
 export function zodResolver<TValues extends FieldValues, TOutput>(
   schema: z.ZodType<TOutput, TValues>,
@@ -15,7 +17,7 @@ export function zodResolver<TValues extends FieldValues, TOutput>(
     const errors: Record<string, { type: string; message: string }> = {};
     for (const issue of result.error.issues) {
       const path = issue.path.join('.');
-      if (!errors[path]) errors[path] = { type: issue.code, message: issue.message };
+      if (!errors[path]) errors[path] = { type: issue.code, message: validationText(issue.message) };
     }
     // RHF accepts dotted paths at the top level when `criteriaMode` is default.
     return { values: {}, errors: toNested(errors) as FieldErrors<TValues> };

@@ -7,6 +7,7 @@ import { MoneyField } from '@/components/form/MoneyField';
 import { SwitchRow } from '@/components/form/SwitchRow';
 import { RegionSelect } from '@/features/common/RegionSelect';
 import { NO_FILTERS, type FeedFilters } from './feedApi';
+import { t } from '@/i18n';
 
 interface Props {
   visible: boolean;
@@ -33,30 +34,30 @@ function FiltersForm({ initial, onApply }: { initial: FeedFilters; onApply: (f: 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
       <Text variant="headlineSmall" style={styles.bold}>
-        Filter jobs
+        {t('filters.title')}
       </Text>
-      <Text variant="titleMedium">Regions</Text>
+      <Text variant="titleMedium">{t('filters.regions')}</Text>
       <RegionSelect selected={f.regionIds} onChange={(ids) => set('regionIds', ids)} />
-      <Text variant="titleMedium">I&apos;m available</Text>
+      <Text variant="titleMedium">{t('filters.available')}</Text>
       <View style={styles.row}>
-        <DateField label="From" value={f.from} onChange={(v) => set('from', v)} />
-        <DateField label="To" value={f.to} minDate={f.from} onChange={(v) => set('to', v)} />
+        <DateField label={t('filters.from')} value={f.from} onChange={(v) => set('from', v)} />
+        <DateField label={t('filters.to')} value={f.to} minDate={f.from} onChange={(v) => set('to', v)} />
       </View>
       <MoneyField
-        label="Minimum hourly pay"
-        suffix="/hr"
+        label={t('filters.minPay')}
+        suffix={t('form.perHour')}
         value={f.minHourlyCents}
         onChange={(v) => set('minHourlyCents', v)}
-        hint="For piece-rate jobs this uses the guaranteed hourly minimum."
+        hint={t('filters.minPayHint')}
       />
       <SwitchRow
-        label="Only jobs with accommodation"
+        label={t('alerts.accommodationOnly')}
         value={f.accommodationOnly}
         onChange={(v) => set('accommodationOnly', v)}
       />
-      <BigButton onPress={() => onApply(f)}>Show jobs</BigButton>
+      <BigButton onPress={() => onApply(f)}>{t('filters.show')}</BigButton>
       <Button mode="text" onPress={() => onApply(NO_FILTERS)} contentStyle={styles.tall}>
-        Clear all filters
+        {t('filters.clear')}
       </Button>
     </ScrollView>
   );

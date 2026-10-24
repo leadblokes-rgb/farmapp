@@ -4,33 +4,16 @@ import { Section } from '@/components/form/Section';
 import { SwitchRow } from '@/components/form/SwitchRow';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 type Pref = 'messages' | 'updates' | 'reminders';
 type Prefs = Record<Pref, boolean>;
 
-const ROWS: Record<'worker' | 'farm', { key: Pref; label: string; description: string }[]> = {
-  worker: [
-    { key: 'messages', label: 'Messages', description: 'When a farm sends you a message.' },
-    {
-      key: 'updates',
-      label: 'Updates about my jobs',
-      description: 'Accepted or not, no-shows, and “did this work out?” when a job ends.',
-    },
-  ],
-  farm: [
-    { key: 'messages', label: 'Messages', description: 'When a worker sends you a message.' },
-    {
-      key: 'updates',
-      label: 'Applicants and job updates',
-      description: 'New applicants, and “did your crew work out?” when a job ends.',
-    },
-    {
-      key: 'reminders',
-      label: 'Check-in reminders',
-      description: 'On a job’s first day, to check in your crew.',
-    },
-  ],
-};
+// Which settings each role sees; labels are notifications.<role>.<key> (and <key>Note) in en.json.
+const ROWS = {
+  worker: ['messages', 'updates'],
+  farm: ['messages', 'updates', 'reminders'],
+} as const;
 
 /** Push notification settings, saved as soon as a switch changes. No row = everything on. */
 export function NotificationSettings({
@@ -63,20 +46,20 @@ export function NotificationSettings({
     },
     onMutate: (next) => qc.setQueryData(key, next),
     onSettled: () => qc.invalidateQueries({ queryKey: key }),
-    onSuccess: () => onSaved('Notification settings saved'),
+    onSuccess: () => onSaved(t('notifications.saved')),
   });
 
   if (!prefs.data) return null;
   const current = prefs.data;
   return (
-    <Section title="Notifications" note="Choose which notifications you get on this phone.">
-      {ROWS[role].map((r) => (
+    <Section title={t('notifications.title')} note={t('notifications.note')}>
+      {ROWS[role].map((key: Pref) => (
         <SwitchRow
-          key={r.key}
-          label={r.label}
-          description={r.description}
-          value={current[r.key]}
-          onChange={(v) => save.mutate({ ...current, [r.key]: v })}
+          key={key}
+          label={t(`notifications.${role}.${key}` as 'notifications.farm.messages')}
+          description={t(`notifications.${role}.${key}Note` as 'notifications.farm.messagesNote')}
+          value={current[key]}
+          onChange={(v) => save.mutate({ ...current, [key]: v })}
         />
       ))}
       <HelperText type="error" visible={save.isError}>

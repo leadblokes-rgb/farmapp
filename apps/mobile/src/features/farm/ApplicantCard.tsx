@@ -1,9 +1,11 @@
-import { VISA_TYPE_LABELS } from '@croppr/shared';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Checkbox, Icon, Text } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
 import type { Applicant, FactorScore } from './shortlistApi';
+import { matchNote } from '@/features/jobs/matchNote';
+import { t } from '@/i18n';
+import { visaLabel } from '@/i18n/shared';
 
 export function initials(name: string) {
   return name
@@ -17,15 +19,23 @@ export function VisaBadge({ a }: { a: Pick<Applicant, 'visa_type' | 'visa_valid_
   if (!a.visa_type) return null;
   const ok = a.visa_valid_through_job_end;
   const label =
-    a.visa_type === 'citizen_pr' ? 'Citizen / PR' : `${a.visa_type === 'other' ? 'Other visa' : a.visa_type}`;
+    a.visa_type === 'citizen_pr'
+      ? t('applicant.citizenPr')
+      : a.visa_type === 'other'
+        ? t('applicant.otherVisa')
+        : a.visa_type;
   return (
     <View
       style={[styles.badge, ok ? styles.ok : styles.warn]}
-      accessibilityLabel={`${VISA_TYPE_LABELS[a.visa_type]}: ${ok ? 'covers the job dates' : 'ends before the job ends'}`}
+      accessibilityLabel={
+        ok
+          ? t('applicant.visaCovers', { visa: visaLabel(a.visa_type) })
+          : t('applicant.visaEndsEarly', { visa: visaLabel(a.visa_type) })
+      }
     >
       <Icon source={ok ? 'check-circle' : 'alert'} size={16} color={ok ? '#17482F' : '#8D5A00'} />
       <Text style={styles.badgeText}>
-        {ok ? `${label} · visa covers job` : `${label} · visa ends before job end`}
+        {ok ? t('applicant.visaCoversShort', { visa: label }) : t('applicant.visaEndsShort', { visa: label })}
       </Text>
     </View>
   );
@@ -50,12 +60,12 @@ export function ApplicantCard({ a, selectable, selected, onToggle, onOpen, group
           style={styles.check}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: selected }}
-          accessibilityLabel={`Select ${a.full_name}`}
+          accessibilityLabel={t('applicant.select', { name: a.full_name })}
         >
           <Checkbox.Android status={selected ? 'checked' : 'unchecked'} onPress={onToggle} />
         </Pressable>
       ) : null}
-      <Pressable onPress={onOpen} style={styles.body} accessibilityHint="Opens applicant details">
+      <Pressable onPress={onOpen} style={styles.body} accessibilityHint={t('applicant.opens')}>
         <View style={styles.row}>
           {a.photoUrl ? (
             <Image source={{ uri: a.photoUrl }} style={styles.photo} />
@@ -66,36 +76,40 @@ export function ApplicantCard({ a, selectable, selected, onToggle, onOpen, group
             <Text variant="titleMedium" style={styles.name} numberOfLines={2}>
               {a.full_name}
             </Text>
-            <Text variant="bodyMedium">{[a.locality, b.distance?.note].filter(Boolean).join(' · ')}</Text>
+            <Text variant="bodyMedium">
+              {[a.locality, matchNote(b.distance)].filter(Boolean).join(' · ')}
+            </Text>
           </View>
           {a.match_score != null ? (
             <View
               style={styles.score}
-              accessibilityLabel={`Match score ${Math.round(Number(a.match_score))}`}
+              accessibilityLabel={t('applicant.matchScore', { score: Math.round(Number(a.match_score)) })}
             >
               <Text style={styles.scoreText}>{Math.round(Number(a.match_score))}</Text>
             </View>
           ) : null}
         </View>
-        <Text variant="bodyMedium">{b.availability?.note ?? ''}</Text>
+        <Text variant="bodyMedium">{matchNote(b.availability)}</Text>
         <View style={styles.tags}>
-          <Tag icon={a.has_car ? 'car' : 'car-off'} text={a.has_car ? 'Has car' : 'No car'} />
-          {a.needs_accommodation ? <Tag icon="home" text="Needs accommodation" /> : null}
-          <Tag icon="sprout" text={`${a.years_experience} season${a.years_experience === 1 ? '' : 's'}`} />
+          <Tag
+            icon={a.has_car ? 'car' : 'car-off'}
+            text={a.has_car ? t('applicant.hasCar') : t('applicant.noCar')}
+          />
+          {a.needs_accommodation ? <Tag icon="home" text={t('applicant.needsAccommodation')} /> : null}
+          <Tag icon="sprout" text={t('applicant.seasons', { count: a.years_experience })} />
           {a.rating_count > 0 && a.reliability_avg != null ? (
             <Tag
               icon="star"
-              text={`${Number(a.reliability_avg).toFixed(1)} reliability (${a.rating_count} rating${a.rating_count === 1 ? '' : 's'})`}
+              text={t('applicant.reliability', {
+                avg: Number(a.reliability_avg).toFixed(1),
+                count: a.rating_count,
+              })}
             />
           ) : (
-            <Tag icon="star-outline" text="No ratings yet" />
+            <Tag icon="star-outline" text={t('applicant.noRatings')} />
           )}
           {a.no_show_count > 0 ? (
-            <Tag
-              icon="alert-circle-outline"
-              text={`${a.no_show_count} no-show${a.no_show_count === 1 ? '' : 's'}`}
-              warn
-            />
+            <Tag icon="alert-circle-outline" text={t('applicant.noShows', { count: a.no_show_count })} warn />
           ) : null}
         </View>
         <VisaBadge a={a} />

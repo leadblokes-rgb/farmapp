@@ -2,6 +2,7 @@ import { router, type Href } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Badge, List, Text } from 'react-native-paper';
 import { useConversations } from './api';
+import { t } from '@/i18n';
 
 interface Props {
   basePath: '/worker/chat' | '/farm/chat';
@@ -29,7 +30,7 @@ export function ConversationList({ basePath, header, emptyText }: Props) {
         <List.Item
           title={item.other_name}
           titleStyle={[styles.title, item.unread > 0 && styles.bold]}
-          description={`${item.job_title}\n${item.last_message ?? 'No messages yet'}`}
+          description={`${item.job_title}\n${item.last_message ?? t('chat.noMessages')}`}
           descriptionNumberOfLines={2}
           descriptionStyle={styles.desc}
           style={styles.row}
@@ -47,7 +48,11 @@ export function ConversationList({ basePath, header, emptyText }: Props) {
               </View>
             ) : null
           }
-          accessibilityLabel={`Chat with ${item.other_name}${item.unread ? `, ${item.unread} unread` : ''}`}
+          accessibilityLabel={
+            item.unread
+              ? t('chat.chatWithUnread', { name: item.other_name, count: item.unread })
+              : t('chat.chatWith', { name: item.other_name })
+          }
         />
       )}
     />

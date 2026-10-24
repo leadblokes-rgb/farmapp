@@ -11,6 +11,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 import type { RankedFeedJob } from './feedApi';
 import { JobCardContent } from './JobCardContent';
+import { t } from '@/i18n';
 
 /** Right applies, left skips, up saves for later. */
 export type SwipeDirection = 'like' | 'pass' | 'save';
@@ -115,21 +116,25 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck(
       ) : null}
       <GestureDetector gesture={pan}>
         <Animated.View key={top.job.id} style={[styles.card, topStyle]} testID="swipe-card">
-          <Pressable onPress={() => onOpen(top)} accessibilityHint="Opens job details" style={styles.fill}>
+          <Pressable
+            onPress={() => onOpen(top)}
+            accessibilityHint={t('swipe.opensDetails')}
+            style={styles.fill}
+          >
             {/* On short screens the card clips its last facts; "Tap for details" stays visible. */}
             <View style={styles.clip}>
               <JobCardContent item={top} compact />
             </View>
-            <Text style={styles.more}>Tap for details</Text>
+            <Text style={styles.more}>{t('swipe.tapForDetails')}</Text>
           </Pressable>
           <Animated.View style={[styles.stamp, styles.applyStamp, applyLabel]} pointerEvents="none">
-            <Text style={[styles.stampText, styles.applyText]}>APPLY</Text>
+            <Text style={[styles.stampText, styles.applyText]}>{t('swipe.apply')}</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.saveStamp, saveLabel]} pointerEvents="none">
-            <Text style={[styles.stampText, styles.saveText]}>SAVED</Text>
+            <Text style={[styles.stampText, styles.saveText]}>{t('swipe.saved')}</Text>
           </Animated.View>
           <Animated.View style={[styles.stamp, styles.skipStamp, skipLabel]} pointerEvents="none">
-            <Text style={[styles.stampText, styles.skipText]}>SKIP</Text>
+            <Text style={[styles.stampText, styles.skipText]}>{t('swipe.skip')}</Text>
           </Animated.View>
         </Animated.View>
       </GestureDetector>

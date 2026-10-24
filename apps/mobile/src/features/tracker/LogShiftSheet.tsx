@@ -1,4 +1,4 @@
-import { isoToDisplay, todayIso, trackerLimits, validateShift } from '@croppr/shared';
+import { isoToDisplay, shiftIssue, todayIso, trackerLimits } from '@croppr/shared';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Button, HelperText, Modal, Portal, Text } from 'react-native-paper';
@@ -7,6 +7,8 @@ import { DateField } from '@/components/form/DateField';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { Stepper } from '@/components/form/Stepper';
 import type { TrackerData } from './api';
+import { t } from '@/i18n';
+import { sharedText } from '@/i18n/shared';
 
 interface Props {
   visible: boolean;
@@ -63,11 +65,12 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
     setConfirmReplace(false);
   };
   const existing = shifts.find((s) => s.employer_id === employerId && s.work_date === date);
-  const employerName = employers.find((e) => e.id === employerId)?.name ?? 'this employer';
+  const employerName = employers.find((e) => e.id === employerId)?.name ?? t('logShift.thisEmployer');
 
   function save() {
     if (!employerId) return;
-    const invalid = validateShift({ workDate: date, hours }, todayIso());
+    const issue = shiftIssue({ workDate: date, hours }, todayIso());
+    const invalid = issue && sharedText(issue);
     setProblem(invalid);
     if (invalid || !date) return;
     if (existing && !confirmReplace) return setConfirmReplace(true);
@@ -77,16 +80,16 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
       <Text variant="headlineSmall" style={styles.bold}>
-        Log a shift
+        {t('logShift.title')}
       </Text>
-      <Text variant="titleMedium">Where</Text>
+      <Text variant="titleMedium">{t('logShift.where')}</Text>
       <SingleChoiceChips
         options={employers.map((e) => ({ key: e.id, label: e.name }))}
         value={employerId}
         onChange={chooseEmployer}
       />
       <DateField
-        label="Date"
+        label={t('logShift.date')}
         value={date}
         maxDate={todayIso()}
         onChange={(d) => {
@@ -95,28 +98,32 @@ function Form({ employers, shifts, defaults, saving, error, onSave, onDismiss }:
         }}
       />
       <Stepper
-        label="Hours worked"
+        label={t('logShift.hours')}
         value={hours}
         onChange={setHours}
         min={0.5}
         max={trackerLimits.maxHoursPerDay}
         step={0.5}
-        suffix="h"
+        suffix={t('logShift.hoursSuffix')}
       />
       <HelperText type="error" visible={!!(problem ?? error)}>
         {problem ?? error}
       </HelperText>
       {confirmReplace && existing ? (
         <Text variant="bodyLarge" style={styles.confirm}>
-          You already logged {existing.hours}h at {employerName} on {isoToDisplay(existing.work_date)}.
-          Replace it with {hours}h?
+          {t('logShift.alreadyLogged', {
+            hours: existing.hours,
+            employer: employerName,
+            date: isoToDisplay(existing.work_date),
+            newHours: hours,
+          })}
         </Text>
       ) : null}
       <BigButton icon="check" disabled={!employerId || saving} loading={saving} onPress={save}>
-        {confirmReplace && existing ? `Replace with ${hours}h` : 'Save shift'}
+        {confirmReplace && existing ? t('logShift.replaceWith', { hours }) : t('logShift.save')}
       </BigButton>
       <Button mode="text" onPress={onDismiss} contentStyle={styles.tall}>
-        Cancel
+        {t('form.cancel')}
       </Button>
     </ScrollView>
   );

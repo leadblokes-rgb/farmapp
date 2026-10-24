@@ -1,6 +1,7 @@
 import { formatAbn, type Database, type FarmInput, type FarmOutput } from '@croppr/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 export type Farm = Database['public']['Tables']['farms']['Row'];
 
@@ -56,9 +57,7 @@ export function useSaveFarm(userId: string) {
       const { error } = await supabase.from('farms').upsert(row, { onConflict: 'owner_id' });
       if (error) {
         if (error.code === '23505' && error.message.includes('abn')) {
-          throw new Error(
-            'That ABN is already registered on Croppr. Contact support if this is your business.',
-          );
+          throw new Error(t('errors.abnTaken'));
         }
         throw error;
       }

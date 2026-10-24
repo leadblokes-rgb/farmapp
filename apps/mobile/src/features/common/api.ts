@@ -1,6 +1,7 @@
 import type { Database } from '@croppr/shared';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 export function useRegions() {
   return useQuery({
@@ -11,7 +12,7 @@ export function useRegions() {
       const { data, error } = await supabase.from('regions').select('id, name').order('name');
       if (error) throw error;
       // There are always regions; an empty answer means the request didn't get through properly.
-      if (!data.length) throw new Error('Couldn’t load regions.');
+      if (!data.length) throw new Error(t('regions.error'));
       return data;
     },
   });

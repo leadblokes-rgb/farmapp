@@ -4,6 +4,7 @@ import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
 import { RatingSummary, StarRow } from '@/components/Stars';
 import { friendlyError } from '@/lib/errors';
 import { useFarmReviews, useReportReview, useWorkerReviews } from './api';
+import { t } from '@/i18n';
 
 interface ReviewItem {
   application_id: string;
@@ -20,16 +21,16 @@ export function FarmReviews({ farmId }: { farmId: string }) {
     application_id: r.application_id,
     stars: r.overall,
     lines: [
-      r.would_work_again ? 'Would work here again' : 'Wouldn’t work here again',
-      ...(r.accommodation ? [`Accommodation ${r.accommodation}/5`] : []),
+      r.would_work_again ? t('reviews.again') : t('reviews.notAgain'),
+      ...(r.accommodation ? [t('reviews.accommodation', { stars: r.accommodation })] : []),
     ],
     comment: r.comment,
-    byline: `${r.reviewer_name} · ${r.job_title}`,
+    byline: t('reviews.byline', { name: r.reviewer_name, job: r.job_title }),
   }));
   const avg = items.length ? items.reduce((s, r) => s + r.stars, 0) / items.length : null;
   return (
     <ReviewList
-      title="What workers say"
+      title={t('reviews.workersSay')}
       kind="farm"
       loading={reviews.isPending}
       items={items}
@@ -44,11 +45,11 @@ export function WorkerReviews({ workerId }: { workerId: string }) {
   const items: ReviewItem[] = (reviews.data ?? []).map((r) => ({
     application_id: r.application_id,
     stars: r.reliability,
-    lines: [`Reliability ${r.reliability}/5 · Work quality ${r.quality}/5`],
+    lines: [t('reviews.workerLine', { reliability: r.reliability, quality: r.quality })],
     comment: r.comment,
-    byline: `${r.farm_name} · ${r.job_title}`,
+    byline: t('reviews.byline', { name: r.farm_name, job: r.job_title }),
   }));
-  return <ReviewList title="What farms say" kind="worker" loading={reviews.isPending} items={items} />;
+  return <ReviewList title={t('reviews.farmsSay')} kind="worker" loading={reviews.isPending} items={items} />;
 }
 
 function ReviewList({
@@ -74,7 +75,7 @@ function ReviewList({
       {summary}
       {loading ? null : items.length === 0 ? (
         <Text variant="bodyMedium" style={styles.muted}>
-          No reviews yet.
+          {t('reviews.none')}
         </Text>
       ) : (
         items.map((r) => (
@@ -85,22 +86,22 @@ function ReviewList({
                 {l}
               </Text>
             ))}
-            {r.comment ? <Text variant="bodyLarge">“{r.comment}”</Text> : null}
+            {r.comment ? <Text variant="bodyLarge">{t('reviews.quote', { text: r.comment })}</Text> : null}
             <View style={styles.footer}>
               <Text variant="bodySmall" style={[styles.muted, styles.flex]}>
                 {r.byline}
               </Text>
               {reported.includes(r.application_id) ? (
-                <Text variant="bodySmall">Reported. Thanks.</Text>
+                <Text variant="bodySmall">{t('reviews.reported')}</Text>
               ) : (
                 <Button
                   compact
                   icon="flag-outline"
                   textColor="#B00020"
                   onPress={() => setReporting(r.application_id)}
-                  accessibilityLabel="Report review"
+                  accessibilityLabel={t('reviews.reportLabel')}
                 >
-                  Report
+                  {t('reviews.report')}
                 </Button>
               )}
             </View>
@@ -136,16 +137,13 @@ function ReportReviewDialog({
   return (
     <Portal>
       <Dialog visible={applicationId !== null} onDismiss={onDismiss}>
-        <Dialog.Title>Report this review</Dialog.Title>
+        <Dialog.Title>{t('reviews.reportTitle')}</Dialog.Title>
         <Dialog.Content style={styles.dialog}>
-          <Text variant="bodyLarge">
-            Tell us what’s wrong, for example it’s untrue, abusive or shares private details. The person who
-            wrote it isn’t told who reported it.
-          </Text>
+          <Text variant="bodyLarge">{t('reviews.reportBody')}</Text>
           <TextInput
             mode="outlined"
-            label="What’s wrong?"
-            accessibilityLabel="What’s wrong?"
+            label={t('reviews.whatsWrong')}
+            accessibilityLabel={t('reviews.whatsWrong')}
             value={details}
             onChangeText={setDetails}
             multiline
@@ -154,7 +152,7 @@ function ReportReviewDialog({
           {report.isError ? <Text style={styles.error}>{friendlyError(report.error)}</Text> : null}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onDismiss}>Cancel</Button>
+          <Button onPress={onDismiss}>{t('form.cancel')}</Button>
           <Button
             loading={report.isPending}
             disabled={report.isPending}
@@ -171,7 +169,7 @@ function ReportReviewDialog({
               )
             }
           >
-            Send report
+            {t('reviews.send')}
           </Button>
         </Dialog.Actions>
       </Dialog>

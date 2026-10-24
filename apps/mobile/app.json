@@ -58,7 +58,8 @@
         {
           "color": "#17482F"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "scheme": "croppr"
   }

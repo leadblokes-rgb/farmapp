@@ -3,6 +3,7 @@ import { Screen } from '@/components/Screen';
 import { EMPTY_FARM, useSaveFarm } from '@/features/farm/api';
 import { FarmForm } from '@/features/farm/FarmForm';
 import { RequireSession, useAuth, useUserId } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 export default function FarmOnboarding() {
   return (
@@ -19,13 +20,11 @@ function FarmOnboardingScreen() {
 
   return (
     <Screen scroll>
-      <Text variant="headlineMedium">Register your business</Text>
-      <Text variant="bodyLarge">
-        Every farm on Croppr is checked by our team, so workers can trust the jobs they see.
-      </Text>
+      <Text variant="headlineMedium">{t('onboarding.farm.title')}</Text>
+      <Text variant="bodyLarge">{t('onboarding.farm.intro')}</Text>
       <FarmForm
         initial={EMPTY_FARM}
-        submitLabel="Submit for verification"
+        submitLabel={t('onboarding.farm.submit')}
         onSubmit={async (values) => {
           await save.mutateAsync(values);
           await refreshProfile();

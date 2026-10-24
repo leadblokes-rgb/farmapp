@@ -1,7 +1,7 @@
 import { visaRules, type TrackerGoal } from '@croppr/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text as NativeText, View } from 'react-native';
 import { Button, Card, Text } from 'react-native-paper';
 import { BigButton } from '@/components/BigButton';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
@@ -24,6 +24,8 @@ import { useUserId } from '@/providers/AuthProvider';
 import { friendlyError } from '@/lib/errors';
 import { MIN_TAP } from '@/theme';
 import { Toast } from '@/components/Toast';
+import { t, Trans } from '@/i18n';
+import { sharedText } from '@/i18n/shared';
 
 export default function Days() {
   const userId = useUserId();
@@ -38,11 +40,11 @@ export default function Days() {
   if (tracker.isPending) return <DaysSkeleton />;
   if (tracker.isError) return <LoadError onRetry={() => tracker.refetch()} />;
 
-  const t = tracker.data;
-  const e = t.estimate;
-  const lastShift = t.shifts[0];
-  const hasEmployers = t.employers.length > 0;
-  const notWhm = t.visaType && !(visaRules.appliesToVisaTypes as readonly string[]).includes(t.visaType);
+  const tr = tracker.data;
+  const e = tr.estimate;
+  const lastShift = tr.shifts[0];
+  const hasEmployers = tr.employers.length > 0;
+  const notWhm = tr.visaType && !(visaRules.appliesToVisaTypes as readonly string[]).includes(tr.visaType);
 
   return (
     <>
@@ -50,35 +52,31 @@ export default function Days() {
         <Disclaimer />
         <OutcomePrompts onMessage={setMessage} />
         <PendingReviews onMessage={setMessage} />
-        {notWhm ? (
-          <Text variant="bodyMedium">
-            Your profile says you&apos;re not on a 417/462 visa, so you probably don&apos;t need specified
-            work days.
-          </Text>
-        ) : null}
+        {notWhm ? <Text variant="bodyMedium">{t('days.notWhm')}</Text> : null}
 
         <SingleChoiceChips<TrackerGoal>
-          value={t.goal}
+          value={tr.goal}
           onChange={(g) => setGoal.mutate(g)}
           options={[
-            { key: 'second', label: `2nd visa: ${visaRules.targets.second} days` },
-            { key: 'third', label: `3rd visa: ${visaRules.targets.third} days` },
+            { key: 'second', label: t('days.goalSecond', { days: visaRules.targets.second }) },
+            { key: 'third', label: t('days.goalThird', { days: visaRules.targets.third }) },
           ]}
         />
 
-        <View style={styles.progress} accessibilityLabel={`${e.totalDays} of ${e.target} days, estimated`}>
+        <View
+          style={styles.progress}
+          accessibilityLabel={t('days.progressLabel', { total: e.totalDays, target: e.target })}
+        >
           <Text style={styles.big}>{e.totalDays}</Text>
-          <Text variant="titleLarge">of {e.target} days (estimate)</Text>
-          <Meter value={e.progress} height={16} label="Progress towards your days" />
+          <Text variant="titleLarge">{t('days.ofTarget', { target: e.target })}</Text>
+          <Meter value={e.progress} height={16} label={t('days.meterLabel')} />
           <Text variant="titleMedium" style={styles.togo}>
-            {e.remaining === 0
-              ? 'Target reached 🎉 Check with Home Affairs before you apply.'
-              : `${e.remaining} days to go`}
+            {e.remaining === 0 ? t('days.reached') : t('days.toGo', { count: e.remaining })}
           </Text>
         </View>
 
         <BigButton icon="clock-plus-outline" disabled={!hasEmployers} onPress={() => setLogging(true)}>
-          Log a shift
+          {t('days.logShift')}
         </BigButton>
         <Button
           mode="outlined"
@@ -87,15 +85,18 @@ export default function Days() {
           contentStyle={styles.tall}
           onPress={() => router.push('/worker/payslip/new')}
         >
-          Add a payslip
+          {t('days.addPayslip')}
         </Button>
 
         {(suggestions.data ?? []).map((s) => (
           <Card key={s.job_id} mode="outlined" style={styles.suggestion}>
             <Card.Content style={styles.gap}>
               <Text variant="bodyLarge">
-                You were accepted at <Text style={styles.bold}>{s.business_name}</Text> ({s.job_title}). Track
-                your days there?
+                <Trans
+                  i18nKey="days.suggestion"
+                  values={{ farm: s.business_name, job: s.job_title }}
+                  components={{ bold: <NativeText style={styles.bold} /> }}
+                />
               </Text>
               <Button
                 mode="contained-tonal"
@@ -113,11 +114,11 @@ export default function Days() {
                         jobId: s.job_id,
                       },
                     },
-                    { onSuccess: () => setMessage(`Added ${s.business_name}`) },
+                    { onSuccess: () => setMessage(t('days.added', { name: s.business_name })) },
                   )
                 }
               >
-                Add {s.business_name}
+                {t('days.addNamed', { name: s.business_name })}
               </Button>
             </Card.Content>
           </Card>
@@ -125,16 +126,14 @@ export default function Days() {
 
         <View style={styles.headerRow}>
           <Text variant="titleLarge" style={styles.bold}>
-            Employers
+            {t('days.employers')}
           </Text>
           <Button icon="plus" onPress={() => router.push('/worker/employer/new')}>
-            Add employer
+            {t('days.addEmployer')}
           </Button>
         </View>
         {!hasEmployers ? (
-          <Text variant="bodyLarge">
-            Add the farm you&apos;re working at, then log your shifts or upload payslips.
-          </Text>
+          <Text variant="bodyLarge">{t('days.noEmployers')}</Text>
         ) : (
           e.byEmployer.map((b) => (
             <Card
@@ -148,41 +147,44 @@ export default function Days() {
                     {b.name}
                   </Text>
                   <Text variant="bodyMedium">
-                    {b.countsAsSpecified ? 'Specified work' : 'Not specified work (not counted)'}
+                    {b.countsAsSpecified ? t('days.specified') : t('days.notSpecified')}
                   </Text>
-                  {t.employers.find((x) => x.id === b.employerId)?.verified ? (
+                  {tr.employers.find((x) => x.id === b.employerId)?.verified ? (
                     <Text variant="bodyMedium" style={styles.verified}>
-                      ✓ Verified by you and the farm
+                      {t('days.verified')}
                     </Text>
                   ) : null}
                 </View>
                 <Text variant="headlineSmall" style={styles.bold}>
-                  {b.days}d
+                  {t('days.daysShort', { count: b.days })}
                 </Text>
               </Card.Content>
             </Card>
           ))
         )}
 
-        {e.notes.map((n) => (
+        {e.noteMessages.map(sharedText).map((n) => (
           <Text key={n} variant="bodyMedium" style={styles.note}>
             • {n}
           </Text>
         ))}
         <Text variant="bodySmall" style={styles.note}>
-          Counting rules v{visaRules.rulesVersion}: full-time weeks ({visaRules.fullTimeWeekHours}+ hrs over{' '}
-          {visaRules.fullTimeWeekMinDays}+ days) count 7 days; otherwise shifts of {visaRules.fullDayHours}+
-          hrs count as a day; each calendar day counts once.
+          {t('days.rules', {
+            version: visaRules.rulesVersion,
+            weekHours: visaRules.fullTimeWeekHours,
+            weekDays: visaRules.fullTimeWeekMinDays,
+            dayHours: visaRules.fullDayHours,
+          })}
         </Text>
       </Screen>
 
       <LogShiftSheet
         visible={logging}
-        employers={t.employers}
-        shifts={t.shifts}
+        employers={tr.employers}
+        shifts={tr.shifts}
         defaults={{
           employerId: lastShift?.employer_id,
-          hoursFor: (id) => t.shifts.find((s) => s.employer_id === id)?.hours ?? 8,
+          hoursFor: (id) => tr.shifts.find((s) => s.employer_id === id)?.hours ?? 8,
         }}
         saving={logShift.isPending}
         error={logShift.error ? friendlyError(logShift.error) : undefined}
@@ -191,7 +193,7 @@ export default function Days() {
           logShift.mutate(s, {
             onSuccess: () => {
               setLogging(false);
-              setMessage('Shift saved');
+              setMessage(t('days.shiftSaved'));
             },
           })
         }

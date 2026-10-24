@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
 import { friendlyError } from '@/lib/errors';
 import { useDisputeNoShow } from './api';
+import { t } from '@/i18n';
 
 interface Props {
   target: { id: string; farm: string } | null;
@@ -17,16 +18,13 @@ export function DisputeDialog({ target, onDismiss, onDone }: Props) {
   return (
     <Portal>
       <Dialog visible={target !== null} onDismiss={onDismiss}>
-        <Dialog.Title>Dispute the no-show</Dialog.Title>
+        <Dialog.Title>{t('dispute.title')}</Dialog.Title>
         <Dialog.Content style={styles.body}>
-          <Text variant="bodyLarge">
-            Tell the Croppr team what happened at {target?.farm}, for example who you worked with or any
-            messages. Until they decide, this no-show doesn’t count against you.
-          </Text>
+          <Text variant="bodyLarge">{t('dispute.body', { farm: target?.farm })}</Text>
           <TextInput
             mode="outlined"
-            label="What happened?"
-            accessibilityLabel="What happened?"
+            label={t('report.detailsLabel')}
+            accessibilityLabel={t('report.detailsLabel')}
             value={details}
             onChangeText={setDetails}
             multiline
@@ -35,7 +33,7 @@ export function DisputeDialog({ target, onDismiss, onDone }: Props) {
           {dispute.isError ? <Text style={styles.error}>{friendlyError(dispute.error)}</Text> : null}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={onDismiss}>Cancel</Button>
+          <Button onPress={onDismiss}>{t('form.cancel')}</Button>
           <Button
             loading={dispute.isPending}
             disabled={dispute.isPending || details.trim().length < 5}
@@ -52,7 +50,7 @@ export function DisputeDialog({ target, onDismiss, onDone }: Props) {
               )
             }
           >
-            Send dispute
+            {t('dispute.send')}
           </Button>
         </Dialog.Actions>
       </Dialog>

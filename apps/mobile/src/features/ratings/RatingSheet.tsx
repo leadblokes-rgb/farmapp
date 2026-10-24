@@ -6,6 +6,7 @@ import { StarInput } from '@/components/Stars';
 import { friendlyError } from '@/lib/errors';
 import { MIN_TAP } from '@/theme';
 import { useRateFarm, useRateWorker, type PendingReview } from './api';
+import { t } from '@/i18n';
 
 interface Props {
   review: PendingReview | null;
@@ -32,9 +33,6 @@ export function RatingSheet({ review, onDismiss, onDone }: Props) {
 
 type FormProps = { review: PendingReview; onDismiss: () => void; onDone: (message: string) => void };
 
-const BLIND_NOTE =
-  'Ratings are blind: they can’t see yours until they’ve rated you too, or 14 days have passed. You can’t change it later.';
-
 function FarmForm({ review, onDismiss, onDone }: FormProps) {
   const rate = useRateFarm();
   const [overall, setOverall] = useState<number | null>(null);
@@ -53,38 +51,34 @@ function FarmForm({ review, onDismiss, onDone }: FormProps) {
         wouldWorkAgain: again === 'yes',
         comment,
       },
-      { onSuccess: () => onDone(`Thanks for rating ${review.subject_name}`) },
+      { onSuccess: () => onDone(t('rating.thanks', { name: review.subject_name })) },
     );
 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
       <Text variant="headlineSmall" style={styles.bold}>
-        How was {review.subject_name}?
+        {t('rating.howWas', { name: review.subject_name })}
       </Text>
       <Text variant="bodyLarge">{review.job_title}</Text>
-      <StarInput label="Overall" value={overall} onChange={setOverall} />
-      <StarInput
-        label="Accommodation (only if you stayed there)"
-        value={accommodation}
-        onChange={setAccommodation}
-      />
+      <StarInput label={t('rating.overall')} value={overall} onChange={setOverall} />
+      <StarInput label={t('rating.accommodation')} value={accommodation} onChange={setAccommodation} />
       {accommodation ? (
         <Button compact style={styles.left} onPress={() => setAccommodation(null)}>
-          I didn’t stay in their accommodation
+          {t('rating.didntStay')}
         </Button>
       ) : null}
-      <Text variant="titleMedium">Would you work here again?</Text>
+      <Text variant="titleMedium">{t('rating.again')}</Text>
       <SegmentedButtons
         value={again}
         onValueChange={(v) => setAgain(v as 'yes' | 'no')}
         buttons={[
-          { value: 'yes', label: 'Yes', icon: 'thumb-up-outline', style: styles.segment },
-          { value: 'no', label: 'No', icon: 'thumb-down-outline', style: styles.segment },
+          { value: 'yes', label: t('rating.yes'), icon: 'thumb-up-outline', style: styles.segment },
+          { value: 'no', label: t('rating.no'), icon: 'thumb-down-outline', style: styles.segment },
         ]}
       />
-      <Comment value={comment} onChange={setComment} placeholder="Pay, hours, supervisors, conditions…" />
+      <Comment value={comment} onChange={setComment} placeholder={t('rating.farmPlaceholder')} />
       <Text variant="bodySmall" style={styles.note}>
-        Shown to other workers with your first name. {BLIND_NOTE}
+        {t('rating.farmNote', { blind: t('rating.blind') })}
       </Text>
       <HelperText type="error" visible={rate.isError}>
         {rate.error ? friendlyError(rate.error) : ''}
@@ -95,10 +89,10 @@ function FarmForm({ review, onDismiss, onDone }: FormProps) {
         loading={rate.isPending}
         onPress={submit}
       >
-        Submit rating
+        {t('rating.submit')}
       </BigButton>
       <Button mode="text" contentStyle={styles.tall} onPress={onDismiss}>
-        Later
+        {t('rating.later')}
       </Button>
     </ScrollView>
   );
@@ -115,20 +109,20 @@ function WorkerForm({ review, onDismiss, onDone }: FormProps) {
     quality &&
     rate.mutate(
       { applicationId: review.application_id, reliability, quality, comment },
-      { onSuccess: () => onDone(`Thanks for rating ${review.subject_name}`) },
+      { onSuccess: () => onDone(t('rating.thanks', { name: review.subject_name })) },
     );
 
   return (
     <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
       <Text variant="headlineSmall" style={styles.bold}>
-        Rate {review.subject_name}
+        {t('rating.rateWorker', { name: review.subject_name })}
       </Text>
       <Text variant="bodyLarge">{review.job_title}</Text>
-      <StarInput label="Reliability (on time, turned up)" value={reliability} onChange={setReliability} />
-      <StarInput label="Quality of work" value={quality} onChange={setQuality} />
-      <Comment value={comment} onChange={setComment} placeholder="Anything other farms should know?" />
+      <StarInput label={t('rating.reliability')} value={reliability} onChange={setReliability} />
+      <StarInput label={t('rating.quality')} value={quality} onChange={setQuality} />
+      <Comment value={comment} onChange={setComment} placeholder={t('rating.workerPlaceholder')} />
       <Text variant="bodySmall" style={styles.note}>
-        Only farms this worker applies to can see it. {BLIND_NOTE}
+        {t('rating.workerNote', { blind: t('rating.blind') })}
       </Text>
       <HelperText type="error" visible={rate.isError}>
         {rate.error ? friendlyError(rate.error) : ''}
@@ -139,10 +133,10 @@ function WorkerForm({ review, onDismiss, onDone }: FormProps) {
         loading={rate.isPending}
         onPress={submit}
       >
-        Submit rating
+        {t('rating.submit')}
       </BigButton>
       <Button mode="text" contentStyle={styles.tall} onPress={onDismiss}>
-        Later
+        {t('rating.later')}
       </Button>
     </ScrollView>
   );
@@ -160,8 +154,8 @@ function Comment({
   return (
     <TextInput
       mode="outlined"
-      label="Comment (optional)"
-      accessibilityLabel="Comment"
+      label={t('rating.comment')}
+      accessibilityLabel={t('rating.commentLabel')}
       placeholder={placeholder}
       value={value}
       onChangeText={onChange}

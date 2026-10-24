@@ -8,6 +8,7 @@ import { Screen } from '@/components/Screen';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 /** Shown after sign-in until the user accepts the current terms of use and privacy policy. */
 export default function Consent() {
@@ -36,26 +37,25 @@ export default function Consent() {
   return (
     <Screen scroll>
       <Text variant="headlineMedium" style={styles.bold}>
-        {updated ? 'We’ve updated our terms' : 'Before you start'}
+        {updated ? t('consent.titleUpdated') : t('consent.title')}
       </Text>
-      <Text variant="bodyLarge">
-        Croppr holds information like your visa details and payslips, so here’s how we look after it and the
-        rules everyone on Croppr agrees to.
-      </Text>
+      <Text variant="bodyLarge">{t('consent.intro')}</Text>
       {legal.draft ? (
         <Text variant="bodySmall" style={styles.draft}>
-          These are draft documents for testing and will be finalised before launch.
+          {t('consent.draft')}
         </Text>
       ) : null}
 
       <Agree
-        label="I agree to the Terms of use"
+        label={t('consent.agreeTerms')}
+        readLabel={t('consent.readTerms')}
         checked={terms}
         onToggle={() => setTerms((v) => !v)}
         onRead={() => router.push('/legal/terms')}
       />
       <Agree
-        label="I’ve read the Privacy policy"
+        label={t('consent.readPrivacy')}
+        readLabel={t('consent.readPrivacyLabel')}
         checked={privacy}
         onToggle={() => setPrivacy((v) => !v)}
         onRead={() => router.push('/legal/privacy')}
@@ -65,10 +65,10 @@ export default function Consent() {
         {error}
       </HelperText>
       <BigButton disabled={!terms || !privacy || saving} loading={saving} onPress={accept}>
-        Continue
+        {t('consent.continue')}
       </BigButton>
       <Button mode="text" onPress={signOut}>
-        Sign out
+        {t('common.signOut')}
       </Button>
     </Screen>
   );
@@ -76,11 +76,13 @@ export default function Consent() {
 
 function Agree({
   label,
+  readLabel,
   checked,
   onToggle,
   onRead,
 }: {
   label: string;
+  readLabel: string;
   checked: boolean;
   onToggle: () => void;
   onRead: () => void;
@@ -96,8 +98,8 @@ function Agree({
         labelStyle={styles.label}
         accessibilityLabel={label}
       />
-      <Button compact onPress={onRead} accessibilityLabel={`Read: ${label.replace(/^I.{0,15}(the )/, '')}`}>
-        Read
+      <Button compact onPress={onRead} accessibilityLabel={readLabel}>
+        {t('consent.read')}
       </Button>
     </View>
   );

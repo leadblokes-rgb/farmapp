@@ -1,6 +1,8 @@
 // Validation for day-tracker entries, shared by the app forms. The database enforces the same
 // limits (supabase/migrations/*_tracker_limits.sql), so bad data can't get in either way.
 
+import { message, messageText, type Message } from './messages';
+
 export const trackerLimits = {
   /** Longest pay period one payslip may cover. */
   maxPayslipPeriodDays: 31,
@@ -18,22 +20,32 @@ export interface PayslipDraft {
   hoursTotal: number | null;
 }
 
-/** First problem with a payslip, as a message for the user, or null if it can be saved. */
-export function validatePayslip(p: PayslipDraft, today: string): string | null {
-  if (!p.periodStart || !p.periodEnd) return 'Enter the pay period start and end dates.';
-  if (p.periodEnd < p.periodStart) return 'The pay period ends before it starts.';
-  if (p.periodStart > today || p.periodEnd > today) return 'The pay period can’t be in the future.';
+/** First problem with a payslip, or null if it can be saved. */
+export function payslipIssue(p: PayslipDraft, today: string): Message | null {
+  if (!p.periodStart || !p.periodEnd) return message('tracker.payslipDates');
+  if (p.periodEnd < p.periodStart) return message('tracker.payslipBackwards');
+  if (p.periodStart > today || p.periodEnd > today) return message('tracker.payslipFuture');
   const periodDays = daysBetween(p.periodStart, p.periodEnd) + 1;
   if (periodDays > trackerLimits.maxPayslipPeriodDays)
-    return `A pay period can be at most ${trackerLimits.maxPayslipPeriodDays} days. Add longer periods as separate payslips.`;
-  if (!Number.isInteger(p.daysWorked) || p.daysWorked < 1) return 'Enter how many days you worked.';
+    return message('tracker.payslipTooLong', { max: trackerLimits.maxPayslipPeriodDays });
+  if (!Number.isInteger(p.daysWorked) || p.daysWorked < 1) return message('tracker.payslipDays');
   if (p.daysWorked > periodDays)
-    return `You can’t have worked ${p.daysWorked} days in a ${periodDays}-day period.`;
+    return message('tracker.payslipTooManyDays', { days: p.daysWorked, periodDays });
   if (p.hoursTotal == null || !Number.isFinite(p.hoursTotal) || p.hoursTotal <= 0)
-    return 'Enter the total hours on the payslip.';
+    return message('tracker.payslipHours');
   if (p.hoursTotal > trackerLimits.maxHoursPerDay * p.daysWorked)
-    return `${p.hoursTotal} hours is more than ${trackerLimits.maxHoursPerDay} hours a day for ${p.daysWorked} day${p.daysWorked === 1 ? '' : 's'}. Check the hours and days worked.`;
+    return message('tracker.payslipTooManyHours', {
+      hours: p.hoursTotal,
+      max: trackerLimits.maxHoursPerDay,
+      count: p.daysWorked,
+    });
   return null;
+}
+
+/** First problem with a payslip, as English text, or null if it can be saved. */
+export function validatePayslip(p: PayslipDraft, today: string): string | null {
+  const issue = payslipIssue(p, today);
+  return issue && messageText(issue);
 }
 
 export interface ShiftDraft {
@@ -41,11 +53,16 @@ export interface ShiftDraft {
   hours: number;
 }
 
-export function validateShift(s: ShiftDraft, today: string): string | null {
-  if (!s.workDate) return 'Choose the date you worked.';
-  if (s.workDate > today) return 'You can’t log a shift in the future.';
-  if (!Number.isFinite(s.hours) || s.hours <= 0) return 'Enter the hours you worked.';
+export function shiftIssue(s: ShiftDraft, today: string): Message | null {
+  if (!s.workDate) return message('tracker.shiftDate');
+  if (s.workDate > today) return message('tracker.shiftFuture');
+  if (!Number.isFinite(s.hours) || s.hours <= 0) return message('tracker.shiftHours');
   if (s.hours > trackerLimits.maxHoursPerDay)
-    return `A shift can be at most ${trackerLimits.maxHoursPerDay} hours.`;
+    return message('tracker.shiftTooLong', { max: trackerLimits.maxHoursPerDay });
   return null;
+}
+
+export function validateShift(s: ShiftDraft, today: string): string | null {
+  const issue = shiftIssue(s, today);
+  return issue && messageText(issue);
 }

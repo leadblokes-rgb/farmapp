@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { IconButton, Text } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
 
 interface Props {
   label: string;
@@ -27,7 +28,7 @@ export function Stepper({ label, value, onChange, min, max, suffix, step = 1 }: 
         style={styles.button}
         disabled={value <= min}
         onPress={() => onChange(Math.max(min, value - step))}
-        accessibilityLabel={`Decrease ${label}`}
+        accessibilityLabel={t('form.decrease', { label })}
       />
       <Text variant="titleLarge" style={styles.value}>
         {value}
@@ -40,7 +41,7 @@ export function Stepper({ label, value, onChange, min, max, suffix, step = 1 }: 
         style={styles.button}
         disabled={value >= max}
         onPress={() => onChange(Math.min(max, value + step))}
-        accessibilityLabel={`Increase ${label}`}
+        accessibilityLabel={t('form.increase', { label })}
       />
     </View>
   );

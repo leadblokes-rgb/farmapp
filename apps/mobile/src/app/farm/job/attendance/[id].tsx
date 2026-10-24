@@ -12,12 +12,10 @@ import { dateRangeLabel } from '@/features/jobs/format';
 import { useMarkAttendance, type AttendanceStatus } from '@/features/ratings/api';
 import { friendlyError } from '@/lib/errors';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
 
-const LABEL: Record<AttendanceStatus, string> = {
-  showed: 'Turned up',
-  no_show: 'No-show',
-  left_early: 'Left early',
-};
+const STATUSES: AttendanceStatus[] = ['showed', 'no_show', 'left_early'];
+const label = (s: AttendanceStatus) => t(`attendance.status.${s}`);
 const ICON: Record<AttendanceStatus, string> = {
   showed: 'check-circle-outline',
   no_show: 'close-circle-outline',
@@ -32,7 +30,7 @@ export default function Attendance() {
   const mark = useMarkAttendance(id);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (job.isPending || shortlist.isPending) return <ListSkeleton label="Loading your crew" />;
+  if (job.isPending || shortlist.isPending) return <ListSkeleton label={t('attendance.loading')} />;
   if (job.isError || !job.data) return <LoadError onRetry={() => job.refetch()} />;
   if (shortlist.isError) return <LoadError onRetry={() => shortlist.refetch()} />;
 
@@ -47,7 +45,7 @@ export default function Attendance() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Who turned up?' }} />
+      <Stack.Screen options={{ title: t('attendance.title') }} />
       <FlatList
         data={crew}
         keyExtractor={(a) => a.application_id}
@@ -61,12 +59,11 @@ export default function Attendance() {
             </Text>
             <Text variant="bodyLarge">{dateRangeLabel(job.data.start_date, job.data.end_date)}</Text>
             <Text variant="bodyMedium" style={styles.muted}>
-              Workers you mark as turning up can be rated, and their job counts as completed when it ends. A
-              no-show tells the worker, who can dispute it with the Croppr team.
+              {t('attendance.explain')}
             </Text>
           </View>
         }
-        ListEmptyComponent={<Text style={styles.muted}>No accepted workers on this job.</Text>}
+        ListEmptyComponent={<Text style={styles.muted}>{t('attendance.empty')}</Text>}
         renderItem={({ item }) => <CrewRow a={item} busy={mark.isPending} onMark={set} />}
       />
       {unmarked.length ? (
@@ -80,11 +77,11 @@ export default function Attendance() {
               set(
                 unmarked.map((a) => a.application_id),
                 'showed',
-                `Marked ${unmarked.length} as turned up`,
+                t('attendance.markedAll', { count: unmarked.length }),
               )
             }
           >
-            Everyone else turned up ({unmarked.length})
+            {t('attendance.everyoneElse', { count: unmarked.length })}
           </Button>
         </View>
       ) : null}
@@ -114,31 +111,33 @@ function CrewRow({
           </Text>
           <Text variant="bodyMedium" style={styles.muted}>
             {a.status === 'completed'
-              ? 'Completed'
+              ? t('attendance.completed')
               : a.attendance_disputed
-                ? 'Disputed: the Croppr team will decide'
+                ? t('attendance.disputed')
                 : a.attendance
-                  ? LABEL[a.attendance]
-                  : 'Not checked in yet'}
+                  ? label(a.attendance)
+                  : t('attendance.notChecked')}
           </Text>
         </View>
       </View>
       {locked ? null : (
         <View style={styles.choices}>
-          {(Object.keys(LABEL) as AttendanceStatus[]).map((k) => {
+          {STATUSES.map((k) => {
             const on = a.attendance === k;
             return (
               <Pressable
                 key={k}
                 disabled={busy || on}
-                onPress={() => onMark([a.application_id], k, `${first}: ${LABEL[k]}`)}
+                onPress={() =>
+                  onMark([a.application_id], k, t('attendance.marked', { name: first, status: label(k) }))
+                }
                 style={[styles.choice, on && styles.choiceOn]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on, disabled: busy }}
-                accessibilityLabel={`${a.full_name}: ${LABEL[k]}`}
+                accessibilityLabel={t('attendance.marked', { name: a.full_name, status: label(k) })}
               >
                 <Icon source={ICON[k]} size={24} color={on ? '#FFFFFF' : '#17482F'} />
-                <Text style={[styles.choiceText, on && styles.choiceTextOn]}>{LABEL[k]}</Text>
+                <Text style={[styles.choiceText, on && styles.choiceTextOn]}>{label(k)}</Text>
               </Pressable>
             );
           })}

@@ -43,8 +43,11 @@ export interface FactorScore {
   score: number;
   /** Weight out of 100 */
   weight: number;
-  /** Short, human-readable explanation shown in the app. */
+  /** Short, human-readable explanation (English). */
   note: string;
+  /** Translation key for the note (scores saved before this existed don't have one). */
+  code?: string;
+  params?: Record<string, string | number>;
 }
 
 export type ScoreBreakdown = Record<string, FactorScore>;

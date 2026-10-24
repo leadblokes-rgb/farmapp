@@ -1,3 +1,5 @@
+// Load translations before anything renders.
+import '@/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router, Stack, useRootNavigationState, useSegments, type Href } from 'expo-router';
 import { useEffect } from 'react';

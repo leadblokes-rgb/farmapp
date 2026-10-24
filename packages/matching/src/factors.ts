@@ -5,10 +5,14 @@ import {
   UNRATED_RELIABILITY_SCORE,
 } from './weights';
 
-// Each factor returns a 0–1 score plus a short note explaining it.
+// Each factor returns a 0–1 score plus a short note explaining it. `code` and `params` let the app
+// show the note in the user's language (apps/mobile/src/i18n/en.json, "match" section); `note` is
+// the English fallback.
 export interface Factor {
   score: number;
   note: string;
+  code: string;
+  params?: Record<string, string | number>;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -31,7 +35,9 @@ export function availability(job: MatchJob, worker: MatchWorker): Factor {
   const pct = Math.round(score * 100);
   return {
     score,
-    note: pct === 100 ? 'Available for the whole job' : `Available for ${pct}% of the job dates`,
+    ...(pct === 100
+      ? { note: 'Available for the whole job', code: 'availableAll' }
+      : { note: `Available for ${pct}% of the job dates`, code: 'availablePct', params: { pct } }),
   };
 }
 
@@ -45,23 +51,26 @@ export function distanceKm(a: GeoPoint, b: GeoPoint): number {
 }
 
 export function distance(job: MatchJob, worker: MatchWorker): Factor {
-  if (!job.location || !worker.location) return { score: 0.5, note: 'Distance unknown' };
+  if (!job.location || !worker.location)
+    return { score: 0.5, note: 'Distance unknown', code: 'distanceUnknown' };
   const km = distanceKm(job.location, worker.location);
   return {
     score: Math.max(0, 1 - km / MAX_USEFUL_DISTANCE_KM),
-    note: km < 1 ? 'Nearby' : `${Math.round(km)} km away`,
+    ...(km < 1
+      ? { note: 'Nearby', code: 'nearby' }
+      : { note: `${Math.round(km)} km away`, code: 'kmAway', params: { km: Math.round(km) } }),
   };
 }
 
 export function transport(job: MatchJob, worker: MatchWorker): Factor {
   if (job.carRequired) {
     return worker.hasCar
-      ? { score: 1, note: 'Has a car (required)' }
-      : { score: 0, note: 'No car, but one is required' };
+      ? { score: 1, note: 'Has a car (required)', code: 'hasCarRequired' }
+      : { score: 0, note: 'No car, but one is required', code: 'noCarRequired' };
   }
-  if (worker.hasCar) return { score: 1, note: 'Has a car' };
-  if (job.transportProvided) return { score: 1, note: 'Transport provided' };
-  return { score: 0.6, note: 'No car; needs another way to get there' };
+  if (worker.hasCar) return { score: 1, note: 'Has a car', code: 'hasCar' };
+  if (job.transportProvided) return { score: 1, note: 'Transport provided', code: 'transportProvided' };
+  return { score: 0.6, note: 'No car; needs another way to get there', code: 'noCar' };
 }
 
 export function experience(job: MatchJob, worker: MatchWorker, relevantSkills: readonly string[]): Factor {
@@ -72,27 +81,39 @@ export function experience(job: MatchJob, worker: MatchWorker, relevantSkills: r
   const seasons = `${worker.yearsExperience} season${worker.yearsExperience === 1 ? '' : 's'}`;
   return {
     score,
-    note: matched.length ? `${seasons}; relevant skills: ${matched.join(', ')}` : `${seasons} of farm work`,
+    ...(matched.length
+      ? {
+          note: `${seasons}; relevant skills: ${matched.join(', ')}`,
+          code: 'experienceSkills',
+          params: { count: worker.yearsExperience, skills: matched.join(', ') },
+        }
+      : { note: `${seasons} of farm work`, code: 'experience', params: { count: worker.yearsExperience } }),
   };
 }
 
 export function reliability(worker: MatchWorker): Factor {
-  if (worker.reliability == null) return { score: UNRATED_RELIABILITY_SCORE, note: 'No ratings yet' };
+  if (worker.reliability == null)
+    return { score: UNRATED_RELIABILITY_SCORE, note: 'No ratings yet', code: 'unrated' };
   return {
     score: (worker.reliability - 1) / 4,
     note: `Rated ${worker.reliability.toFixed(1)}/5 for reliability`,
+    code: 'reliability',
+    params: { rating: worker.reliability.toFixed(1) },
   };
 }
 
 export function pay(job: MatchJob, awardMinHourlyCents: number): Factor {
   const above = job.effectiveHourlyCents - awardMinHourlyCents;
   const score = Math.max(0, Math.min(1, 0.5 + (0.5 * above) / PAY_SCORE_CEILING_ABOVE_MIN_CENTS));
-  return { score, note: above >= 0 ? 'At or above award minimum' : 'Below award minimum' };
+  return above >= 0
+    ? { score, note: 'At or above award minimum', code: 'payAtAward' }
+    : { score, note: 'Below award minimum', code: 'payBelowAward' };
 }
 
 export function accommodation(job: MatchJob, worker: MatchWorker): Factor {
-  if (!worker.needsAccommodation) return { score: 1, note: 'Accommodation not needed' };
+  if (!worker.needsAccommodation)
+    return { score: 1, note: 'Accommodation not needed', code: 'accommodationNotNeeded' };
   return job.accommodationProvided
-    ? { score: 1, note: 'Accommodation provided' }
-    : { score: 0.2, note: 'No accommodation provided' };
+    ? { score: 1, note: 'Accommodation provided', code: 'accommodationProvided' }
+    : { score: 0.2, note: 'No accommodation provided', code: 'noAccommodation' };
 }

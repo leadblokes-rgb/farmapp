@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Button, Modal, Portal, Text, TextInput } from 'react-native-paper';
 import { MIN_TAP } from '@/theme';
 import { FieldMessage } from './TextField';
+import { t } from '@/i18n';
 
 interface Props {
   label: string;
@@ -23,8 +24,8 @@ const localToIso = (d: Date) =>
 
 function rangeError(iso: string | null, min?: string | null, max?: string | null): string | undefined {
   if (!iso) return undefined;
-  if (min && iso < min) return `Pick ${isoToDisplay(min)} or later`;
-  if (max && iso > max) return `Pick ${isoToDisplay(max)} or earlier`;
+  if (min && iso < min) return t('form.pickOrLater', { date: isoToDisplay(min) });
+  if (max && iso > max) return t('form.pickOrEarlier', { date: isoToDisplay(max) });
   return undefined;
 }
 
@@ -75,7 +76,7 @@ function NativeDateField({ label, value, onChange, error, minDate, maxDate }: Pr
           <TextInput
             mode="outlined"
             label={label}
-            placeholder="Choose a date"
+            placeholder={t('form.chooseDate')}
             value={isoToDisplay(value)}
             editable={false}
             error={!!message}
@@ -102,7 +103,7 @@ function NativeDateField({ label, value, onChange, error, minDate, maxDate }: Pr
             />
             <View style={styles.actions}>
               <Button mode="text" contentStyle={styles.tall} onPress={() => setOpen(false)}>
-                Cancel
+                {t('form.cancel')}
               </Button>
               <Button
                 mode="contained"
@@ -112,7 +113,7 @@ function NativeDateField({ label, value, onChange, error, minDate, maxDate }: Pr
                   setOpen(false);
                 }}
               >
-                Done
+                {t('form.done')}
               </Button>
             </View>
           </Modal>
@@ -141,13 +142,13 @@ function TypedDateField({ label, value, onChange, error, minDate, maxDate }: Pro
   }
 
   const incomplete = text.length > 0 && displayToIso(text) === null;
-  const message = error ?? (incomplete ? 'Use DD/MM/YYYY' : rangeError(value, minDate, maxDate));
+  const message = error ?? (incomplete ? t('form.dateFormatHint') : rangeError(value, minDate, maxDate));
   return (
     <View style={styles.wrap}>
       <TextInput
         mode="outlined"
         label={label}
-        placeholder="DD/MM/YYYY"
+        placeholder={t('form.dateFormat')}
         value={text}
         onChangeText={handle}
         keyboardType="number-pad"

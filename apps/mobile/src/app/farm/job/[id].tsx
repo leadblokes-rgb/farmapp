@@ -1,4 +1,4 @@
-import { jobRoleLabel, todayIso } from '@croppr/shared';
+import { todayIso } from '@croppr/shared';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
@@ -18,6 +18,8 @@ import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 import { ListSkeleton } from '@/components/Skeleton';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
+import { roleLabel } from '@/i18n/shared';
 
 type Tab = 'applied' | 'accepted' | 'declined';
 
@@ -35,9 +37,10 @@ export default function JobShortlist() {
 
   const applicants = useMemo(() => shortlist.data?.applicants ?? [], [shortlist.data]);
   // Workers whose job has ended or completed stay in the Accepted tab.
-  const byTab = (t: Tab) =>
+  const byTab = (which: Tab) =>
     applicants.filter(
-      (a) => a.status === t || (t === 'accepted' && (a.status === 'completed' || a.status === 'ended')),
+      (a) =>
+        a.status === which || (which === 'accepted' && (a.status === 'completed' || a.status === 'ended')),
     );
   const visible = byTab(tab);
   const accepted = byTab('accepted').length;
@@ -48,11 +51,14 @@ export default function JobShortlist() {
     const others = applicants.filter(
       (o) => o.group_id === a.group_id && o.application_id !== a.application_id,
     );
-    if (!others.length) return `Travelling in a group of ${a.group_size}`;
-    return `Group of ${a.group_size} · with ${others.map((o) => o.full_name.split(' ')[0]).join(', ')}`;
+    if (!others.length) return t('shortlist.groupOf', { size: a.group_size });
+    return t('shortlist.groupWith', {
+      size: a.group_size,
+      names: others.map((o) => o.full_name.split(' ')[0]).join(', '),
+    });
   };
 
-  if (job.isPending || shortlist.isPending) return <ListSkeleton label="Loading applicants" />;
+  if (job.isPending || shortlist.isPending) return <ListSkeleton label={t('shortlist.loading')} />;
   if (job.isError || !job.data) return <LoadError onRetry={() => job.refetch()} />;
   if (shortlist.isError) return <LoadError onRetry={() => shortlist.refetch()} />;
 
@@ -73,9 +79,7 @@ export default function JobShortlist() {
         onSuccess: (n) => {
           setSelected([]);
           setConfirm(null);
-          setMessage(
-            `${decision === 'accepted' ? 'Accepted' : 'Declined'} ${n} applicant${n === 1 ? '' : 's'}`,
-          );
+          setMessage(t(`shortlist.decided.${decision}`, { count: n }));
         },
         onError: (e) => {
           setConfirm(null);
@@ -95,57 +99,57 @@ export default function JobShortlist() {
           {j.title}
         </Text>
         <Text variant="bodyLarge">
-          {jobRoleLabel(j.role_type)} · {dateRangeLabel(j.start_date, j.end_date)}
+          {roleLabel(j.role_type)} · {dateRangeLabel(j.start_date, j.end_date)}
         </Text>
         <Text
           variant="titleMedium"
           style={styles.counter}
-          accessibilityLabel={`${accepted} of ${j.workers_needed} filled`}
+          accessibilityLabel={t('shortlist.filled', { accepted, needed: j.workers_needed })}
         >
-          {accepted} of {j.workers_needed} filled
+          {t('shortlist.filled', { accepted, needed: j.workers_needed })}
         </Text>
-        <Meter value={accepted / j.workers_needed} label="Spots filled" />
+        <Meter value={accepted / j.workers_needed} label={t('shortlist.spotsFilled')} />
         {j.status === 'open' && accepted >= j.workers_needed ? (
           <Button
             mode="contained"
             icon="check-all"
             contentStyle={styles.tall}
-            onPress={() => changeStatus('filled', 'Job marked as filled')}
+            onPress={() => changeStatus('filled', t('shortlist.markedFilled'))}
           >
-            All spots filled: mark job as filled
+            {t('shortlist.allFilled')}
           </Button>
         ) : null}
         <View style={styles.statusRow}>
           <Button compact icon="pencil" onPress={() => router.push(`/farm/job/edit/${j.id}`)}>
-            Edit
+            {t('shortlist.edit')}
           </Button>
           <Button
             compact
             icon="content-copy"
             onPress={() => router.push({ pathname: '/farm/job/new', params: { from: j.id } })}
           >
-            Repost
+            {t('shortlist.repost')}
           </Button>
           {j.status === 'open' ? (
             <>
               <Button
                 compact
                 icon="account-check"
-                onPress={() => changeStatus('filled', 'Marked as filled. It no longer shows to workers.')}
+                onPress={() => changeStatus('filled', t('shortlist.filledHidden'))}
               >
-                Mark filled
+                {t('shortlist.markFilled')}
               </Button>
               <Button
                 compact
                 icon="close-circle-outline"
-                onPress={() => changeStatus('closed', 'Job closed. It no longer shows to workers.')}
+                onPress={() => changeStatus('closed', t('shortlist.closedHidden'))}
               >
-                Close
+                {t('shortlist.close')}
               </Button>
             </>
           ) : (
-            <Button compact icon="restore" onPress={() => changeStatus('open', 'Job reopened.')}>
-              Reopen ({j.status})
+            <Button compact icon="restore" onPress={() => changeStatus('open', t('shortlist.reopened'))}>
+              {t('shortlist.reopen', { status: t(`farmJobs.status.${j.status}`) })}
             </Button>
           )}
         </View>
@@ -158,8 +162,8 @@ export default function JobShortlist() {
           onPress={() => router.push(`/farm/job/attendance/${j.id}`)}
         >
           {applicants.some((a) => a.status === 'accepted' && !a.attendance)
-            ? 'Who turned up? Check in your crew'
-            : 'Crew check-in'}
+            ? t('shortlist.checkInPrompt')
+            : t('shortlist.checkIn')}
         </Button>
       ) : null}
       {accepted + byTab('applied').length > 0 ? (
@@ -169,14 +173,12 @@ export default function JobShortlist() {
           contentStyle={styles.tall}
           onPress={() => setBroadcasting(true)}
         >
-          Message crew
+          {t('shortlist.messageCrew')}
         </Button>
       ) : null}
       <OutcomePrompts jobId={j.id} onMessage={setMessage} />
       <PendingReviews jobId={j.id} onMessage={setMessage} />
-      {shortlist.data?.rankingFailed ? (
-        <WarningBanner>Couldn’t refresh match scores. Showing the last ranking.</WarningBanner>
-      ) : null}
+      {shortlist.data?.rankingFailed ? <WarningBanner>{t('shortlist.rankingFailed')}</WarningBanner> : null}
       <SingleChoiceChips<Tab>
         value={tab}
         onChange={(v: Tab) => {
@@ -184,22 +186,22 @@ export default function JobShortlist() {
           setSelected([]);
         }}
         options={[
-          { key: 'applied', label: `To review (${byTab('applied').length})` },
-          { key: 'accepted', label: `Accepted (${accepted})` },
-          { key: 'declined', label: `Declined (${byTab('declined').length})` },
+          { key: 'applied', label: t('shortlist.tabs.applied', { count: byTab('applied').length }) },
+          { key: 'accepted', label: t('shortlist.tabs.accepted', { count: accepted }) },
+          { key: 'declined', label: t('shortlist.tabs.declined', { count: byTab('declined').length }) },
         ]}
       />
       {visible.length ? (
         <View style={styles.selectRow}>
           <Text variant="bodyMedium" style={styles.flex}>
-            Ranked by match score: availability, distance, car, experience and reliability.
+            {t('shortlist.rankedBy')}
           </Text>
           <Button
             compact
             icon={allSelected ? 'checkbox-blank-outline' : 'checkbox-multiple-marked'}
             onPress={() => setSelected(allSelected ? [] : visible.map((a) => a.application_id))}
           >
-            {allSelected ? 'Clear' : 'Select all'}
+            {allSelected ? t('shortlist.clear') : t('shortlist.selectAll')}
           </Button>
         </View>
       ) : null}
@@ -208,7 +210,7 @@ export default function JobShortlist() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Applicants' }} />
+      <Stack.Screen options={{ title: t('shortlist.title') }} />
       <FlatList
         data={visible}
         keyExtractor={(a) => a.application_id}
@@ -218,11 +220,7 @@ export default function JobShortlist() {
         onRefresh={() => shortlist.refetch()}
         ListEmptyComponent={
           <Text variant="bodyLarge" style={styles.empty}>
-            {tab === 'applied'
-              ? 'No one waiting for review.'
-              : tab === 'accepted'
-                ? 'No one accepted yet.'
-                : 'No one declined.'}
+            {t(`shortlist.empty.${tab}`)}
           </Text>
         }
         renderItem={({ item }) => (
@@ -250,7 +248,7 @@ export default function JobShortlist() {
                 style={styles.groupButton}
                 onPress={() => selectGroup(item)}
               >
-                Select whole group
+                {t('shortlist.selectGroup')}
               </Button>
             ) : null}
           </View>
@@ -267,7 +265,7 @@ export default function JobShortlist() {
               contentStyle={styles.tall}
               onPress={() => setConfirm('accepted')}
             >
-              Accept {selected.length}
+              {t('shortlist.accept', { count: selected.length })}
             </Button>
           ) : null}
           <Button
@@ -278,7 +276,7 @@ export default function JobShortlist() {
             contentStyle={styles.tall}
             onPress={() => setConfirm('declined')}
           >
-            Decline {selected.length}
+            {t('shortlist.decline', { count: selected.length })}
           </Button>
         </View>
       ) : null}
@@ -296,20 +294,19 @@ export default function JobShortlist() {
       <Portal>
         <Dialog visible={confirm !== null} onDismiss={() => setConfirm(null)}>
           <Dialog.Title>
-            {confirm === 'accepted' ? 'Accept' : 'Decline'} {selected.length} applicant
-            {selected.length === 1 ? '' : 's'}?
+            {confirm ? t(`shortlist.confirm.${confirm}`, { count: selected.length }) : null}
           </Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyLarge">
               {confirm === 'accepted'
-                ? `That makes ${accepted + selected.length} of ${j.workers_needed} filled. They'll see "Accepted" in Croppr and you can message them.`
-                : 'They’ll see “Not this time” in Croppr.'}
+                ? t('shortlist.acceptBody', { filled: accepted + selected.length, needed: j.workers_needed })
+                : t('shortlist.declineBody')}
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setConfirm(null)}>Cancel</Button>
+            <Button onPress={() => setConfirm(null)}>{t('form.cancel')}</Button>
             <Button loading={decide.isPending} onPress={() => confirm && runDecision(confirm)}>
-              {confirm === 'accepted' ? 'Accept' : 'Decline'}
+              {confirm === 'accepted' ? t('shortlist.acceptButton') : t('shortlist.declineButton')}
             </Button>
           </Dialog.Actions>
         </Dialog>

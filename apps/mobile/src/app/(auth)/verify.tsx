@@ -7,6 +7,7 @@ import { BigButton } from '@/components/BigButton';
 import { Screen } from '@/components/Screen';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 const RESEND_SECONDS = 60;
 
@@ -19,13 +20,13 @@ export default function Verify() {
 
   useEffect(() => {
     if (cooldown <= 0) return;
-    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [cooldown]);
 
   async function verify(value = code) {
     if (!isValidOtp(value)) {
-      setError(`Enter the ${OTP_LENGTH}-digit code from your email.`);
+      setError(t('verify.enterCode', { length: OTP_LENGTH }));
       return;
     }
     setError(null);
@@ -33,7 +34,7 @@ export default function Verify() {
     const { error: err } = await supabase.auth.verifyOtp({ email, token: value.trim(), type: 'email' });
     setVerifying(false);
     // On success the auth listener updates the session and the root navigator redirects.
-    if (err) setError('That code didn’t work. Check it, or request a new one.');
+    if (err) setError(t('verify.badCode'));
   }
 
   async function resend() {
@@ -44,13 +45,11 @@ export default function Verify() {
 
   return (
     <Screen scroll edges={['bottom']}>
-      <Text variant="headlineMedium">Check your email</Text>
-      <Text variant="bodyLarge">
-        We sent a {OTP_LENGTH}-digit code to {email}.
-      </Text>
+      <Text variant="headlineMedium">{t('verify.title')}</Text>
+      <Text variant="bodyLarge">{t('verify.sent', { length: OTP_LENGTH, email })}</Text>
       <TextInput
         mode="outlined"
-        label="Code"
+        label={t('verify.code')}
         value={code}
         onChangeText={(v) => {
           const digits = v.replace(/\D/g, '').slice(0, OTP_LENGTH);
@@ -68,10 +67,10 @@ export default function Verify() {
         {error}
       </HelperText>
       <BigButton onPress={() => verify()} loading={verifying} disabled={verifying}>
-        Continue
+        {t('verify.continue')}
       </BigButton>
       <BigButton mode="text" onPress={resend} disabled={cooldown > 0}>
-        {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
+        {cooldown > 0 ? t('verify.resendIn', { seconds: cooldown }) : t('verify.resend')}
       </BigButton>
     </Screen>
   );

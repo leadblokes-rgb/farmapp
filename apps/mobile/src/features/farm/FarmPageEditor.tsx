@@ -9,6 +9,7 @@ import { farmImageUrl, uploadUserImage } from '@/lib/storage';
 import { MIN_TAP } from '@/theme';
 import { initials } from './ApplicantCard';
 import { useSaveFarmPage, type useMyFarm } from './api';
+import { t } from '@/i18n';
 
 type Farm = NonNullable<ReturnType<typeof useMyFarm>['data']>;
 
@@ -64,7 +65,7 @@ export function FarmPageEditor({
         const path = await uploadUserImage({ bucket: 'farm-logos', userId, name: 'logo', ...img });
         await save.mutateAsync({ logo_path: path });
       },
-      'Logo updated',
+      t('farmPageEditor.logoUpdated'),
     );
 
   const addPhoto = () =>
@@ -76,11 +77,15 @@ export function FarmPageEditor({
         const path = await uploadUserImage({ bucket: 'farm-logos', userId, name: 'photo', ...img });
         await save.mutateAsync({ photos: [...farm.photos, path].slice(0, MAX_PHOTOS) });
       },
-      'Photo added',
+      t('farmPageEditor.photoAdded'),
     );
 
   const removePhoto = (path: string) =>
-    run('photo', () => save.mutateAsync({ photos: farm.photos.filter((p) => p !== path) }), 'Photo removed');
+    run(
+      'photo',
+      () => save.mutateAsync({ photos: farm.photos.filter((p) => p !== path) }),
+      t('farmPageEditor.photoRemoved'),
+    );
 
   const website_ = website.trim();
   const websiteInvalid = website_ !== '' && !/^https?:\/\/\S+$/i.test(website_);
@@ -92,18 +97,21 @@ export function FarmPageEditor({
           website: website_ || null,
           accommodation_details: accommodation.trim(),
         }),
-      'Farm page saved',
+      t('farmPageEditor.saved'),
     );
 
   const logo = farmImageUrl(farm.logo_path);
   return (
-    <Section title="Your farm page">
+    <Section title={t('farmPageEditor.title')}>
       <Text variant="bodyMedium" style={styles.muted}>
-        Workers see this when they tap your farm name. Photos of the work, the crew and any accommodation help
-        people decide.
+        {t('farmPageEditor.intro')}
       </Text>
       <View style={styles.logoRow}>
-        <Pressable onPress={changeLogo} accessibilityRole="button" accessibilityLabel="Change logo">
+        <Pressable
+          onPress={changeLogo}
+          accessibilityRole="button"
+          accessibilityLabel={t('farmPageEditor.changeLogoLabel')}
+        >
           {logo ? (
             <Image source={{ uri: logo }} style={styles.logo} contentFit="cover" />
           ) : (
@@ -111,12 +119,12 @@ export function FarmPageEditor({
           )}
         </Pressable>
         <Button mode="outlined" icon="image" loading={busy === 'logo'} disabled={!!busy} onPress={changeLogo}>
-          {logo ? 'Change logo' : 'Add a logo'}
+          {logo ? t('farmPageEditor.changeLogo') : t('farmPageEditor.addLogo')}
         </Button>
       </View>
 
       <Text variant="titleMedium">
-        Photos ({farm.photos.length}/{MAX_PHOTOS})
+        {t('farmPageEditor.photos', { count: farm.photos.length, max: MAX_PHOTOS })}
       </Text>
       <ScrollView horizontal contentContainerStyle={styles.photos} showsHorizontalScrollIndicator={false}>
         {farm.photos.map((p) => (
@@ -129,7 +137,7 @@ export function FarmPageEditor({
               style={styles.remove}
               disabled={!!busy}
               onPress={() => removePhoto(p)}
-              accessibilityLabel="Remove photo"
+              accessibilityLabel={t('farmPageEditor.removePhoto')}
             />
           </View>
         ))}
@@ -139,19 +147,19 @@ export function FarmPageEditor({
             disabled={!!busy}
             style={[styles.photo, styles.add]}
             accessibilityRole="button"
-            accessibilityLabel="Add photo"
+            accessibilityLabel={t('farmPageEditor.addPhoto')}
           >
             <Icon source="plus" size={32} color="#17482F" />
-            <Text>{busy === 'photo' ? 'Uploading…' : 'Add photo'}</Text>
+            <Text>{busy === 'photo' ? t('farmPageEditor.uploading') : t('farmPageEditor.addPhoto')}</Text>
           </Pressable>
         ) : null}
       </ScrollView>
 
       <TextInput
         mode="outlined"
-        label="Website (optional)"
-        accessibilityLabel="Website"
-        placeholder="https://"
+        label={t('farmPageEditor.website')}
+        accessibilityLabel={t('farmPageEditor.websiteLabel')}
+        placeholder={t('farmPageEditor.websitePlaceholder')}
         value={website}
         onChangeText={setWebsite}
         autoCapitalize="none"
@@ -159,13 +167,13 @@ export function FarmPageEditor({
         error={websiteInvalid}
       />
       <HelperText type="error" visible={websiteInvalid}>
-        Start with https://
+        {t('farmPageEditor.websiteError')}
       </HelperText>
       <TextInput
         mode="outlined"
-        label="Accommodation (optional)"
-        accessibilityLabel="Accommodation details"
-        placeholder="Type, cost per week, what's included, or nearby options"
+        label={t('farmPageEditor.accommodation')}
+        accessibilityLabel={t('farmPageEditor.accommodationLabel')}
+        placeholder={t('farmPageEditor.accommodationPlaceholder')}
         value={accommodation}
         onChangeText={setAccommodation}
         multiline
@@ -182,7 +190,7 @@ export function FarmPageEditor({
         disabled={!!busy || websiteInvalid}
         onPress={saveText}
       >
-        Save farm page
+        {t('farmPageEditor.save')}
       </Button>
     </Section>
   );

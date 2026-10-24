@@ -1,4 +1,3 @@
-import { SKILLS } from '@croppr/shared';
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -22,14 +21,12 @@ import { openResume } from '@/features/worker/ResumeCard';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 import { Toast } from '@/components/Toast';
+import { matchNote } from '@/features/jobs/matchNote';
+import { t } from '@/i18n';
+import { skillLabel } from '@/i18n/shared';
 
-const FACTOR_LABELS: Record<string, string> = {
-  availability: 'Availability',
-  distance: 'Distance',
-  transport: 'Transport',
-  experience: 'Experience',
-  reliability: 'Reliability',
-};
+const factorLabel = (key: string) =>
+  t(`applicantDetail.factors.${key}` as 'applicantDetail.factors.availability', { defaultValue: key });
 
 export default function ApplicantDetail() {
   const { id, jobId } = useLocalSearchParams<{ id: string; jobId: string }>();
@@ -45,13 +42,17 @@ export default function ApplicantDetail() {
   if (shortlist.isError || !a) return <LoadError onRetry={() => shortlist.refetch()} />;
 
   const breakdown = (a.score_breakdown ?? {}) as Record<string, FactorScore>;
-  const skillLabels = a.skills.map((k) => SKILLS.find((s) => s.key === k)?.label ?? k);
+  const skillLabels = a.skills.map(skillLabel);
   const act = (decision: 'accepted' | 'declined') =>
     decide.mutate(
       { ids: [a.application_id], decision },
       {
         onSuccess: () =>
-          setMessage(decision === 'accepted' ? `${a.full_name} accepted` : `${a.full_name} declined`),
+          setMessage(
+            decision === 'accepted'
+              ? t('applicantDetail.acceptedMsg', { name: a.full_name })
+              : t('applicantDetail.declinedMsg', { name: a.full_name }),
+          ),
       },
     );
 
@@ -69,38 +70,49 @@ export default function ApplicantDetail() {
             <Text variant="headlineSmall" style={styles.bold}>
               {a.full_name}
             </Text>
-            <Text variant="bodyLarge">Currently near {a.locality ?? 'unknown'}</Text>
-            <Text variant="bodyLarge">Status: {a.status}</Text>
+            <Text variant="bodyLarge">
+              {t('applicantDetail.near', { place: a.locality ?? t('applicantDetail.unknown') })}
+            </Text>
+            <Text variant="bodyLarge">
+              {t('applicantDetail.status', {
+                status: t(`applicantDetail.statuses.${a.status as 'applied'}`, { defaultValue: a.status }),
+              })}
+            </Text>
           </View>
         </View>
         <VisaBadge a={a} />
         <Text variant="bodyMedium" style={styles.muted}>
-          Croppr only shows whether the visa covers your job dates; visa details stay private.
+          {t('applicantDetail.visaPrivate')}
         </Text>
 
         <View style={styles.scoreBox}>
           <Text variant="titleMedium" style={styles.bold}>
-            Match score {a.match_score != null ? Math.round(Number(a.match_score)) : '–'}/100
+            {t('applicantDetail.matchScore', {
+              score: a.match_score != null ? Math.round(Number(a.match_score)) : '–',
+            })}
           </Text>
           {Object.entries(breakdown).map(([key, f]) => (
             <View key={key} style={styles.factor}>
               <View style={styles.factorHead}>
                 <Text variant="bodyLarge" style={styles.bold}>
-                  {FACTOR_LABELS[key] ?? key}
+                  {factorLabel(key)}
                 </Text>
                 <Text variant="bodyMedium">
-                  {Math.round(f.score * f.weight)}/{f.weight}
+                  {t('applicantDetail.factorScore', {
+                    points: Math.round(f.score * f.weight),
+                    weight: f.weight,
+                  })}
                 </Text>
               </View>
-              <Meter value={f.score} height={8} label={FACTOR_LABELS[key] ?? key} />
-              <Text variant="bodyMedium">{f.note}</Text>
+              <Meter value={f.score} height={8} label={factorLabel(key)} />
+              <Text variant="bodyMedium">{matchNote(f)}</Text>
             </View>
           ))}
         </View>
 
         <Divider />
         <Text variant="titleMedium" style={styles.bold}>
-          Available
+          {t('applicantDetail.available')}
         </Text>
         {(availability.data ?? []).map((w) => (
           <Text key={w.start_date} variant="bodyLarge">
@@ -108,23 +120,29 @@ export default function ApplicantDetail() {
           </Text>
         ))}
         <Text variant="titleMedium" style={styles.bold}>
-          Practical
+          {t('applicantDetail.practical')}
         </Text>
         <Text variant="bodyLarge">
-          {a.has_car ? 'Has a car' : 'No car'} ·{' '}
-          {a.needs_accommodation ? 'Needs accommodation' : 'Has accommodation sorted'}
+          {a.has_car ? t('applicantDetail.hasCar') : t('applicantDetail.noCar')} ·{' '}
+          {a.needs_accommodation
+            ? t('applicantDetail.needsAccommodation')
+            : t('applicantDetail.hasAccommodation')}
         </Text>
         <Text variant="bodyLarge">
-          {a.travel_mode === 'group' ? `Travelling in a group of ${a.group_size}` : 'Travelling solo'}
+          {a.travel_mode === 'group'
+            ? t('applicantDetail.groupOf', { size: a.group_size })
+            : t('applicantDetail.solo')}
         </Text>
         <Text variant="titleMedium" style={styles.bold}>
-          Experience
+          {t('applicantDetail.experience')}
         </Text>
         <Text variant="bodyLarge">
-          {a.years_experience} season{a.years_experience === 1 ? '' : 's'} of farm work
+          {t('applicantDetail.seasons', { count: a.years_experience })}
           {skillLabels.length ? ` · ${skillLabels.join(', ')}` : ''}
         </Text>
-        {a.experience_summary ? <Text variant="bodyLarge">“{a.experience_summary}”</Text> : null}
+        {a.experience_summary ? (
+          <Text variant="bodyLarge">{t('applicantDetail.quote', { text: a.experience_summary })}</Text>
+        ) : null}
         {resume.data ? (
           <Button
             mode="outlined"
@@ -132,12 +150,12 @@ export default function ApplicantDetail() {
             contentStyle={styles.tall}
             onPress={() => openResume(resume.data!.resume_path!).catch((e) => setMessage(friendlyError(e)))}
           >
-            View resume
+            {t('applicantDetail.viewResume')}
           </Button>
         ) : null}
         {a.no_show_count > 0 ? (
           <Text variant="bodyLarge" style={styles.warnText}>
-            {a.no_show_count} no-show{a.no_show_count === 1 ? '' : 's'} on Croppr jobs
+            {t('applicantDetail.noShows', { count: a.no_show_count })}
           </Text>
         ) : null}
         <WorkerReviews workerId={a.worker_id} />
@@ -155,7 +173,7 @@ export default function ApplicantDetail() {
               })
             }
           >
-            Message {a.full_name.split(' ')[0]}
+            {t('applicantDetail.message', { name: a.full_name.split(' ')[0] })}
           </Button>
         ) : null}
         <View style={styles.actions}>
@@ -170,7 +188,7 @@ export default function ApplicantDetail() {
                 onPress={() => act('declined')}
                 loading={decide.isPending}
               >
-                Decline
+                {t('applicantDetail.decline')}
               </Button>
               <Button
                 mode="contained"
@@ -180,7 +198,7 @@ export default function ApplicantDetail() {
                 onPress={() => act('accepted')}
                 loading={decide.isPending}
               >
-                Accept
+                {t('applicantDetail.accept')}
               </Button>
             </>
           ) : a.status === 'accepted' ? (
@@ -192,7 +210,7 @@ export default function ApplicantDetail() {
               contentStyle={styles.tall}
               onPress={() => act('declined')}
             >
-              No longer coming: decline
+              {t('applicantDetail.noLongerComing')}
             </Button>
           ) : null}
         </View>

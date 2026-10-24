@@ -10,6 +10,7 @@ import { FarmPageEditor } from '@/features/farm/FarmPageEditor';
 import { VerificationStatusCard } from '@/features/farm/VerificationStatusCard';
 import { useUserId } from '@/providers/AuthProvider';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
 
 export default function FarmProfile() {
   const userId = useUserId();
@@ -29,15 +30,13 @@ export default function FarmProfile() {
           // Remount when the saved record changes so the form shows server-normalised values.
           key={farm.data.updated_at}
           initial={farmToInput(farm.data)}
-          submitLabel={farm.data.verification_status === 'rejected' ? 'Save and resubmit' : 'Save changes'}
-          legalNote={
-            verified
-              ? 'Changing your business name, ABN or labour hire details means we re-check them before you can post new jobs.'
-              : undefined
+          submitLabel={
+            farm.data.verification_status === 'rejected' ? t('farmProfile.resubmit') : t('common.saveChanges')
           }
+          legalNote={verified ? t('farmProfile.legalNote') : undefined}
           onSubmit={async (values) => {
             await save.mutateAsync(values);
-            setMessage('Farm details saved');
+            setMessage(t('farmProfile.saved'));
           }}
         />
         <FarmPageEditor farm={farm.data} userId={userId} onSaved={setMessage} />

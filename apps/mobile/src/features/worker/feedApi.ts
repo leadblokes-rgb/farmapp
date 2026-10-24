@@ -2,6 +2,7 @@ import { effectiveHourlyCents, type Database } from '@croppr/shared';
 import { ranker, type MatchJob, type MatchWorker, type Ranked } from '@croppr/matching';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { t } from '@/i18n';
 
 export type FeedJob = Database['public']['Functions']['job_feed']['Returns'][number];
 
@@ -50,7 +51,10 @@ function specifiedFor(job: FeedJob): SpecifiedWorkCheck {
   return job.specified_work_eligible
     ? {
         eligible: true,
-        label: `Eligible postcode for ${job.viewer_visa_subclass} ${job.specified_work_label ?? 'specified work'}`,
+        label: t('feed.eligiblePostcode', {
+          visa: job.viewer_visa_subclass,
+          work: job.specified_work_label ?? t('feed.specifiedWork'),
+        }),
       }
     : { eligible: false, label: '' };
 }

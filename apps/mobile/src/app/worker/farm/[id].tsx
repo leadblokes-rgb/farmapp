@@ -1,4 +1,3 @@
-import { employmentTypeLabel } from '@croppr/shared';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -17,6 +16,8 @@ import { useApplyFromFarmPage, useFarmPage } from '@/features/worker/feedApi';
 import { friendlyError } from '@/lib/errors';
 import { farmImageUrl } from '@/lib/storage';
 import { MIN_TAP } from '@/theme';
+import { t } from '@/i18n';
+import { employmentLabel } from '@/i18n/shared';
 
 export default function FarmPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,23 +25,23 @@ export default function FarmPage() {
   const apply = useApplyFromFarmPage(id);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (page.isPending) return <ListSkeleton label="Loading farm" />;
+  if (page.isPending) return <ListSkeleton label={t('farmPage.loading')} />;
   if (page.isError) return <LoadError onRetry={() => page.refetch()} />;
   const f = page.data.farm;
-  if (!f) return <LoadError message="This farm isn’t on Croppr any more." onRetry={() => page.refetch()} />;
+  if (!f) return <LoadError message={t('farmPage.gone')} onRetry={() => page.refetch()} />;
 
   const logo = farmImageUrl(f.logo_path);
   return (
     <>
       <Screen scroll edges={['bottom']}>
-        <Stack.Screen options={{ title: f.business_name ?? 'Farm' }} />
+        <Stack.Screen options={{ title: f.business_name ?? t('farmPage.farm') }} />
         <View style={styles.top}>
           {logo ? (
             <Image
               source={{ uri: logo }}
               style={styles.logo}
               contentFit="cover"
-              accessibilityLabel="Farm logo"
+              accessibilityLabel={t('farmPage.logo')}
             />
           ) : (
             <Avatar.Text size={72} label={initials(f.business_name ?? '?')} />
@@ -51,7 +52,7 @@ export default function FarmPage() {
             </Text>
             <Text variant="bodyLarge">
               {f.locality ?? f.postcode}
-              {f.is_labour_hire ? ' · Labour hire provider' : ''}
+              {f.is_labour_hire ? t('farmPage.labourHire') : ''}
             </Text>
             <VerifiedBadge />
           </View>
@@ -70,7 +71,7 @@ export default function FarmPage() {
         {f.accommodation_details ? (
           <View style={styles.block}>
             <Text variant="titleMedium" style={styles.bold}>
-              Accommodation
+              {t('farmPage.accommodation')}
             </Text>
             <Text variant="bodyLarge">{f.accommodation_details}</Text>
           </View>
@@ -81,7 +82,7 @@ export default function FarmPage() {
             icon="web"
             style={styles.left}
             onPress={() => Linking.openURL(f.website!)}
-            accessibilityHint="Opens the farm's website"
+            accessibilityHint={t('farmPage.website')}
           >
             {f.website.replace(/^https?:\/\//, '')}
           </Button>
@@ -89,9 +90,9 @@ export default function FarmPage() {
 
         <Divider />
         <Text variant="titleMedium" style={styles.bold}>
-          Open jobs ({page.data.jobs.length})
+          {t('farmPage.openJobs', { count: page.data.jobs.length })}
         </Text>
-        {page.data.jobs.length === 0 ? <Text style={styles.muted}>No open jobs right now.</Text> : null}
+        {page.data.jobs.length === 0 ? <Text style={styles.muted}>{t('farmPage.noJobs')}</Text> : null}
         {page.data.jobs.map((j) => {
           const pay = payLabel(j);
           return (
@@ -101,16 +102,16 @@ export default function FarmPage() {
                   {j.title}
                 </Text>
                 <Text variant="bodyLarge">
-                  {pay.main} · {employmentTypeLabel(j.employment_type)}
+                  {pay.main} · {employmentLabel(j.employment_type)}
                 </Text>
                 <Text variant="bodyLarge">{dateRangeLabel(j.start_date, j.end_date)}</Text>
                 <Text variant="bodyMedium">
                   {j.locality ?? ''}
-                  {j.accommodation_provided ? ' · Accommodation available' : ''}
+                  {j.accommodation_provided ? t('farmPage.accommodationAvailable') : ''}
                 </Text>
                 {j.applied ? (
                   <Text variant="bodyLarge" style={styles.applied}>
-                    ✓ Applied
+                    {t('farmPage.applied')}
                   </Text>
                 ) : (
                   <Button
@@ -121,12 +122,12 @@ export default function FarmPage() {
                     disabled={apply.isPending}
                     onPress={() =>
                       apply.mutate(j.id, {
-                        onSuccess: () => setMessage(`Applied for ${j.title}`),
+                        onSuccess: () => setMessage(t('farmPage.appliedFor', { title: j.title })),
                         onError: (e) => setMessage(friendlyError(e)),
                       })
                     }
                   >
-                    Apply
+                    {t('farmPage.apply')}
                   </Button>
                 )}
               </Card.Content>

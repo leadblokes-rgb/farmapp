@@ -1,12 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
+import { t } from '@/i18n';
 
 /** Shown next to verified farms everywhere workers see them. */
 export function VerifiedBadge() {
   return (
-    <View style={styles.badge} accessibilityLabel="Verified farm">
+    <View style={styles.badge} accessibilityLabel={t('common.verifiedFarm')}>
       <Icon source="check-decagram" size={18} color="#FFFFFF" />
-      <Text style={styles.text}>Verified</Text>
+      <Text style={styles.text}>{t('common.verified')}</Text>
     </View>
   );
 }

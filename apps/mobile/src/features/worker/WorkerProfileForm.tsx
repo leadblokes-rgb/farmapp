@@ -1,6 +1,5 @@
 import {
-  SKILLS,
-  VISA_TYPE_LABELS,
+  SKILL_KEYS,
   VISA_TYPES,
   VISA_TYPES_WITH_EXPIRY,
   todayIso,
@@ -26,6 +25,8 @@ import { usePostcode } from '@/features/common/api';
 import { RegionSelect } from '@/features/common/RegionSelect';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { t } from '@/i18n';
+import { skillLabel, visaLabel } from '@/i18n/shared';
 
 interface Props {
   initial: WorkerProfileInput;
@@ -71,12 +72,12 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
 
   return (
     <View style={styles.form}>
-      <Section title="About you">
+      <Section title={t('profileForm.about')}>
         <PhotoField currentUrl={photoUrl} picked={photo} onPick={setPhoto} initials={initials} />
         <TextField
           control={control}
           name="fullName"
-          label="Full name"
+          label={t('profileForm.fullName')}
           autoComplete="name"
           textContentType="name"
         />
@@ -85,7 +86,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
           name="nationality"
           render={({ field, fieldState }) => (
             <CountryPicker
-              label="Nationality"
+              label={t('profileForm.nationality')}
               value={field.value}
               onChange={field.onChange}
               error={fieldState.error?.message}
@@ -94,10 +95,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
         />
       </Section>
 
-      <Section
-        title="Visa"
-        note="Private: only you can see this. Farms only see your visa type and whether it covers their job dates. We never ask for your passport number."
-      >
+      <Section title={t('profileForm.visa')} note={t('profileForm.visaNote')}>
         <Controller
           control={control}
           name="visaType"
@@ -107,7 +105,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
                 <RadioButton.Item
                   key={v}
                   value={v}
-                  label={VISA_TYPE_LABELS[v]}
+                  label={visaLabel(v)}
                   style={styles.radio}
                   labelStyle={styles.radioLabel}
                 />
@@ -121,7 +119,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
             name="visaExpiry"
             render={({ field, fieldState }) => (
               <DateField
-                label="Visa expiry date"
+                label={t('profileForm.visaExpiry')}
                 value={field.value}
                 minDate={todayIso()}
                 onChange={field.onChange}
@@ -132,24 +130,26 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
         ) : null}
       </Section>
 
-      <Section title="Where and when">
+      <Section title={t('profileForm.whereWhen')}>
         <Controller
           control={control}
           name="currentPostcode"
           render={({ field, fieldState }) => (
             <PostcodeField
-              label="Postcode you're in now"
+              label={t('profileForm.postcode')}
               value={field.value}
               onChange={field.onChange}
               error={fieldState.error?.message}
               hint={
-                place.data ? `${place.data.locality}, ${place.data.state}` : 'Used to show jobs near you.'
+                place.data
+                  ? t('form.place', { locality: place.data.locality, state: place.data.state })
+                  : t('profileForm.postcodeHint')
               }
               allowLocation
             />
           )}
         />
-        <Text variant="bodyLarge">Regions you&apos;d like to work in</Text>
+        <Text variant="bodyLarge">{t('profileForm.regions')}</Text>
         <Controller
           control={control}
           name="regionIds"
@@ -160,7 +160,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
             </View>
           )}
         />
-        <Text variant="bodyLarge">Dates you&apos;re available</Text>
+        <Text variant="bodyLarge">{t('profileForm.dates')}</Text>
         {availability.fields.map((item, index) => (
           <View key={item.id} style={styles.dateRow}>
             <Controller
@@ -168,7 +168,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
               name={`availability.${index}.startDate`}
               render={({ field, fieldState }) => (
                 <DateField
-                  label="From"
+                  label={t('profileForm.from')}
                   value={field.value || null}
                   onChange={(v) => field.onChange(v ?? '')}
                   error={fieldState.error?.message}
@@ -180,7 +180,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
               name={`availability.${index}.endDate`}
               render={({ field, fieldState }) => (
                 <DateField
-                  label="To"
+                  label={t('profileForm.to')}
                   value={field.value || null}
                   minDate={availabilityValues?.[index]?.startDate || null}
                   onChange={(v) => field.onChange(v ?? '')}
@@ -194,7 +194,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
               style={styles.iconButton}
               disabled={availability.fields.length === 1}
               onPress={() => availability.remove(index)}
-              accessibilityLabel="Remove these dates"
+              accessibilityLabel={t('profileForm.removeDates')}
             />
           </View>
         ))}
@@ -205,23 +205,27 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
           onPress={() => availability.append({ startDate: '', endDate: '' })}
           contentStyle={styles.tall}
         >
-          Add another date range
+          {t('profileForm.addDates')}
         </Button>
       </Section>
 
-      <Section title="Travel and transport">
+      <Section title={t('profileForm.travel')}>
         <Controller
           control={control}
           name="hasCar"
           render={({ field }) => (
-            <SwitchRow label="I have a car" value={field.value} onChange={field.onChange} />
+            <SwitchRow label={t('profileForm.hasCar')} value={field.value} onChange={field.onChange} />
           )}
         />
         <Controller
           control={control}
           name="needsAccommodation"
           render={({ field }) => (
-            <SwitchRow label="I need accommodation" value={field.value} onChange={field.onChange} />
+            <SwitchRow
+              label={t('profileForm.needsAccommodation')}
+              value={field.value}
+              onChange={field.onChange}
+            />
           )}
         />
         <Controller
@@ -235,8 +239,13 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
                 setValue('groupSize', v === 'group' ? 2 : 1);
               }}
               buttons={[
-                { value: 'solo', label: 'Solo', icon: 'account', style: styles.segment },
-                { value: 'group', label: 'With a group', icon: 'account-group', style: styles.segment },
+                { value: 'solo', label: t('profileForm.solo'), icon: 'account', style: styles.segment },
+                {
+                  value: 'group',
+                  label: t('profileForm.group'),
+                  icon: 'account-group',
+                  style: styles.segment,
+                },
               ]}
             />
           )}
@@ -248,29 +257,26 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
             render={({ field, fieldState }) => (
               <View>
                 <Stepper
-                  label="People in your group (incl. you)"
+                  label={t('profileForm.groupSize')}
                   value={field.value}
                   onChange={field.onChange}
                   min={2}
                   max={20}
                 />
-                <FieldMessage
-                  error={fieldState.error?.message}
-                  hint="Each person creates their own profile and applies; farms will see you're travelling together."
-                />
+                <FieldMessage error={fieldState.error?.message} hint={t('profileForm.groupHint')} />
               </View>
             )}
           />
         ) : null}
       </Section>
 
-      <Section title="Experience">
+      <Section title={t('profileForm.experience')}>
         <Controller
           control={control}
           name="yearsExperience"
           render={({ field }) => (
             <Stepper
-              label="Seasons of farm work"
+              label={t('profileForm.seasons')}
               value={field.value}
               onChange={field.onChange}
               min={0}
@@ -282,13 +288,17 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
           control={control}
           name="skills"
           render={({ field }) => (
-            <ChipSelect options={SKILLS} selected={field.value} onChange={(keys) => field.onChange(keys)} />
+            <ChipSelect
+              options={SKILL_KEYS.map((key) => ({ key, label: skillLabel(key) }))}
+              selected={field.value}
+              onChange={(keys) => field.onChange(keys)}
+            />
           )}
         />
         <TextField
           control={control}
           name="experienceSummary"
-          label="Anything else farms should know? (optional)"
+          label={t('profileForm.summary')}
           multiline
           numberOfLines={4}
         />
@@ -299,7 +309,7 @@ export function WorkerProfileForm({ initial, photoUrl, submitLabel, onSubmit }: 
         visible={submitError !== null || Object.keys(errors).length > 0}
         style={styles.submitError}
       >
-        {submitError ?? 'Please fix the highlighted fields above.'}
+        {submitError ?? t('form.fixFields')}
       </HelperText>
       <BigButton onPress={() => submit()} loading={isSubmitting} disabled={isSubmitting}>
         {submitLabel}

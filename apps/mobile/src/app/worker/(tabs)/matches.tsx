@@ -15,14 +15,16 @@ import { useMyApplications, useSavedJobs, useWithdrawApplication } from '@/featu
 import { SavedJobs } from '@/features/worker/SavedJobs';
 import { useUserId } from '@/providers/AuthProvider';
 import { Toast } from '@/components/Toast';
+import { t } from '@/i18n';
 
-const STATUS = {
-  applied: { label: 'Applied', color: '#FFE0A8' },
-  accepted: { label: 'Accepted 🎉', color: '#C8E6C9' },
-  declined: { label: 'Not this time', color: '#EEEEEE' },
-  withdrawn: { label: 'Withdrawn', color: '#EEEEEE' },
-  completed: { label: 'Completed', color: '#C8E6C9' },
-  ended: { label: 'Job ended', color: '#E3F2FD' },
+// Chip colour per status; the label is matches.status.<status> in en.json.
+const STATUS_COLOR = {
+  applied: '#FFE0A8',
+  accepted: '#C8E6C9',
+  declined: '#EEEEEE',
+  withdrawn: '#EEEEEE',
+  completed: '#C8E6C9',
+  ended: '#E3F2FD',
 } as const;
 
 type View_ = 'messages' | 'applications' | 'saved';
@@ -46,9 +48,12 @@ export default function Matches() {
         value={view}
         onChange={setView}
         options={[
-          { key: 'messages', label: unread ? `Messages (${unread} new)` : 'Messages' },
-          { key: 'applications', label: `Applications (${apps.data?.length ?? 0})` },
-          { key: 'saved', label: `Saved (${saved.data?.length ?? 0})` },
+          {
+            key: 'messages',
+            label: unread ? t('matches.messagesNew', { count: unread }) : t('matches.messages'),
+          },
+          { key: 'applications', label: t('matches.applications', { count: apps.data?.length ?? 0 }) },
+          { key: 'saved', label: t('matches.saved', { count: saved.data?.length ?? 0 }) },
         ]}
       />
     </View>
@@ -57,11 +62,7 @@ export default function Matches() {
   if (view === 'messages') {
     return (
       <Screen edges={[]}>
-        <ConversationList
-          basePath="/worker/chat"
-          header={switcher}
-          emptyText="No messages yet. When a farm messages you or accepts your application, the chat appears here."
-        />
+        <ConversationList basePath="/worker/chat" header={switcher} emptyText={t('matches.messagesEmpty')} />
         <Toast message={message} onDismiss={() => setMessage(null)} />
       </Screen>
     );
@@ -76,7 +77,7 @@ export default function Matches() {
     );
   }
 
-  if (apps.isPending) return <ListSkeleton label="Loading your matches" />;
+  if (apps.isPending) return <ListSkeleton label={t('matches.loading')} />;
   if (apps.isError) return <LoadError onRetry={() => apps.refetch()} />;
 
   return (
@@ -90,14 +91,14 @@ export default function Matches() {
         ListHeaderComponent={switcher}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text variant="headlineSmall">No applications yet</Text>
+            <Text variant="headlineSmall">{t('matches.emptyTitle')}</Text>
             <Text variant="bodyLarge" style={styles.center}>
-              Swipe right on jobs in Discover to apply. Farms review applicants and reply in Messages.
+              {t('matches.emptyBody')}
             </Text>
           </View>
         }
         renderItem={({ item }) => {
-          const s = STATUS[item.status];
+          const status = item.status as keyof typeof STATUS_COLOR;
           return (
             <Card mode="outlined">
               <Card.Content style={styles.card}>
@@ -105,37 +106,37 @@ export default function Matches() {
                   <Text variant="titleLarge" style={styles.title}>
                     {item.title}
                   </Text>
-                  <Chip style={{ backgroundColor: s.color }}>{s.label}</Chip>
+                  <Chip style={{ backgroundColor: STATUS_COLOR[status] }}>
+                    {t(`matches.status.${status}`)}
+                  </Chip>
                 </View>
                 <Text variant="bodyLarge">
-                  {item.farm_name ?? 'Farm'}
+                  {item.farm_name ?? t('matches.farm')}
                   {item.locality ? ` · ${item.locality}` : ''}
                 </Text>
                 <Text variant="bodyLarge">{dateRangeLabel(item.start_date, item.end_date)}</Text>
                 {item.work_verified ? (
                   <Text variant="bodyMedium" style={styles.verified}>
-                    ✓ Verified by you and the farm
+                    {t('matches.verified')}
                   </Text>
                 ) : item.outcome_disputed ? (
-                  <Text variant="bodyMedium">
-                    You and the farm answered differently. The Croppr team is looking into it.
-                  </Text>
+                  <Text variant="bodyMedium">{t('matches.outcomeDisputed')}</Text>
                 ) : item.status === 'ended' && item.my_answer && !item.outcome ? (
-                  <Text variant="bodyMedium">Thanks for answering. Waiting for the farm to confirm.</Text>
+                  <Text variant="bodyMedium">{t('matches.waitingFarm')}</Text>
                 ) : null}
                 {item.attendance === 'left_early' ? (
-                  <Text variant="bodyMedium">The farm marked you as leaving early.</Text>
+                  <Text variant="bodyMedium">{t('matches.leftEarly')}</Text>
                 ) : null}
                 {item.attendance === 'no_show' ? (
                   <View style={styles.noShow}>
                     <Text variant="bodyLarge" style={styles.noShowText}>
-                      {item.farm_name ?? 'The farm'} marked you as a no-show.
+                      {t('matches.noShow', { farm: item.farm_name ?? t('matches.theFarmCap') })}
                     </Text>
                     {item.disputed ? (
                       <Text variant="bodyMedium">
                         {item.dispute_outcome === 'upheld'
-                          ? 'The Croppr team reviewed your dispute and the no-show stands.'
-                          : 'You disputed this. The Croppr team is looking into it.'}
+                          ? t('matches.disputeUpheld')
+                          : t('matches.disputePending')}
                       </Text>
                     ) : (
                       <Button
@@ -144,10 +145,13 @@ export default function Matches() {
                         style={styles.withdraw}
                         contentStyle={styles.tall}
                         onPress={() =>
-                          setDisputing({ id: item.application_id, farm: item.farm_name ?? 'the farm' })
+                          setDisputing({
+                            id: item.application_id,
+                            farm: item.farm_name ?? t('matches.theFarm'),
+                          })
                         }
                       >
-                        Not right? Dispute it
+                        {t('matches.dispute')}
                       </Button>
                     )}
                   </View>
@@ -161,7 +165,7 @@ export default function Matches() {
                     loading={withdraw.isPending && withdraw.variables === item.application_id}
                     onPress={() => withdraw.mutate(item.application_id)}
                   >
-                    Withdraw application
+                    {t('matches.withdraw')}
                   </Button>
                 ) : null}
               </Card.Content>
@@ -174,7 +178,7 @@ export default function Matches() {
         onDismiss={() => setDisputing(null)}
         onDone={() => {
           setDisputing(null);
-          setMessage('Dispute sent. The Croppr team will look into it.');
+          setMessage(t('matches.disputeSent'));
         }}
       />
       <Toast message={message} onDismiss={() => setMessage(null)} />

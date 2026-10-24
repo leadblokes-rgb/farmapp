@@ -7,6 +7,7 @@ import { MIN_TAP } from '@/theme';
 import { useSaveJob, useSavedJobs, useSwipe, type RankedFeedJob } from './feedApi';
 import { JobDetailSheet } from './JobDetailSheet';
 import { ReportDialog } from '@/features/chat/ReportDialog';
+import { t } from '@/i18n';
 
 /** Jobs saved for later (swipe up or "Save for later"), with Apply and Remove. */
 export function SavedJobs({
@@ -28,14 +29,14 @@ export function SavedJobs({
     swipe.mutate(
       { jobId: r.job.id, direction: 'like' },
       {
-        onSuccess: () => onMessage(`Applied to ${r.job.title}`),
+        onSuccess: () => onMessage(t('saved.applied', { title: r.job.title })),
         onError: (e) => onMessage(friendlyError(e)),
       },
     );
   const remove = (r: RankedFeedJob) =>
     save.mutate(
       { jobId: r.job.id, saved: false },
-      { onSuccess: () => onMessage('Removed from saved'), onError: (e) => onMessage(friendlyError(e)) },
+      { onSuccess: () => onMessage(t('saved.removed')), onError: (e) => onMessage(friendlyError(e)) },
     );
 
   return (
@@ -50,9 +51,9 @@ export function SavedJobs({
         ListEmptyComponent={
           saved.isPending ? null : (
             <View style={styles.empty}>
-              <Text variant="headlineSmall">Nothing saved</Text>
+              <Text variant="headlineSmall">{t('saved.emptyTitle')}</Text>
               <Text variant="bodyLarge" style={styles.center}>
-                Swipe a job up, or tap the bookmark, to keep it here while you decide.
+                {t('saved.emptyBody')}
               </Text>
             </View>
           )
@@ -80,7 +81,7 @@ export function SavedJobs({
                     contentStyle={styles.tall}
                     onPress={() => remove(item)}
                   >
-                    Remove
+                    {t('saved.remove')}
                   </Button>
                   <Button
                     mode="contained"
@@ -88,9 +89,9 @@ export function SavedJobs({
                     style={styles.flex}
                     contentStyle={styles.tall}
                     onPress={() => apply(item)}
-                    accessibilityLabel={`Apply for ${item.job.title}`}
+                    accessibilityLabel={t('saved.applyFor', { title: item.job.title })}
                   >
-                    Apply
+                    {t('saved.apply')}
                   </Button>
                 </View>
               </Card.Content>
@@ -100,7 +101,7 @@ export function SavedJobs({
       />
       <JobDetailSheet
         item={detail}
-        skipLabel="Remove"
+        skipLabel={t('saved.remove')}
         onDismiss={() => setDetail(null)}
         onReport={(r) => {
           setDetail(null);
@@ -114,12 +115,12 @@ export function SavedJobs({
       />
       <ReportDialog
         visible={reporting !== null}
-        subject={reporting ? `“${reporting.job.title}”` : 'job'}
+        subject={reporting ? t('saved.quoted', { title: reporting.job.title }) : t('saved.job')}
         jobId={reporting?.job.id}
         onDismiss={() => setReporting(null)}
         onDone={() => {
           setReporting(null);
-          onMessage('Thanks. The Croppr team will review your report.');
+          onMessage(t('chat.reported'));
         }}
       />
     </>

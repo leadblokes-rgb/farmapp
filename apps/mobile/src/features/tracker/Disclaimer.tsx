@@ -1,6 +1,7 @@
 import { visaRules } from '@croppr/shared';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Button, Icon, Text } from 'react-native-paper';
+import { t } from '@/i18n';
 
 /** Always shown on the tracker: this is an estimate, not immigration advice. */
 export function Disclaimer() {
@@ -9,7 +10,7 @@ export function Disclaimer() {
       <View style={styles.row}>
         <Icon source="information" size={22} color="#5C3B00" />
         <Text variant="bodyMedium" style={styles.text}>
-          {visaRules.disclaimer}
+          {t('shared.disclaimer')}
         </Text>
       </View>
       <Button
@@ -18,7 +19,7 @@ export function Disclaimer() {
         onPress={() => Linking.openURL(visaRules.sourceUrl)}
         style={styles.link}
       >
-        Home Affairs: specified work
+        {t('tracker.homeAffairs')}
       </Button>
     </View>
   );

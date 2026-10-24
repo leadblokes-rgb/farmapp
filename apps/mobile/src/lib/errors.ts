@@ -1,13 +1,13 @@
-// Database CHECK constraints the user can trip from a form, in plain words.
-const CONSTRAINT_MESSAGES: Record<string, string> = {
-  shift_logs_hours_check: 'A shift can be at most 24 hours.',
-  payslips_period_length_check:
-    'A pay period can be at most 31 days. Add longer periods as separate payslips.',
-  payslips_hours_check: 'That’s more than 24 hours per day worked. Check the total hours and days worked.',
-  payslips_days_worked_min_check: 'Enter how many days you worked.',
-  payslips_check: 'The pay period ends before it starts.',
-  payslips_check1: 'Days worked can’t be more than the days in the pay period.',
-};
+import { t } from '@/i18n';
+// Database CHECK constraints the user can trip from a form, in plain words (errors.constraints.* in en.json).
+const CONSTRAINTS = [
+  'shift_logs_hours_check',
+  'payslips_period_length_check',
+  'payslips_hours_check',
+  'payslips_days_worked_min_check',
+  'payslips_check',
+  'payslips_check1',
+] as const;
 
 /**
  * Turns low-level errors into something a person can act on. "Failed to fetch" (web) and
@@ -21,13 +21,14 @@ export function friendlyError(e: unknown): string {
         ? String(e.message)
         : String(e);
   if (/failed to fetch|network request failed|load failed|networkerror/i.test(message)) {
-    const base = 'Can’t reach the Croppr server. Check your internet connection and try again.';
+    const base = t('errors.offline');
     // In development the "server" is Supabase on your computer, so say exactly what we tried.
     return __DEV__
       ? `${base}\n\nDev: couldn't reach ${process.env.EXPO_PUBLIC_SUPABASE_URL}. Is Supabase running (npm run db:start)? On a phone, use your computer's LAN IP in apps/mobile/.env.local and restart Expo.`
       : base;
   }
   const constraint = /violates check constraint "([^"]+)"/.exec(message)?.[1];
-  if (constraint && CONSTRAINT_MESSAGES[constraint]) return CONSTRAINT_MESSAGES[constraint];
+  const known = CONSTRAINTS.find((c) => c === constraint);
+  if (known) return t(`errors.constraints.${known}`);
   return message;
 }

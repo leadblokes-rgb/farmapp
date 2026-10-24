@@ -1,9 +1,10 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
+import { t } from '@/i18n';
 
 const GOLD = '#B7791F';
 
-/** "★ 4.5 (12 reviews)", or "No reviews yet". */
+/** "★ 4.5 (12 reviews)", or "No reviews yet". `noun` picks the wording: reviews or ratings. */
 export function RatingSummary({
   avg,
   count,
@@ -12,21 +13,19 @@ export function RatingSummary({
 }: {
   avg: number | null | undefined;
   count: number | null | undefined;
-  noun?: string;
+  noun?: 'review' | 'rating';
   size?: number;
 }) {
   if (!count || avg == null) {
-    return <Text style={styles.muted}>No {noun}s yet</Text>;
+    return <Text style={styles.muted}>{t(`stars.none.${noun}`)}</Text>;
   }
-  const label = `${Number(avg).toFixed(1)} out of 5 from ${count} ${noun}${count === 1 ? '' : 's'}`;
+  const counted = t(`stars.count.${noun}`, { count });
+  const label = t('stars.summaryLabel', { avg: Number(avg).toFixed(1), counted });
   return (
     <View style={styles.row} accessible accessibilityLabel={label}>
       <Icon source="star" size={size} color={GOLD} />
       <Text style={[styles.value, { fontSize: size - 2 }]}>{Number(avg).toFixed(1)}</Text>
-      <Text style={[styles.muted, { fontSize: size - 4 }]}>
-        ({count} {noun}
-        {count === 1 ? '' : 's'})
-      </Text>
+      <Text style={[styles.muted, { fontSize: size - 4 }]}>({counted})</Text>
     </View>
   );
 }
@@ -34,7 +33,7 @@ export function RatingSummary({
 /** Small read-only star row for a single review. */
 export function StarRow({ value, size = 16 }: { value: number; size?: number }) {
   return (
-    <View style={styles.row} accessible accessibilityLabel={`${value} out of 5 stars`}>
+    <View style={styles.row} accessible accessibilityLabel={t('stars.rowLabel', { value })}>
       {[1, 2, 3, 4, 5].map((n) => (
         <Icon key={n} source={n <= value ? 'star' : 'star-outline'} size={size} color={GOLD} />
       ))}
@@ -63,7 +62,7 @@ export function StarInput({
             style={styles.tap}
             accessibilityRole="radio"
             accessibilityState={{ checked: value === n }}
-            accessibilityLabel={`${label}: ${n} star${n === 1 ? '' : 's'}`}
+            accessibilityLabel={t('stars.inputLabel', { label, count: n })}
           >
             <Icon source={value != null && n <= value ? 'star' : 'star-outline'} size={40} color={GOLD} />
           </Pressable>

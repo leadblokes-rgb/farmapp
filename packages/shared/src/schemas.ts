@@ -7,45 +7,46 @@ import { TRAVEL_MODES, VISA_TYPES, VISA_TYPES_WITH_EXPIRY } from './enums';
 
 // Form-level validation shared by the app (and later Edge Functions). The database enforces
 // the same rules with CHECK constraints, so these exist to give friendly messages early.
+// Messages are keys into ./i18n/en.json ("validation.*"); the app shows them translated.
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a date as DD/MM/YYYY');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.date');
 export const postcodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}$/, 'Enter a 4-digit postcode');
+  .regex(/^\d{4}$/, 'validation.postcode');
 
 export const availabilityWindowSchema = z
   .object({ startDate: isoDate, endDate: isoDate })
   .refine((w) => w.endDate >= w.startDate, {
-    message: 'End date must be on or after the start date',
+    message: 'validation.endAfterStart',
     path: ['endDate'],
   });
 
 export const workerProfileSchema = z
   .object({
-    fullName: z.string().trim().min(2, 'Enter your name').max(80),
+    fullName: z.string().trim().min(2, 'validation.name').max(80),
     currentPostcode: postcodeSchema,
     nationality: z.enum(COUNTRIES.map((c) => c.code) as [string, ...string[]], {
-      message: 'Choose your nationality',
+      message: 'validation.nationality',
     }),
-    visaType: z.enum(VISA_TYPES, { message: 'Choose your visa type' }),
+    visaType: z.enum(VISA_TYPES, { message: 'validation.visaType' }),
     visaExpiry: isoDate.nullable(),
     travelMode: z.enum(TRAVEL_MODES),
     groupSize: z.number().int().min(1).max(20),
     hasCar: z.boolean(),
     needsAccommodation: z.boolean(),
     skills: z.array(z.enum(SKILL_KEYS)),
-    yearsExperience: z.number().int().min(0, 'Can’t be negative').max(50),
-    experienceSummary: z.string().trim().max(1000, 'Keep it under 1000 characters'),
-    regionIds: z.array(z.string()).min(1, 'Pick at least one region'),
-    availability: z.array(availabilityWindowSchema).min(1, 'Add at least one date range you’re available'),
+    yearsExperience: z.number().int().min(0, 'validation.notNegative').max(50),
+    experienceSummary: z.string().trim().max(1000, 'validation.max1000'),
+    regionIds: z.array(z.string()).min(1, 'validation.regions'),
+    availability: z.array(availabilityWindowSchema).min(1, 'validation.availability'),
   })
   .superRefine((v, ctx) => {
     if (VISA_TYPES_WITH_EXPIRY.includes(v.visaType) && !v.visaExpiry) {
-      ctx.addIssue({ code: 'custom', path: ['visaExpiry'], message: 'Enter your visa expiry date' });
+      ctx.addIssue({ code: 'custom', path: ['visaExpiry'], message: 'validation.visaExpiry' });
     }
     if (v.travelMode === 'group' && v.groupSize < 2) {
-      ctx.addIssue({ code: 'custom', path: ['groupSize'], message: 'A group has at least 2 people' });
+      ctx.addIssue({ code: 'custom', path: ['groupSize'], message: 'validation.groupSize' });
     }
   });
 
@@ -55,17 +56,14 @@ const auPhone = /^(?:\+?61|0)[2-478]\d{8}$/;
 
 export const farmSchema = z
   .object({
-    businessName: z.string().trim().min(2, 'Enter the business name').max(120),
-    abn: z
-      .string()
-      .transform(normaliseAbn)
-      .refine(isValidAbn, 'That ABN doesn’t look right. Check the 11 digits.'),
+    businessName: z.string().trim().min(2, 'validation.businessName').max(120),
+    abn: z.string().transform(normaliseAbn).refine(isValidAbn, 'validation.abn'),
     contactPhone: z
       .string()
       .transform((s) => s.replace(/[\s()-]/g, ''))
-      .refine((s) => auPhone.test(s), 'Enter an Australian phone number'),
+      .refine((s) => auPhone.test(s), 'validation.phone'),
     postcode: postcodeSchema,
-    description: z.string().trim().max(2000, 'Keep it under 2000 characters'),
+    description: z.string().trim().max(2000, 'validation.max2000'),
     isLabourHire: z.boolean(),
     labourHireLicenceNumber: z.string().trim().max(40),
   })
@@ -74,7 +72,7 @@ export const farmSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['labourHireLicenceNumber'],
-        message: 'Labour hire providers must enter their licence number',
+        message: 'validation.licence',
       });
     }
   });
@@ -88,18 +86,18 @@ export type FarmOutput = z.output<typeof farmSchema>;
 
 export const jobSchema = z
   .object({
-    title: z.string().trim().min(3, 'Give the job a short title').max(80),
-    roleType: z.enum(JOB_ROLE_KEYS, { message: 'Choose a role type' }),
-    description: z.string().trim().max(2000, 'Keep it under 2000 characters'),
+    title: z.string().trim().min(3, 'validation.jobTitle').max(80),
+    roleType: z.enum(JOB_ROLE_KEYS, { message: 'validation.roleType' }),
+    description: z.string().trim().max(2000, 'validation.max2000'),
     postcode: postcodeSchema,
     startDate: isoDate,
     endDate: isoDate,
     workersNeeded: z.number().int().min(1).max(500),
     employmentType: z.enum(['casual', 'part_time', 'full_time'], {
-      message: 'Choose casual, part-time or full-time',
+      message: 'validation.employmentType',
     }),
     payType: z.enum(['hourly', 'piece_rate']),
-    payRateCents: z.number({ message: 'Enter the pay rate' }).int().positive('Enter the pay rate'),
+    payRateCents: z.number({ message: 'validation.payRate' }).int().positive('validation.payRate'),
     pieceRateUnit: z.string().trim().max(40),
     minHourlyGuaranteeCents: z.number().int().positive().nullable(),
     hoursPerWeek: z.number().int().min(1).max(80),
@@ -114,7 +112,7 @@ export const jobSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'End date must be on or after the start date',
+        message: 'validation.endAfterStart',
       });
     }
     if (v.payType === 'piece_rate') {
@@ -122,14 +120,14 @@ export const jobSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['minHourlyGuaranteeCents'],
-          message: 'Piece-rate jobs must state the minimum hourly amount you guarantee',
+          message: 'validation.guarantee',
         });
       }
       if (v.pieceRateUnit.length < 2) {
         ctx.addIssue({
           code: 'custom',
           path: ['pieceRateUnit'],
-          message: 'What is the rate per? e.g. bin, tray, kg',
+          message: 'validation.pieceUnit',
         });
       }
     }

@@ -3,16 +3,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { Button, Dialog, HelperText, Portal, Text, TextInput } from 'react-native-paper';
 import { SingleChoiceChips } from '@/components/form/SingleChoiceChips';
 import { useSubmitReport, type ReportReason } from './api';
+import { t } from '@/i18n';
 
-const REASONS: { key: ReportReason; label: string }[] = [
-  { key: 'unsafe', label: 'Unsafe work or housing' },
-  { key: 'underpaid', label: 'Underpaid / not paid' },
-  { key: 'harassment', label: 'Harassment' },
-  { key: 'scam', label: 'Scam or asks for money' },
-  { key: 'no_show', label: 'Didn’t show up' },
-  { key: 'fake_profile', label: 'Fake profile or farm' },
-  { key: 'other', label: 'Something else' },
-];
+// Reasons a person can pick (the others are raised by the system, e.g. no-show disputes).
+const REASONS = ['unsafe', 'underpaid', 'harassment', 'scam', 'no_show', 'fake_profile', 'other'] as const;
 
 interface Props {
   visible: boolean;
@@ -45,17 +39,19 @@ export function ReportDialog({ visible, onDismiss, onDone, conversationId, jobId
   return (
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
-        <Dialog.Title>Report {subject}</Dialog.Title>
+        <Dialog.Title>{t('report.title', { subject })}</Dialog.Title>
         <Dialog.ScrollArea>
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-            <Text variant="bodyMedium">
-              Reports go to the Croppr team, not to the other person. If you&apos;re in danger, call 000.
-            </Text>
-            <SingleChoiceChips options={REASONS} value={reason} onChange={setReason} />
+            <Text variant="bodyMedium">{t('report.intro')}</Text>
+            <SingleChoiceChips
+              options={REASONS.map((key) => ({ key, label: t(`report.reasons.${key}`) }))}
+              value={reason}
+              onChange={setReason}
+            />
             <TextInput
               mode="outlined"
-              label="What happened? (optional)"
-              accessibilityLabel="What happened?"
+              label={t('report.details')}
+              accessibilityLabel={t('report.detailsLabel')}
               value={details}
               onChangeText={setDetails}
               multiline
@@ -68,9 +64,9 @@ export function ReportDialog({ visible, onDismiss, onDone, conversationId, jobId
           </ScrollView>
         </Dialog.ScrollArea>
         <Dialog.Actions>
-          <Button onPress={onDismiss}>Cancel</Button>
+          <Button onPress={onDismiss}>{t('form.cancel')}</Button>
           <Button onPress={send} disabled={!reason} loading={submit.isPending}>
-            Send report
+            {t('report.send')}
           </Button>
         </Dialog.Actions>
       </Dialog>

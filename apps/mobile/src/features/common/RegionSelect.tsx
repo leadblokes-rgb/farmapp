@@ -3,6 +3,7 @@ import { ActivityIndicator, Button, Text } from 'react-native-paper';
 import { ChipSelect } from '@/components/form/ChipSelect';
 import { MIN_TAP } from '@/theme';
 import { useRegions } from './api';
+import { t } from '@/i18n';
 
 interface Props {
   selected: string[];
@@ -14,9 +15,9 @@ export function RegionSelect({ selected, onChange }: Props) {
   const regions = useRegions();
   if (regions.isPending) {
     return (
-      <View style={styles.row} accessibilityLabel="Loading regions">
+      <View style={styles.row} accessibilityLabel={t('regions.loading')}>
         <ActivityIndicator />
-        <Text variant="bodyLarge">Loading regions…</Text>
+        <Text variant="bodyLarge">{t('regions.loadingDots')}</Text>
       </View>
     );
   }
@@ -24,10 +25,10 @@ export function RegionSelect({ selected, onChange }: Props) {
     return (
       <View style={styles.row}>
         <Text variant="bodyLarge" style={styles.flex}>
-          Couldn’t load regions.
+          {t('regions.error')}
         </Text>
         <Button mode="outlined" icon="refresh" contentStyle={styles.tall} onPress={() => regions.refetch()}>
-          Try again
+          {t('common.tryAgain')}
         </Button>
       </View>
     );

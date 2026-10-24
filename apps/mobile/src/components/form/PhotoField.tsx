@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Avatar, Button, Text } from 'react-native-paper';
+import { t } from '@/i18n';
 
 export interface PickedImage {
   uri: string;
@@ -41,7 +42,7 @@ export function PhotoField({ currentUrl, picked, onPick, initials }: Props) {
   const uri = picked?.uri ?? currentUrl ?? null;
   return (
     <View style={styles.row}>
-      <Pressable onPress={() => pick('library')} accessibilityLabel="Choose profile photo">
+      <Pressable onPress={() => pick('library')} accessibilityLabel={t('form.photo.chooseLabel')}>
         {uri ? (
           <Image source={{ uri }} style={styles.photo} contentFit="cover" />
         ) : (
@@ -49,12 +50,12 @@ export function PhotoField({ currentUrl, picked, onPick, initials }: Props) {
         )}
       </Pressable>
       <View style={styles.actions}>
-        <Text variant="bodyMedium">A clear photo of your face helps farms recognise you on day one.</Text>
+        <Text variant="bodyMedium">{t('form.photo.why')}</Text>
         <Button mode="outlined" icon="image" onPress={() => pick('library')}>
-          Choose photo
+          {t('form.photo.choose')}
         </Button>
         <Button mode="text" icon="camera" onPress={() => pick('camera')}>
-          Take photo
+          {t('form.photo.take')}
         </Button>
       </View>
     </View>

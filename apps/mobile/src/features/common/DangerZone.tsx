@@ -5,6 +5,7 @@ import { BigButton } from '@/components/BigButton';
 import { removeUserFiles } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 /** Sign out + permanently delete account (privacy requirement). */
 export function DangerZone() {
@@ -26,7 +27,7 @@ export function DangerZone() {
       if (err) throw err;
       await signOut();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not delete your account.');
+      setError(e instanceof Error ? e.message : t('account.deleteFailed'));
       setDeleting(false);
     }
   }
@@ -34,27 +35,24 @@ export function DangerZone() {
   return (
     <View style={styles.wrap}>
       <BigButton mode="outlined" icon="logout" onPress={signOut}>
-        Sign out
+        {t('common.signOut')}
       </BigButton>
       <Button mode="text" textColor="#B00020" onPress={() => setConfirming(true)} contentStyle={styles.tall}>
-        Delete my account
+        {t('account.delete')}
       </Button>
       <Portal>
         <Dialog visible={confirming} onDismiss={() => !deleting && setConfirming(false)}>
-          <Dialog.Title>Delete your account?</Dialog.Title>
+          <Dialog.Title>{t('account.confirmTitle')}</Dialog.Title>
           <Dialog.Content style={styles.dialog}>
-            <Text variant="bodyLarge">
-              This permanently deletes your profile, visa details, photos and messages. It can&apos;t be
-              undone.
-            </Text>
+            <Text variant="bodyLarge">{t('account.confirmBody')}</Text>
             {error ? <Text style={styles.error}>{error}</Text> : null}
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setConfirming(false)} disabled={deleting}>
-              Cancel
+              {t('form.cancel')}
             </Button>
             <Button textColor="#B00020" onPress={deleteAccount} loading={deleting} disabled={deleting}>
-              Delete
+              {t('account.confirm')}
             </Button>
           </Dialog.Actions>
         </Dialog>

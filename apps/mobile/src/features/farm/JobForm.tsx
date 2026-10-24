@@ -1,12 +1,11 @@
 import {
-  JOB_ROLES,
-  belowAwardWarning,
+  JOB_ROLE_KEYS,
+  belowAwardIssue,
   formatCents,
   jobSchema,
   payRules,
   awardMinHourlyCents,
   EMPLOYMENT_TYPES,
-  employmentTypeLabel,
   type JobInput,
 } from '@croppr/shared';
 import { useEffect, useRef, useState } from 'react';
@@ -27,6 +26,8 @@ import { usePostcode, useSpecifiedWorkCheck } from '@/features/common/api';
 import { zodResolver } from '@/lib/zodResolver';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
+import { t } from '@/i18n';
+import { employmentDescription, employmentLabel, roleLabel, sharedText } from '@/i18n/shared';
 
 interface Props {
   initial: JobInput;
@@ -81,13 +82,15 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
   }, [checkKey, check.data, postcodeValid, setValue]);
   const place = usePostcode(postcode);
   const employmentType = useWatch({ control, name: 'employmentType' });
-  const awardMin = `${employmentTypeLabel(employmentType).toLowerCase()} award minimum: ${formatCents(awardMinHourlyCents(employmentType))}/hr`;
-  const awardWarning = belowAwardWarning({
+  const awardRate = formatCents(awardMinHourlyCents(employmentType));
+  const typeLabel = employmentLabel(employmentType);
+  const awardIssue = belowAwardIssue({
     payType,
     payRateCents: payRateCents ?? 0,
     minHourlyGuaranteeCents,
     employmentType,
   });
+  const awardWarning = awardIssue && sharedText(awardIssue);
 
   const submit = handleSubmit(async (values) => {
     setSubmitError(null);
@@ -100,43 +103,62 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
 
   return (
     <View style={styles.form}>
-      <Section title="The job">
-        <TextField control={control} name="title" label="Job title" placeholder="e.g. Strawberry pickers" />
+      <Section title={t('jobForm.theJob')}>
+        <TextField
+          control={control}
+          name="title"
+          label={t('jobForm.title')}
+          placeholder={t('jobForm.titlePlaceholder')}
+        />
         <Controller
           control={control}
           name="roleType"
           render={({ field }) => (
-            <SingleChoiceChips options={JOB_ROLES} value={field.value} onChange={field.onChange} />
+            <SingleChoiceChips
+              options={JOB_ROLE_KEYS.map((key) => ({ key, label: roleLabel(key) }))}
+              value={field.value}
+              onChange={field.onChange}
+            />
           )}
         />
         <TextField
           control={control}
           name="description"
-          label="Description"
+          label={t('jobForm.description')}
           multiline
           numberOfLines={4}
-          hint="Start times, what the work involves, what to bring."
+          hint={t('jobForm.descriptionHint')}
         />
         <Controller
           control={control}
           name="workersNeeded"
           render={({ field }) => (
-            <Stepper label="Workers needed" value={field.value} onChange={field.onChange} min={1} max={500} />
+            <Stepper
+              label={t('jobForm.workersNeeded')}
+              value={field.value}
+              onChange={field.onChange}
+              min={1}
+              max={500}
+            />
           )}
         />
       </Section>
 
-      <Section title="Where and when">
+      <Section title={t('jobForm.whereWhen')}>
         <Controller
           control={control}
           name="postcode"
           render={({ field, fieldState }) => (
             <PostcodeField
-              label="Work location postcode"
+              label={t('jobForm.postcode')}
               value={field.value}
               onChange={field.onChange}
               error={fieldState.error?.message}
-              hint={place.data ? `${place.data.locality}, ${place.data.state}` : undefined}
+              hint={
+                place.data
+                  ? t('form.place', { locality: place.data.locality, state: place.data.state })
+                  : undefined
+              }
             />
           )}
         />
@@ -146,7 +168,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
             name="startDate"
             render={({ field, fieldState }) => (
               <DateField
-                label="Start date"
+                label={t('jobForm.startDate')}
                 value={field.value || null}
                 onChange={(v) => field.onChange(v ?? '')}
                 error={fieldState.error?.message}
@@ -158,7 +180,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
             name="endDate"
             render={({ field, fieldState }) => (
               <DateField
-                label="End date"
+                label={t('jobForm.endDate')}
                 value={field.value || null}
                 minDate={startDate || null}
                 onChange={(v) => field.onChange(v ?? '')}
@@ -172,7 +194,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
           name="hoursPerWeek"
           render={({ field }) => (
             <Stepper
-              label="Hours per week (approx.)"
+              label={t('jobForm.hours')}
               value={field.value}
               onChange={field.onChange}
               min={1}
@@ -182,21 +204,24 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
         />
       </Section>
 
-      <Section title="Pay">
-        <Text variant="titleMedium">Employment type</Text>
+      <Section title={t('jobForm.pay')}>
+        <Text variant="titleMedium">{t('jobForm.employmentType')}</Text>
         <Controller
           control={control}
           name="employmentType"
           render={({ field, fieldState }) => (
             <View>
               <SingleChoiceChips
-                options={EMPLOYMENT_TYPES.map((e) => ({ key: e.key, label: e.label }))}
+                options={EMPLOYMENT_TYPES.map((e) => ({ key: e.key, label: employmentLabel(e.key) }))}
                 value={field.value}
                 onChange={field.onChange}
               />
               <FieldMessage
                 error={fieldState.error?.message}
-                hint={`${EMPLOYMENT_TYPES.find((e) => e.key === field.value)?.description ?? ''}. Minimum ${formatCents(awardMinHourlyCents(field.value))}/hr under the Horticulture Award.`}
+                hint={t('jobForm.employmentHint', {
+                  description: employmentDescription(field.value),
+                  rate: formatCents(awardMinHourlyCents(field.value)),
+                })}
               />
             </View>
           )}
@@ -209,8 +234,8 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
               value={field.value}
               onValueChange={field.onChange}
               buttons={[
-                { value: 'hourly', label: 'Hourly', icon: 'clock-outline', style: styles.segment },
-                { value: 'piece_rate', label: 'Piece rate', icon: 'basket', style: styles.segment },
+                { value: 'hourly', label: t('jobForm.hourly'), icon: 'clock-outline', style: styles.segment },
+                { value: 'piece_rate', label: t('jobForm.pieceRate'), icon: 'basket', style: styles.segment },
               ]}
             />
           )}
@@ -221,12 +246,12 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
             name="payRateCents"
             render={({ field, fieldState }) => (
               <MoneyField
-                label="Hourly rate"
-                suffix="/hr"
+                label={t('jobForm.hourlyRate')}
+                suffix={t('form.perHour')}
                 value={field.value || null}
                 onChange={field.onChange}
                 error={fieldState.error?.message}
-                hint={`${awardMin.charAt(0).toUpperCase()}${awardMin.slice(1)}`}
+                hint={t('jobForm.awardMin', { type: typeLabel, rate: awardRate })}
               />
             )}
           />
@@ -238,7 +263,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
                 name="payRateCents"
                 render={({ field, fieldState }) => (
                   <MoneyField
-                    label="Piece rate"
+                    label={t('jobForm.pieceRate')}
                     value={field.value || null}
                     onChange={field.onChange}
                     error={fieldState.error?.message}
@@ -246,7 +271,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
                 )}
               />
               <View style={styles.flex}>
-                <TextField control={control} name="pieceRateUnit" label="Per (bin, tray, kg…)" />
+                <TextField control={control} name="pieceRateUnit" label={t('jobForm.per')} />
               </View>
             </View>
             <Controller
@@ -254,19 +279,22 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
               name="minHourlyGuaranteeCents"
               render={({ field, fieldState }) => (
                 <MoneyField
-                  label="Guaranteed minimum per hour"
-                  suffix="/hr"
+                  label={t('jobForm.guarantee')}
+                  suffix={t('form.perHour')}
                   value={field.value}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
-                  hint={`Required. Piece-rate workers must earn at least the ${awardMin.split(':')[0]} (${formatCents(awardMinHourlyCents(employmentType))}/hr).`}
+                  hint={t('jobForm.guaranteeHint', { type: typeLabel.toLowerCase(), rate: awardRate })}
                 />
               )}
             />
             {pieceRateUnit ? (
               <Text variant="bodyMedium">
-                Workers will see: {formatCents(payRateCents || 0)} per {pieceRateUnit}, at least{' '}
-                {formatCents(minHourlyGuaranteeCents || 0)}/hr guaranteed.
+                {t('jobForm.workersSee', {
+                  rate: formatCents(payRateCents || 0),
+                  unit: pieceRateUnit,
+                  min: formatCents(minHourlyGuaranteeCents || 0),
+                })}
               </Text>
             ) : null}
           </>
@@ -280,18 +308,18 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
               onPress={() => Linking.openURL(payRules.sourceUrl)}
               contentStyle={styles.tall}
             >
-              Fair Work: horticulture pay rates
+              {t('jobForm.fairWork')}
             </Button>
           </>
         ) : null}
       </Section>
 
-      <Section title="What you provide">
+      <Section title={t('jobForm.provide')}>
         <Controller
           control={control}
           name="accommodationProvided"
           render={({ field }) => (
-            <SwitchRow label="Accommodation available" value={field.value} onChange={field.onChange} />
+            <SwitchRow label={t('jobForm.accommodation')} value={field.value} onChange={field.onChange} />
           )}
         />
         {accommodationProvided ? (
@@ -300,8 +328,8 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
             name="accommodationCostWeekCents"
             render={({ field, fieldState }) => (
               <MoneyField
-                label="Accommodation cost per week (0 if free)"
-                suffix="/wk"
+                label={t('jobForm.accommodationCost')}
+                suffix={t('form.perWeek')}
                 value={field.value}
                 onChange={(v) => field.onChange(v ?? 0)}
                 error={fieldState.error?.message}
@@ -313,14 +341,14 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
           control={control}
           name="transportProvided"
           render={({ field }) => (
-            <SwitchRow label="Transport to work provided" value={field.value} onChange={field.onChange} />
+            <SwitchRow label={t('jobForm.transport')} value={field.value} onChange={field.onChange} />
           )}
         />
         <Controller
           control={control}
           name="carRequired"
           render={({ field }) => (
-            <SwitchRow label="Workers need their own car" value={field.value} onChange={field.onChange} />
+            <SwitchRow label={t('jobForm.car')} value={field.value} onChange={field.onChange} />
           )}
         />
         <Controller
@@ -328,34 +356,24 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
           name="likelySpecifiedWork"
           render={({ field }) => (
             <SwitchRow
-              label="Likely counts as specified work"
-              description="Plant and animal cultivation in an eligible regional postcode usually counts towards a 2nd or 3rd working holiday visa. Ticked automatically from the postcode."
+              label={t('jobForm.specified')}
+              description={t('jobForm.specifiedNote')}
               value={field.value}
               onChange={field.onChange}
             />
           )}
         />
         {postcodeValid && check.data && likelySpecifiedWork && !eligiblePostcode ? (
-          <WarningBanner>
-            This postcode isn’t on the eligible list for plant and animal cultivation. Workers on 417/462
-            visas will see that. Only leave this on if it’s another kind of specified work.
-          </WarningBanner>
+          <WarningBanner>{t('jobForm.notEligible')}</WarningBanner>
         ) : null}
         {postcodeValid && !likelySpecifiedWork && eligiblePostcode ? (
-          <Text variant="bodyMedium">
-            This postcode is eligible for plant and animal cultivation, so workers will see that whatever you
-            choose.
-          </Text>
+          <Text variant="bodyMedium">{t('jobForm.eligible')}</Text>
         ) : null}
       </Section>
 
-      <FieldMessage
-        error={
-          submitError ?? (Object.keys(errors).length ? 'Please fix the highlighted fields above.' : undefined)
-        }
-      />
+      <FieldMessage error={submitError ?? (Object.keys(errors).length ? t('form.fixFields') : undefined)} />
       <HelperText type="info" visible={!!awardWarning}>
-        You can still post this job, but please check the pay first.
+        {t('jobForm.stillPost')}
       </HelperText>
       <BigButton onPress={() => submit()} loading={isSubmitting} disabled={isSubmitting}>
         {submitLabel}

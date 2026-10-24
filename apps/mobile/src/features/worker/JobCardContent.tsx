@@ -1,4 +1,4 @@
-import { employmentTypeLabel, formatCents, jobRoleLabel } from '@croppr/shared';
+import { formatCents } from '@croppr/shared';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import { RatingSummary } from '@/components/Stars';
@@ -6,7 +6,10 @@ import { Image } from 'expo-image';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { farmImageUrl } from '@/lib/storage';
 import { dateRangeLabel, payLabel } from '@/features/jobs/format';
+import { matchNote } from '@/features/jobs/matchNote';
 import type { RankedFeedJob } from './feedApi';
+import { t } from '@/i18n';
+import { employmentLabel, roleLabel } from '@/i18n/shared';
 
 function Fact({ icon, children, compact }: { icon: string; children: string; compact?: boolean }) {
   return (
@@ -26,14 +29,15 @@ function Fact({ icon, children, compact }: { icon: string; children: string; com
 export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact?: boolean }) {
   const j = item.job;
   const pay = payLabel(j);
-  const distanceNote = item.breakdown.distance?.note;
+  const distance = item.breakdown.distance;
+  const distanceNote = distance?.code === 'distanceUnknown' ? '' : matchNote(distance);
   // Small phones (e.g. iPhone SE): a tighter swipe card so the pay always shows.
   const { height } = useWindowDimensions();
   const tight = !!compact && height < 700;
   const roleLine = (
     <Text variant="bodyLarge" style={styles.muted}>
-      {jobRoleLabel(j.role_type)} · {employmentTypeLabel(j.employment_type)}
-      {j.farm_is_labour_hire ? ' · via labour hire' : ''}
+      {roleLabel(j.role_type)} · {employmentLabel(j.employment_type)}
+      {j.farm_is_labour_hire ? t('jobCard.viaLabourHire') : ''}
     </Text>
   );
 
@@ -68,25 +72,31 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
       {compact ? roleLine : null}
 
       <Fact icon="map-marker" compact={compact}>
-        {`${j.locality ?? j.postcode}${j.region_name ? `, ${j.region_name}` : ''}${distanceNote && distanceNote !== 'Distance unknown' ? ` · ${distanceNote}` : ''}`}
+        {`${j.locality ?? j.postcode}${j.region_name ? `, ${j.region_name}` : ''}${distanceNote ? ` · ${distanceNote}` : ''}`}
       </Fact>
-      <Fact
-        icon="calendar"
-        compact={compact}
-      >{`${dateRangeLabel(j.start_date, j.end_date)} · ~${j.hours_per_week} h/wk`}</Fact>
+      <Fact icon="calendar" compact={compact}>
+        {t('jobCard.hoursPerWeek', {
+          dates: dateRangeLabel(j.start_date, j.end_date),
+          hours: j.hours_per_week,
+        })}
+      </Fact>
       <Fact icon="home" compact={compact}>
         {j.accommodation_provided
-          ? `Accommodation${j.accommodation_cost_week_cents ? ` ${formatCents(j.accommodation_cost_week_cents)}/wk` : ' (free)'}`
-          : 'No accommodation'}
+          ? j.accommodation_cost_week_cents
+            ? t('jobCard.accommodationCost', { cost: formatCents(j.accommodation_cost_week_cents) })
+            : t('jobCard.accommodationFree')
+          : t('jobCard.noAccommodation')}
       </Fact>
       <Fact icon={j.car_required ? 'car' : j.transport_provided ? 'bus' : 'walk'} compact={compact}>
         {j.car_required
-          ? 'Own car needed'
+          ? t('jobCard.ownCar')
           : j.transport_provided
-            ? 'Transport provided'
-            : 'No transport provided'}
+            ? t('jobCard.transport')
+            : t('jobCard.noTransport')}
       </Fact>
-      <Fact icon="account-group" compact={compact}>{`${j.workers_needed} workers needed`}</Fact>
+      <Fact icon="account-group" compact={compact}>
+        {t('jobCard.workersNeeded', { count: j.workers_needed ?? 0 })}
+      </Fact>
 
       {/* Specified work: the eligible-postcode list (for the worker's own visa) comes first; the
           farm's own estimate is only a fallback. Nothing is shown to workers not on a 417/462. */}
@@ -101,13 +111,13 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
         <View style={[styles.specified, styles.estimate]}>
           <Icon source="passport" size={20} color="#5C3B00" />
           <Text variant="bodyMedium" style={styles.specifiedText}>
-            Farm’s estimate: may count as specified work
+            {t('jobCard.farmEstimate')}
           </Text>
         </View>
       ) : null}
       {!compact && item.specified.eligible !== null ? (
         <Text variant="bodySmall" style={styles.muted}>
-          Estimate only, based on the postcode and type of work. Check with Home Affairs before relying on it.
+          {t('jobCard.estimateOnly')}
         </Text>
       ) : null}
     </View>

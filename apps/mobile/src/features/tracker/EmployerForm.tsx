@@ -7,6 +7,7 @@ import { PostcodeField } from '@/components/form/PostcodeField';
 import { SwitchRow } from '@/components/form/SwitchRow';
 import { useSpecifiedWorkCheck } from '@/features/common/api';
 import type { EmployerInput } from './api';
+import { t } from '@/i18n';
 
 interface Props {
   initial: EmployerInput;
@@ -38,14 +39,14 @@ export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
   }, [eligible, v.postcode]);
 
   async function submit() {
-    if (v.name.trim().length < 2) return setError('Enter the employer’s name');
-    if (v.abn.trim() && !isValidAbn(v.abn)) return setError('That ABN doesn’t look right (it’s optional)');
+    if (v.name.trim().length < 2) return setError(t('employer.nameRequired'));
+    if (v.abn.trim() && !isValidAbn(v.abn)) return setError(t('employer.badAbn'));
     setError(null);
     setSaving(true);
     try {
       await onSubmit(v);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save');
+      setError(e instanceof Error ? e.message : t('employer.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -55,24 +56,24 @@ export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
     <View style={styles.form}>
       <TextInput
         mode="outlined"
-        label="Employer name"
-        accessibilityLabel="Employer name"
+        label={t('employer.name')}
+        accessibilityLabel={t('employer.name')}
         value={v.name}
-        onChangeText={(t) => set('name', t)}
+        onChangeText={(text) => set('name', text)}
         style={styles.input}
       />
       <PostcodeField
-        label="Work postcode"
+        label={t('employer.postcode')}
         value={v.postcode}
         onChange={(p) => set('postcode', p)}
-        hint="Where the work was done (eligibility depends on the postcode)."
+        hint={t('employer.postcodeHint')}
       />
       <TextInput
         mode="outlined"
-        label="Employer ABN (optional, on your payslip)"
-        accessibilityLabel="Employer ABN"
+        label={t('employer.abn')}
+        accessibilityLabel={t('employer.abnLabel')}
         value={v.abn}
-        onChangeText={(t) => set('abn', t)}
+        onChangeText={(text) => set('abn', text)}
         keyboardType="number-pad"
         maxLength={14}
         style={styles.input}
@@ -80,13 +81,13 @@ export function EmployerForm({ initial, submitLabel, onSubmit }: Props) {
       {/^\d{4}$/.test(v.postcode) && eligible != null ? (
         <Text variant="bodyMedium">
           {eligible
-            ? `✓ Eligible postcode for ${subclass} ${check.data!.label ?? 'plant & animal cultivation'} (estimate only).`
-            : `Not an eligible postcode for ${subclass} plant & animal cultivation. Only count it if it’s another kind of specified work.`}
+            ? t('employer.eligible', { visa: subclass, work: check.data!.label ?? t('employer.plantAnimal') })
+            : t('employer.notEligible', { visa: subclass })}
         </Text>
       ) : null}
       <SwitchRow
-        label="This counts as specified work"
-        description="e.g. plant and animal cultivation in an eligible regional postcode. Turn off for other jobs (like a city café) so they aren't counted."
+        label={t('employer.counts')}
+        description={t('employer.countsNote')}
         value={v.countsAsSpecified}
         onChange={(b) => set('countsAsSpecified', b)}
       />

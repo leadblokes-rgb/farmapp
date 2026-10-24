@@ -7,6 +7,7 @@ import { useMyFarm } from '@/features/farm/api';
 import { emptyJob, jobToInput, useJob, useSaveJob } from '@/features/farm/jobsApi';
 import { JobForm } from '@/features/farm/JobForm';
 import { useUserId } from '@/providers/AuthProvider';
+import { t } from '@/i18n';
 
 /** Post a job, or repost one (`?from=<job id>`): a copy with the dates cleared. */
 export default function NewJob() {
@@ -35,13 +36,11 @@ function NewJobForm({
   const save = useSaveJob(farmId);
   return (
     <Screen scroll edges={['bottom']}>
-      <Stack.Screen options={{ title: reposting ? 'Repost job' : 'Post a job' }} />
-      {reposting ? (
-        <WarningBanner>Copied from your earlier job. Set the new dates and check the pay.</WarningBanner>
-      ) : null}
+      <Stack.Screen options={{ title: reposting ? t('jobs.repost') : t('jobs.post') }} />
+      {reposting ? <WarningBanner>{t('jobs.copied')}</WarningBanner> : null}
       <JobForm
         initial={initial}
-        submitLabel="Post job"
+        submitLabel={t('jobs.postSubmit')}
         onSubmit={async (values) => {
           const id = await save.mutateAsync({ values });
           router.replace(`/farm/job/${id}`);
