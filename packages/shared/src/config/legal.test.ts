@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -14,6 +15,18 @@ describe('legal documents', () => {
     for (const f of ['terms.md', 'privacy-policy.md']) {
       expect(generated).toContain(JSON.stringify(readFileSync(join(root, 'docs/legal', f), 'utf8')));
     }
+  });
+
+  it('the website pages match docs/legal and the support email (run npm run build:legal)', () => {
+    const sha = (f: string) =>
+      createHash('sha256')
+        .update(readFileSync(join(root, 'docs/legal', f), 'utf8'))
+        .digest('hex');
+    expect(readFileSync(join(root, 'website/terms.html'), 'utf8')).toContain(sha('terms.md'));
+    expect(readFileSync(join(root, 'website/privacy.html'), 'utf8')).toContain(sha('privacy-policy.md'));
+    expect(readFileSync(join(root, 'website/support.html'), 'utf8')).toContain(
+      `mailto:${legal.supportEmail}`,
+    );
   });
 
   it('documents state the current versions', () => {

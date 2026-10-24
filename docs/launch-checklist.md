@@ -55,7 +55,9 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 
 ## 5. App store release
 - [ ] **You:** Apple Developer account (paid yearly) and Google Play Console account (one-off fee), under the business name.
-- [ ] **You:** Store listing: screenshots, description, keywords, support URL, privacy policy URL. The app icon and splash are done from the Croppr logo.
+- [x] **Dev:** A simple website (`website/`): landing page, privacy policy, terms and support pages with account-deletion instructions. See the README.
+- [ ] **You:** Register a domain (e.g. `croppr.com.au`) and host `website/` on it (Netlify, Cloudflare Pages or GitHub Pages; no build step).
+- [ ] **You:** Store listing: screenshots, description, keywords, support URL (`/support.html`), privacy policy URL (`/privacy.html`). The app icon and splash are done from the Croppr logo.
 - [ ] **Dev:** Production builds with `eas build`, then TestFlight and Play internal testing, then submit.
 
 ## 6. Running it
@@ -67,5 +69,5 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 ## 7. After the MVP (agreed to defer)
 - A dedicated admin web app (farm queue, reports, stats) to replace the dashboard SQL.
 - Automatic ABN checks through the ABR web service, and checks against labour hire registers.
-- Translations: many workers aren't native English speakers. French, German, Korean, Japanese, Spanish and Chinese would cover most of them.
+- Translations: the groundwork is done (all text in translation files, see the README). Next: translate into French, German, Korean, Japanese, Spanish and Chinese, which would cover most workers.
 - A smarter, AI-based ranker: implement the `Ranker` interface in `packages/matching`.
