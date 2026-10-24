@@ -1,14 +1,41 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import { Button, Text } from 'react-native-paper';
 import { Screen } from '@/components/Screen';
 import { LegalDocument, type LegalDoc } from '@/features/legal/LegalDocument';
+import { MIN_TAP } from '@/theme';
 
+/** Terms of use / privacy policy, with a visible Back button (not everyone knows to swipe back). */
 export default function LegalScreen() {
   const { doc } = useLocalSearchParams<{ doc: string }>();
   const which: LegalDoc = doc === 'privacy' ? 'privacy' : 'terms';
+  const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   return (
-    <Screen scroll edges={['bottom']}>
-      <Stack.Screen options={{ title: which === 'privacy' ? 'Privacy policy' : 'Terms of use' }} />
+    <Screen scroll>
+      <View style={styles.bar}>
+        <Button
+          icon="arrow-left"
+          mode="text"
+          onPress={back}
+          contentStyle={styles.tall}
+          accessibilityLabel="Back"
+        >
+          Back
+        </Button>
+        <Text variant="titleMedium" style={styles.title}>
+          {which === 'privacy' ? 'Privacy policy' : 'Terms of use'}
+        </Text>
+      </View>
       <LegalDocument doc={which} />
+      <Button mode="outlined" icon="arrow-left" onPress={back} contentStyle={styles.tall}>
+        Back
+      </Button>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -12 },
+  title: { fontWeight: '700', flexShrink: 1 },
+  tall: { minHeight: MIN_TAP },
+});

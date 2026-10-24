@@ -149,7 +149,6 @@ function GuardedStack({
       <Stack.Protected guard={role === 'admin'}>
         <Stack.Screen name="admin" />
       </Stack.Protected>
-      <Stack.Screen name="legal" options={{ headerShown: true, headerBackButtonDisplayMode: 'minimal' }} />
     </Stack>
   );
 }

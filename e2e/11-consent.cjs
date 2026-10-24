@@ -25,7 +25,7 @@ let page;
   await page.getByRole('button', { name: /Read: Privacy policy/ }).click();
   await page.getByText(/Who can see what/).waitFor({ timeout: 15000 });
   await page.screenshot({ path: `${OUT}/e-2-privacy.png` });
-  await page.goBack();
+  await page.getByRole('button', { name: 'Back' }).first().click();
   await page.getByText('Before you start').waitFor({ timeout: 15000 });
 
   await page.getByLabel('I agree to the Terms of use').click();
