@@ -21,6 +21,7 @@ export function DangerZone() {
       await removeUserFiles('avatars', session.user.id);
       await removeUserFiles('farm-logos', session.user.id);
       await removeUserFiles('payslips', session.user.id);
+      await removeUserFiles('resumes', session.user.id);
       const { error: err } = await supabase.rpc('delete_my_account');
       if (err) throw err;
       await signOut();

@@ -1323,6 +1323,8 @@ export type Database = {
           has_car: boolean;
           needs_accommodation: boolean;
           photo_path: string | null;
+          resume_name: string | null;
+          resume_path: string | null;
           skills: string[];
           travel_mode: Database['public']['Enums']['travel_mode'];
           updated_at: string;
@@ -1340,6 +1342,8 @@ export type Database = {
           has_car?: boolean;
           needs_accommodation?: boolean;
           photo_path?: string | null;
+          resume_name?: string | null;
+          resume_path?: string | null;
           skills?: string[];
           travel_mode?: Database['public']['Enums']['travel_mode'];
           updated_at?: string;
@@ -1356,6 +1360,8 @@ export type Database = {
           has_car?: boolean;
           needs_accommodation?: boolean;
           photo_path?: string | null;
+          resume_name?: string | null;
+          resume_path?: string | null;
           skills?: string[];
           travel_mode?: Database['public']['Enums']['travel_mode'];
           updated_at?: string;

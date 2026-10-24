@@ -104,3 +104,20 @@ export function useBroadcast(jobId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['conversations'] }),
   });
 }
+
+/** The applicant's resume, if they've added one (farms can open resumes of their applicants). */
+export function useApplicantResume(workerId: string | undefined) {
+  return useQuery({
+    queryKey: ['applicant-resume', workerId],
+    enabled: !!workerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('worker_profiles')
+        .select('resume_path, resume_name')
+        .eq('user_id', workerId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.resume_path ? data : null;
+    },
+  });
+}

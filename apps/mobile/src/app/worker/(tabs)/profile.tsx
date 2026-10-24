@@ -6,6 +6,7 @@ import { LegalLinks } from '@/features/legal/LegalLinks';
 import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
 import { GroupCard } from '@/features/worker/GroupCard';
 import { JobAlertsCard } from '@/features/worker/JobAlertsCard';
+import { ResumeCard } from '@/features/worker/ResumeCard';
 import { WorkerProfileForm } from '@/features/worker/WorkerProfileForm';
 import { useSignedUrl } from '@/lib/storage';
 import { useUserId } from '@/providers/AuthProvider';
@@ -36,6 +37,7 @@ export default function WorkerProfile() {
             setMessage('Profile saved');
           }}
         />
+        <ResumeCard userId={userId} onMessage={setMessage} />
         <JobAlertsCard userId={userId} onSaved={setMessage} />
         <LegalLinks />
         <DangerZone />

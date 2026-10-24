@@ -11,12 +11,14 @@ import { Screen } from '@/components/Screen';
 import { initials, VisaBadge } from '@/features/farm/ApplicantCard';
 import {
   useApplicantAvailability,
+  useApplicantResume,
   useDecide,
   useShortlist,
   type FactorScore,
 } from '@/features/farm/shortlistApi';
 import { dateRangeLabel } from '@/features/jobs/format';
 import { WorkerReviews } from '@/features/ratings/Reviews';
+import { openResume } from '@/features/worker/ResumeCard';
 import { MIN_TAP } from '@/theme';
 import { friendlyError } from '@/lib/errors';
 import { Toast } from '@/components/Toast';
@@ -34,6 +36,7 @@ export default function ApplicantDetail() {
   const shortlist = useShortlist(jobId);
   const a = shortlist.data?.applicants.find((x) => x.application_id === id);
   const availability = useApplicantAvailability(a?.worker_id);
+  const resume = useApplicantResume(a?.worker_id);
   const decide = useDecide(jobId);
   const startChat = useStartConversation();
   const [message, setMessage] = useState<string | null>(null);
@@ -122,6 +125,16 @@ export default function ApplicantDetail() {
           {skillLabels.length ? ` · ${skillLabels.join(', ')}` : ''}
         </Text>
         {a.experience_summary ? <Text variant="bodyLarge">“{a.experience_summary}”</Text> : null}
+        {resume.data ? (
+          <Button
+            mode="outlined"
+            icon="file-account-outline"
+            contentStyle={styles.tall}
+            onPress={() => openResume(resume.data!.resume_path!).catch((e) => setMessage(friendlyError(e)))}
+          >
+            View resume
+          </Button>
+        ) : null}
         {a.no_show_count > 0 ? (
           <Text variant="bodyLarge" style={styles.warnText}>
             {a.no_show_count} no-show{a.no_show_count === 1 ? '' : 's'} on Croppr jobs

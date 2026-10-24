@@ -29,7 +29,7 @@ export async function uploadUserImage(opts: {
 /** Deletes every file in the user's folder of a bucket (used when replacing a photo or deleting the account). */
 /** Uploads a picked file by its local URI (file:// on native, blob:/data: on web). */
 export async function uploadUserFileFromUri(opts: {
-  bucket: 'payslips';
+  bucket: 'payslips' | 'resumes';
   userId: string;
   uri: string;
   name: string;
@@ -46,7 +46,7 @@ export async function uploadUserFileFromUri(opts: {
 }
 
 export async function signedUrl(
-  bucket: 'avatars' | 'payslips',
+  bucket: 'avatars' | 'payslips' | 'resumes',
   path: string,
   seconds = 600,
 ): Promise<string> {
@@ -56,7 +56,7 @@ export async function signedUrl(
 }
 
 export async function removeUserFiles(
-  bucket: 'avatars' | 'farm-logos' | 'payslips',
+  bucket: 'avatars' | 'farm-logos' | 'payslips' | 'resumes',
   userId: string,
   keep?: string,
 ) {

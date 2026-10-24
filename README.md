@@ -179,6 +179,7 @@ Approving farms, suspending users and handling reports are done in the Supabase 
 - Visa type, visa expiry and nationality live in `worker_private`, which only the worker can read. Farms will only ever get a yes/no answer to "does the visa cover the job dates?".
 - Farms start as `pending`. Only admin functions (dashboard only) can verify them. Changing legal details sends a verified farm back for review.
 - Worker photos are in a private storage bucket, served through short-lived signed URLs.
+- Resumes (Profile → Resume: PDF, Word or a photo, up to 5 MB) are in a private `resumes` bucket. Only the worker, farms they've applied to, and admins can open them.
 - No passport numbers, dates of birth or street addresses are collected. "Use my location" keeps only the postcode.
 - The day tracker (employers, shifts, payslips) is visible only to the worker. Farms and the app's admin role can't read it. Payslip files are in a private bucket.
 - Users can delete their account in the app (Profile → Delete my account), which also removes their photos and payslip files.
