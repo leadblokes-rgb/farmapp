@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LoadError, Loading } from '@/components/Loading';
 import { Screen } from '@/components/Screen';
 import { DangerZone } from '@/features/common/DangerZone';
+import { NotificationSettings } from '@/features/common/NotificationSettings';
 import { LegalLinks } from '@/features/legal/LegalLinks';
 import { useMyWorkerProfile, useSaveWorkerProfile } from '@/features/worker/api';
 import { GroupCard } from '@/features/worker/GroupCard';
@@ -39,6 +40,7 @@ export default function WorkerProfile() {
         />
         <ResumeCard userId={userId} onMessage={setMessage} />
         <JobAlertsCard userId={userId} onSaved={setMessage} />
+        <NotificationSettings userId={userId} role="worker" onSaved={setMessage} />
         <LegalLinks />
         <DangerZone />
       </Screen>

@@ -54,9 +54,9 @@ select results_eq($$ select worker_id::text from public.job_alert_recipients('a1
   $$ values ('10101010-0000-0000-0000-000000000012') $$,
   'alerts skip workers who already applied and jobs below their minimum pay');
 insert into public.notification_log (event, recipient_id, outcome)
-select 'job_alert', '10101010-0000-0000-0000-000000000012', 'sent' from generate_series(1, 3);
-select is((select count(*)::int from public.job_alert_recipients('a1010101-0000-0000-0000-000000000001') where worker_id::text like '10101010%'), 0,
-  'at most 3 alerts per worker per day');
+select 'job_alert_instant', '10101010-0000-0000-0000-000000000012', 'sent' from generate_series(1, 3);
+select is((select count(*)::int from public.job_alert_recipients('a1010101-0000-0000-0000-000000000001') where worker_id::text like '10101010%'), 1,
+  'no daily cap on recipients: jobs past the instant cap go to the digest');
 select pg_temp.act_as('10101010-0000-0000-0000-000000000012');
 select throws_ok($$ select * from public.job_alert_recipients('a1010101-0000-0000-0000-000000000001') $$,
   '42501', null, 'the app cannot list alert recipients');

@@ -3,7 +3,8 @@ const { chromium, launchOptions } = require('./lib.cjs');
 const { execSync } = require('child_process');
 const OUT = require('./lib.cjs').OUT;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const sql = (q) => execSync(`psql -tA postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "${q}"`).toString().trim();
+const sql = (q) =>
+  execSync(`psql -tA postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "${q}"`).toString().trim();
 const SAM = '11111111-1111-1111-1111-111111111111';
 
 let worker, farm;
@@ -23,7 +24,10 @@ let worker, farm;
   // ---------- Postcode eligibility on the job card (Sam is on a 417) ----------
   worker = await open("I'm looking for work", 'Demo worker');
   await worker.getByTestId('swipe-card').waitFor({ timeout: 30000 });
-  await worker.getByTestId('swipe-card').getByText('Eligible postcode for 417 plant & animal cultivation').waitFor();
+  await worker
+    .getByTestId('swipe-card')
+    .getByText('Eligible postcode for 417 plant & animal cultivation')
+    .waitFor();
   console.log('PASS job card shows postcode eligibility for the worker’s visa');
 
   // ---------- Save for later ----------
@@ -44,7 +48,9 @@ let worker, farm;
   await worker.getByRole('button', { name: `Apply for ${title}` }).click();
   await worker.getByText(`Applied to ${title}`).waitFor();
   await worker.getByRole('radio', { name: 'Saved (0)' }).waitFor({ timeout: 15000 });
-  const applied = sql(`select count(*) from applications a join jobs j on j.id=a.job_id where a.worker_id='${SAM}' and j.title='${title.replace(/'/g, "''")}'`);
+  const applied = sql(
+    `select count(*) from applications a join jobs j on j.id=a.job_id where a.worker_id='${SAM}' and j.title='${title.replace(/'/g, "''")}'`,
+  );
   if (applied !== '1') throw new Error('apply from saved failed');
   console.log('PASS apply from the saved list');
 
@@ -54,22 +60,58 @@ let worker, farm;
   await worker.getByRole('switch', { name: 'Only jobs with accommodation' }).click();
   await worker.getByRole('button', { name: 'Save job alerts' }).click();
   await worker.getByText('Job alerts on').waitFor();
-  if (sql(`select accommodation_only from job_alerts where worker_id='${SAM}'`) !== 't') throw new Error('alert not saved');
+  if (sql(`select accommodation_only from job_alerts where worker_id='${SAM}'`) !== 't')
+    throw new Error('alert not saved');
+  // Turn accommodation back off and instant alerts off, so the next job waits for the digest.
   await worker.getByRole('switch', { name: 'Only jobs with accommodation' }).click();
+  await worker.getByRole('switch', { name: 'Tell me straight away about great matches' }).click();
   await worker.getByRole('button', { name: 'Save job alerts' }).click();
   await sleep(1000);
-  if (sql(`select accommodation_only from job_alerts where worker_id='${SAM}'`) !== 'f') throw new Error('alert not updated');
+  if (
+    sql(
+      `select accommodation_only::text || instant_top_matches::text from job_alerts where worker_id='${SAM}'`,
+    ) !== 'falsefalse'
+  )
+    throw new Error('alert not updated');
   console.log('PASS worker edits job alerts');
 
   sql(`insert into jobs (farm_id, title, role_type, postcode, start_date, end_date, workers_needed, pay_type, pay_rate_cents, hours_per_week)
        values ('f0000000-0000-0000-0000-000000000001', 'Alert test: cabbage cutting', 'picking', '4343', current_date + 5, current_date + 40, 6, 'hourly', 3300, 38)`);
-  let alerted = '0';
-  for (let i = 0; i < 20 && alerted === '0'; i++) {
+  let queued = '0';
+  for (let i = 0; i < 20 && queued === '0'; i++) {
     await sleep(500);
-    alerted = sql(`select count(*) from notification_log where event='job_alert' and recipient_id='${SAM}' and title like 'New job: Alert test%'`);
+    queued = sql(
+      `select count(*) from job_alert_queue q join jobs j on j.id=q.job_id where q.worker_id='${SAM}' and j.title like 'Alert test%'`,
+    );
   }
-  if (alerted !== '1') throw new Error('job alert not sent to Sam');
-  console.log('PASS a new matching job alerts the worker');
+  if (queued !== '1') throw new Error("matching job not queued for Sam's digest");
+  if (
+    sql(`select count(*) from notification_log where event='job_alert_instant' and recipient_id='${SAM}'`) !==
+    '0'
+  )
+    throw new Error('instant alert sent although turned off');
+  sql('select public.send_job_alert_digest()');
+  let digest = '0';
+  for (let i = 0; i < 20 && digest === '0'; i++) {
+    await sleep(500);
+    digest = sql(
+      `select count(*) from notification_log where event='job_alert_digest' and recipient_id='${SAM}' and title like '%new job%'`,
+    );
+  }
+  if (digest !== '1') throw new Error('daily digest not sent to Sam');
+  console.log('PASS a new matching job goes into the daily digest');
+
+  // ---------- Notification settings ----------
+  await worker.getByText('Notifications', { exact: true }).scrollIntoViewIfNeeded();
+  await worker.getByRole('switch', { name: 'Messages' }).click();
+  await worker.getByText('Notification settings saved').waitFor();
+  if (sql(`select messages from notification_prefs where user_id='${SAM}'`) !== 'f')
+    throw new Error('prefs not saved');
+  await worker.getByRole('switch', { name: 'Messages' }).click();
+  await sleep(1000);
+  if (sql(`select messages from notification_prefs where user_id='${SAM}'`) !== 't')
+    throw new Error('prefs not updated');
+  console.log('PASS worker changes notification settings');
 
   // ---------- Tracker employer postcode check ----------
   await worker.goto('http://localhost:8081/worker/employer/new');
@@ -105,7 +147,10 @@ let worker, farm;
   await browser.close();
 })().catch(async (e) => {
   console.log('FAIL', e.message);
-  for (const [name, p] of [['worker', worker], ['farm', farm]]) {
+  for (const [name, p] of [
+    ['worker', worker],
+    ['farm', farm],
+  ]) {
     if (p) await p.screenshot({ path: `${OUT}/c-fail-${name}.png` }).catch(() => {});
   }
   process.exit(1);

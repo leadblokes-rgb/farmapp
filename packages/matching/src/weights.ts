@@ -24,3 +24,11 @@ export const UNRATED_RELIABILITY_SCORE = 0.6;
 
 /** Pay this far above the award minimum (in cents/hour) earns the full pay score. */
 export const PAY_SCORE_CEILING_ABOVE_MIN_CENTS = 800;
+
+/**
+ * Job alerts: new jobs normally go into a once-a-day digest. A job scoring at least this much
+ * for a worker (0–100, from rankJobsForWorker) is "a great match" and is sent straight away to
+ * workers who've turned on instant alerts, at most JOB_ALERT_MAX_INSTANT_PER_DAY a day.
+ */
+export const JOB_ALERT_INSTANT_MIN_SCORE = 80;
+export const JOB_ALERT_MAX_INSTANT_PER_DAY = 3;

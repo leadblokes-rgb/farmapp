@@ -15,6 +15,7 @@ interface Alert {
   regionIds: string[];
   minHourlyCents: number | null;
   accommodationOnly: boolean;
+  instantTopMatches: boolean;
 }
 
 /** The worker's saved alert, or defaults from their preferred regions (alerts are off until saved). */
@@ -35,6 +36,7 @@ function useJobAlert(userId: string) {
             regionIds: a.region_ids,
             minHourlyCents: a.min_hourly_cents,
             accommodationOnly: a.accommodation_only,
+            instantTopMatches: a.instant_top_matches,
           }
         : {
             exists: false,
@@ -42,6 +44,7 @@ function useJobAlert(userId: string) {
             regionIds: (regions.data ?? []).map((r) => r.region_id),
             minHourlyCents: null,
             accommodationOnly: false,
+            instantTopMatches: true,
           };
     },
   });
@@ -73,6 +76,7 @@ function Form({
         region_ids: v.regionIds,
         min_hourly_cents: v.minHourlyCents,
         accommodation_only: v.accommodationOnly,
+        instant_top_matches: v.instantTopMatches,
       });
       if (error) throw error;
     },
@@ -83,7 +87,10 @@ function Form({
   });
 
   return (
-    <Section title="Job alerts" note="Get a notification when a new job matches.">
+    <Section
+      title="Job alerts"
+      note="One summary a day (about 6pm) of new jobs that match. Uses the dates you’re available on your profile."
+    >
       <SwitchRow label="Tell me about new jobs" value={a.enabled} onChange={(v) => set('enabled', v)} />
       {a.enabled ? (
         <>
@@ -99,6 +106,12 @@ function Form({
             label="Only jobs with accommodation"
             value={a.accommodationOnly}
             onChange={(v) => set('accommodationOnly', v)}
+          />
+          <SwitchRow
+            label="Tell me straight away about great matches"
+            description="Jobs that really suit you (pay, distance, dates) come through as soon as they’re posted. Everything else waits for the daily summary."
+            value={a.instantTopMatches}
+            onChange={(v) => set('instantTopMatches', v)}
           />
         </>
       ) : null}

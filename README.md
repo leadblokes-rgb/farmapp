@@ -154,7 +154,8 @@ Edge Functions run in Deno, so `npm run build:functions` bundles `packages/match
 ## Saved jobs and job alerts
 
 - Workers swipe a job **up** (or tap the bookmark) to save it. Saved jobs leave the swipe feed and are listed under Matches → Saved, with Apply and Remove.
-- **Job alerts** (Profile → Job alerts): regions, minimum pay and accommodation. A new open job pushes to each matching worker, at most 3 alerts per worker per day (`job_alert_recipients` in SQL, sent by `send-push`).
+- **Job alerts** (Profile → Job alerts): regions, minimum pay and accommodation, plus the worker's availability dates from their profile. By default matching jobs wait for **one daily digest** (08:00 UTC, about 6pm in Queensland; pg_cron `croppr-job-digest` → `send_job_alert_digest()`). `send-push` scores each match with the ranker; jobs scoring at least `JOB_ALERT_INSTANT_MIN_SCORE` (80, in `packages/matching/src/weights.ts`) push straight away if the worker kept "Tell me straight away about great matches" on, with a hidden cap of `JOB_ALERT_MAX_INSTANT_PER_DAY` (3). Everything else goes into `job_alert_queue` for the digest.
+- **Notification settings** (Profile → Notifications, workers and farms): messages, updates and (farms) check-in reminders, stored in `notification_prefs`. `send-push` logs muted notices with outcome `muted`.
 
 ## Specified-work postcodes
 

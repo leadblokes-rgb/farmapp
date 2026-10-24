@@ -500,12 +500,50 @@ export type Database = {
           },
         ];
       };
+      job_alert_queue: {
+        Row: {
+          created_at: string;
+          job_id: string;
+          score: number;
+          worker_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          job_id: string;
+          score?: number;
+          worker_id: string;
+        };
+        Update: {
+          created_at?: string;
+          job_id?: string;
+          score?: number;
+          worker_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_alert_queue_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'job_alert_queue_worker_id_fkey';
+            columns: ['worker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       job_alerts: {
         Row: {
           accommodation_only: boolean;
           available_from: string | null;
           available_to: string | null;
           enabled: boolean;
+          instant_top_matches: boolean;
           min_hourly_cents: number | null;
           region_ids: string[];
           updated_at: string;
@@ -517,6 +555,7 @@ export type Database = {
           available_from?: string | null;
           available_to?: string | null;
           enabled?: boolean;
+          instant_top_matches?: boolean;
           min_hourly_cents?: number | null;
           region_ids?: string[];
           updated_at?: string;
@@ -527,6 +566,7 @@ export type Database = {
           available_from?: string | null;
           available_to?: string | null;
           enabled?: boolean;
+          instant_top_matches?: boolean;
           min_hourly_cents?: number | null;
           region_ids?: string[];
           updated_at?: string;
@@ -750,6 +790,39 @@ export type Database = {
           url?: string | null;
         };
         Relationships: [];
+      };
+      notification_prefs: {
+        Row: {
+          messages: boolean;
+          reminders: boolean;
+          updated_at: string;
+          updates: boolean;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          messages?: boolean;
+          reminders?: boolean;
+          updated_at?: string;
+          updates?: boolean;
+          user_id: string;
+        };
+        Update: {
+          messages?: boolean;
+          reminders?: boolean;
+          updated_at?: string;
+          updates?: boolean;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_prefs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       payslips: {
         Row: {
@@ -2037,6 +2110,7 @@ export type Database = {
       run_daily_jobs: { Args: Record<PropertyKey, never>; Returns: undefined };
       save_match_scores: { Args: { p_ranker_version: string; p_scores: Json }; Returns: number };
       save_worker_profile: { Args: { p: Json }; Returns: undefined };
+      send_job_alert_digest: { Args: Record<PropertyKey, never>; Returns: undefined };
       set_my_role: {
         Args: { new_role: Database['public']['Enums']['user_role'] };
         Returns: {
@@ -2088,6 +2162,15 @@ export type Database = {
       swipe_job: {
         Args: { p_direction: Database['public']['Enums']['swipe_direction']; p_job_id: string };
         Returns: string;
+      };
+      take_job_alert_digests: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          job_count: number;
+          top_farm_name: string;
+          top_job_title: string;
+          worker_id: string;
+        }[];
       };
       undo_swipe: { Args: { p_job_id: string }; Returns: undefined };
       withdraw_application: { Args: { p_application_id: string }; Returns: undefined };
