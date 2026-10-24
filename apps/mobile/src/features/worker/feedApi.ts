@@ -65,6 +65,7 @@ function toMatchJob(j: FeedJob): MatchJob {
     carRequired: j.car_required,
     transportProvided: j.transport_provided,
     accommodationProvided: j.accommodation_provided,
+    employmentType: j.employment_type,
     effectiveHourlyCents: effectiveHourlyCents({
       payType: j.pay_type,
       payRateCents: j.pay_rate_cents,

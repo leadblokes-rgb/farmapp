@@ -45,6 +45,7 @@ export function validateShift(s: ShiftDraft, today: string): string | null {
   if (!s.workDate) return 'Choose the date you worked.';
   if (s.workDate > today) return 'You can’t log a shift in the future.';
   if (!Number.isFinite(s.hours) || s.hours <= 0) return 'Enter the hours you worked.';
-  if (s.hours > trackerLimits.maxHoursPerDay) return `A shift can be at most ${trackerLimits.maxHoursPerDay} hours.`;
+  if (s.hours > trackerLimits.maxHoursPerDay)
+    return `A shift can be at most ${trackerLimits.maxHoursPerDay} hours.`;
   return null;
 }

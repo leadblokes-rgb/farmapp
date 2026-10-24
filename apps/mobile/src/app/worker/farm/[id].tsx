@@ -1,3 +1,4 @@
+import { employmentTypeLabel } from '@croppr/shared';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -100,8 +101,9 @@ export default function FarmPage() {
                   {j.title}
                 </Text>
                 <Text variant="bodyLarge">
-                  {pay.main} · {dateRangeLabel(j.start_date, j.end_date)}
+                  {pay.main} · {employmentTypeLabel(j.employment_type)}
                 </Text>
+                <Text variant="bodyLarge">{dateRangeLabel(j.start_date, j.end_date)}</Text>
                 <Text variant="bodyMedium">
                   {j.locality ?? ''}
                   {j.accommodation_provided ? ' · Accommodation available' : ''}

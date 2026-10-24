@@ -26,8 +26,12 @@ var payRules = {
   lastReviewed: "2026-10-21",
   effectiveFrom: "2026-07-01",
   award: "Horticulture Award 2020 [MA000028]",
-  /** Level 1 adult casual hourly rate, including the 25% casual loading. */
-  awardMinHourlyCents: 3218,
+  /**
+   * Level 1 adult minimum hourly rate by employment type. Casual includes the 25% casual loading
+   * (paid instead of leave); part-time and full-time employees get the base rate plus paid leave.
+   */
+  awardMinHourlyCents: { casual: 3218, part_time: 2574, full_time: 2574 },
+  casualLoading: 0.25,
   /**
    * Since April 2022 the Horticulture Award requires piece-rate workers to earn at least the
    * minimum hourly rate for the hours they work. Jobs paid by piece rate must state the
@@ -36,6 +40,9 @@ var payRules = {
   pieceRateRequiresHourlyGuarantee: true,
   sourceUrl: "https://horticulture.fairwork.gov.au/pay-and-piece-rates"
 };
+function awardMinHourlyCents(employmentType = "casual") {
+  return payRules.awardMinHourlyCents[employmentType];
+}
 
 // packages/matching/src/weights.ts
 var weights_exports = {};
@@ -127,8 +134,8 @@ function reliability(worker) {
     note: `Rated ${worker.reliability.toFixed(1)}/5 for reliability`
   };
 }
-function pay(job, awardMinHourlyCents) {
-  const above = job.effectiveHourlyCents - awardMinHourlyCents;
+function pay(job, awardMinHourlyCents2) {
+  const above = job.effectiveHourlyCents - awardMinHourlyCents2;
   const score = Math.max(0, Math.min(1, 0.5 + 0.5 * above / PAY_SCORE_CEILING_ABOVE_MIN_CENTS));
   return { score, note: above >= 0 ? "At or above award minimum" : "Below award minimum" };
 }
@@ -161,7 +168,7 @@ function scoreJobForWorker(worker, job) {
   const breakdown = {
     availability: { ...availability(job, worker), weight: w.availability },
     distance: { ...distance(job, worker), weight: w.distance },
-    pay: { ...pay(job, payRules.awardMinHourlyCents), weight: w.pay },
+    pay: { ...pay(job, awardMinHourlyCents(job.employmentType)), weight: w.pay },
     accommodation: { ...accommodation(job, worker), weight: w.accommodation },
     transport: { ...transport(job, worker), weight: w.transport }
   };

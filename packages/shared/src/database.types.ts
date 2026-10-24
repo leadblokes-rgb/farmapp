@@ -551,6 +551,7 @@ export type Database = {
           description: string;
           eligible_417: boolean;
           eligible_462: boolean;
+          employment_type: Database['public']['Enums']['employment_type'];
           end_date: string;
           farm_id: string;
           hours_per_week: number;
@@ -581,6 +582,7 @@ export type Database = {
           description?: string;
           eligible_417?: boolean;
           eligible_462?: boolean;
+          employment_type?: Database['public']['Enums']['employment_type'];
           end_date: string;
           farm_id: string;
           hours_per_week: number;
@@ -610,6 +612,7 @@ export type Database = {
           description?: string;
           eligible_417?: boolean;
           eligible_462?: boolean;
+          employment_type?: Database['public']['Enums']['employment_type'];
           end_date?: string;
           farm_id?: string;
           hours_per_week?: number;
@@ -1714,6 +1717,7 @@ export type Database = {
         Returns: {
           accommodation_provided: boolean;
           applied: boolean;
+          employment_type: Database['public']['Enums']['employment_type'];
           end_date: string;
           hours_per_week: number;
           id: string;
@@ -1770,6 +1774,7 @@ export type Database = {
           accommodation_provided: boolean;
           car_required: boolean;
           description: string;
+          employment_type: Database['public']['Enums']['employment_type'];
           end_date: string;
           farm_id: string;
           farm_is_labour_hire: boolean;
@@ -2000,6 +2005,7 @@ export type Database = {
       account_status: 'active' | 'suspended';
       application_status: 'applied' | 'accepted' | 'declined' | 'withdrawn' | 'completed';
       attendance_status: 'showed' | 'no_show' | 'left_early';
+      employment_type: 'casual' | 'part_time' | 'full_time';
       job_role_type: 'picking' | 'packing' | 'pruning' | 'planting' | 'machinery' | 'livestock' | 'general';
       job_status: 'open' | 'filled' | 'closed';
       pay_type: 'hourly' | 'piece_rate';
@@ -2135,6 +2141,7 @@ export const Constants = {
       account_status: ['active', 'suspended'],
       application_status: ['applied', 'accepted', 'declined', 'withdrawn', 'completed'],
       attendance_status: ['showed', 'no_show', 'left_early'],
+      employment_type: ['casual', 'part_time', 'full_time'],
       job_role_type: ['picking', 'packing', 'pruning', 'planting', 'machinery', 'livestock', 'general'],
       job_status: ['open', 'filled', 'closed'],
       pay_type: ['hourly', 'piece_rate'],

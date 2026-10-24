@@ -45,6 +45,16 @@ let page;
   await page.screenshot({ path: `${OUT}/m3-2-award-warning.png`, fullPage: false });
   console.log('PASS below-award warning shown for $28/hr');
 
+  // Full-time / part-time minimum is lower ($25.74, no casual loading).
+  await page.getByRole('radio', { name: 'Full-time' }).click();
+  await page.getByText(/Minimum \$25\.74\/hr under the Horticulture Award/).waitFor();
+  if (await page.getByText(/below the Horticulture Award/).count()) throw new Error('warning shown for $28/hr full-time');
+  await page.getByLabel('Hourly rate').fill('25');
+  await page.getByText(/below the Horticulture Award full-time minimum of \$25\.74\/hr/).waitFor();
+  await page.getByLabel('Hourly rate').fill('28');
+  await page.getByRole('radio', { name: 'Casual' }).click();
+  console.log('PASS award minimum follows casual / full-time');
+
   await page.getByRole('button', { name: /Piece rate/ }).click();
   await page.getByLabel('Piece rate', { exact: true }).fill('3.50');
   await page.getByRole('button', { name: /Post job/ }).click();

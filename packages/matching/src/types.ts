@@ -22,6 +22,8 @@ export interface MatchJob {
   accommodationProvided: boolean;
   /** Hourly rate, or the guaranteed hourly minimum for piece work. */
   effectiveHourlyCents: number;
+  /** Casual pay includes a 25% loading, so pay is compared with the matching award minimum. */
+  employmentType?: 'casual' | 'part_time' | 'full_time';
 }
 
 export interface MatchWorker {

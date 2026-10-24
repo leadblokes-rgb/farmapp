@@ -14,7 +14,7 @@ describe('pay rules', () => {
   });
 
   it('warns below the award minimum, and not at or above it', () => {
-    const min = payRules.awardMinHourlyCents;
+    const min = payRules.awardMinHourlyCents.casual;
     expect(
       belowAwardWarning({ payType: 'hourly', payRateCents: min - 1, minHourlyGuaranteeCents: null }),
     ).toMatch(/below/);
@@ -56,6 +56,7 @@ const job = {
   transportProvided: false,
   carRequired: false,
   likelySpecifiedWork: true,
+  employmentType: 'casual' as const,
 };
 
 describe('jobSchema', () => {
@@ -72,7 +73,22 @@ describe('jobSchema', () => {
         .success,
     ).toBe(true);
   });
+  it('requires an employment type', () => {
+    expect(jobSchema.safeParse({ ...job, employmentType: undefined }).success).toBe(false);
+  });
   it('rejects end before start', () => {
     expect(jobSchema.safeParse({ ...job, endDate: '2026-12-01' }).success).toBe(false);
+  });
+
+  it('uses the permanent rate for part-time and full-time jobs, and the casual rate (with loading) for casual', () => {
+    expect(payRules.awardMinHourlyCents.full_time).toBe(2574);
+    expect(payRules.awardMinHourlyCents.casual).toBe(Math.round(2574 * (1 + payRules.casualLoading)));
+    const job = { payType: 'hourly' as const, payRateCents: 2800, minHourlyGuaranteeCents: null };
+    expect(belowAwardWarning({ ...job, employmentType: 'full_time' })).toBeNull();
+    expect(belowAwardWarning({ ...job, employmentType: 'part_time' })).toBeNull();
+    expect(belowAwardWarning({ ...job, employmentType: 'casual' })).toMatch(/casual minimum of \$32\.18/);
+    expect(belowAwardWarning({ ...job, payRateCents: 2500, employmentType: 'full_time' })).toMatch(
+      /full-time minimum of \$25\.74/,
+    );
   });
 });

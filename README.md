@@ -115,7 +115,7 @@ npm run test:e2e        # browser end-to-end suites (see e2e/README.md)
 
 | File | What | Review |
 |---|---|---|
-| `packages/shared/src/config/payRules.ts` | Horticulture Award casual minimum, used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
+| `packages/shared/src/config/payRules.ts` | Horticulture Award minimums by employment type (casual $32.18 incl. 25% loading; part-time/full-time $25.74, from 1 July 2026), used to warn farms posting underpaid jobs; piece-rate jobs must state a guaranteed hourly minimum | Every July, after the Fair Work Annual Wage Review |
 | `packages/shared/src/config/visaRules.ts` | Specified-work day counting: 88/179 targets, full-time week = 7 days, full-day hours, short-shift handling, disclaimer text | Whenever Home Affairs changes its guidance |
 | Database: `specified_work_lists` + `specified_work_postcodes` | Eligible postcodes for plant & animal cultivation (417 and 462), each list with a version, last-checked date and source URL. Update them in the dashboard without an app release (see `docs/admin-runbook.md`); jobs and tracker employers are re-tagged automatically | Whenever Home Affairs updates the specified-work instrument, and at least every few months |
 | `packages/matching/src/weights.ts` | How much each factor counts in match scores | As you learn what farms value |

@@ -4,6 +4,9 @@ import {
   formatCents,
   jobSchema,
   payRules,
+  awardMinHourlyCents,
+  EMPLOYMENT_TYPES,
+  employmentTypeLabel,
   type JobInput,
 } from '@croppr/shared';
 import { useEffect, useRef, useState } from 'react';
@@ -77,10 +80,13 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
     setValue('likelySpecifiedWork', check.data.eligible_417 || check.data.eligible_462);
   }, [checkKey, check.data, postcodeValid, setValue]);
   const place = usePostcode(postcode);
+  const employmentType = useWatch({ control, name: 'employmentType' });
+  const awardMin = `${employmentTypeLabel(employmentType).toLowerCase()} award minimum: ${formatCents(awardMinHourlyCents(employmentType))}/hr`;
   const awardWarning = belowAwardWarning({
     payType,
     payRateCents: payRateCents ?? 0,
     minHourlyGuaranteeCents,
+    employmentType,
   });
 
   const submit = handleSubmit(async (values) => {
@@ -177,6 +183,24 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
       </Section>
 
       <Section title="Pay">
+        <Text variant="titleMedium">Employment type</Text>
+        <Controller
+          control={control}
+          name="employmentType"
+          render={({ field, fieldState }) => (
+            <View>
+              <SingleChoiceChips
+                options={EMPLOYMENT_TYPES.map((e) => ({ key: e.key, label: e.label }))}
+                value={field.value}
+                onChange={field.onChange}
+              />
+              <FieldMessage
+                error={fieldState.error?.message}
+                hint={`${EMPLOYMENT_TYPES.find((e) => e.key === field.value)?.description ?? ''}. Minimum ${formatCents(awardMinHourlyCents(field.value))}/hr under the Horticulture Award.`}
+              />
+            </View>
+          )}
+        />
         <Controller
           control={control}
           name="payType"
@@ -202,7 +226,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
                 value={field.value || null}
                 onChange={field.onChange}
                 error={fieldState.error?.message}
-                hint={`Casual award minimum: ${formatCents(payRules.awardMinHourlyCents)}/hr`}
+                hint={`${awardMin.charAt(0).toUpperCase()}${awardMin.slice(1)}`}
               />
             )}
           />
@@ -235,7 +259,7 @@ export function JobForm({ initial, submitLabel, onSubmit }: Props) {
                   value={field.value}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
-                  hint={`Required. Piece-rate workers must earn at least the award minimum (${formatCents(payRules.awardMinHourlyCents)}/hr).`}
+                  hint={`Required. Piece-rate workers must earn at least the ${awardMin.split(':')[0]} (${formatCents(awardMinHourlyCents(employmentType))}/hr).`}
                 />
               )}
             />

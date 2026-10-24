@@ -1,4 +1,4 @@
-import { payRules, relevantSkills } from '@croppr/shared';
+import { awardMinHourlyCents, relevantSkills } from '@croppr/shared';
 import * as f from './factors';
 import type { MatchJob, MatchWorker, Ranked, Ranker, ScoreBreakdown } from './types';
 import { APPLICANT_WEIGHTS, FEED_WEIGHTS } from './weights';
@@ -29,7 +29,7 @@ export function scoreJobForWorker(worker: MatchWorker, job: MatchJob): Ranked<Ma
   const breakdown: ScoreBreakdown = {
     availability: { ...f.availability(job, worker), weight: w.availability },
     distance: { ...f.distance(job, worker), weight: w.distance },
-    pay: { ...f.pay(job, payRules.awardMinHourlyCents), weight: w.pay },
+    pay: { ...f.pay(job, awardMinHourlyCents(job.employmentType)), weight: w.pay },
     accommodation: { ...f.accommodation(job, worker), weight: w.accommodation },
     transport: { ...f.transport(job, worker), weight: w.transport },
   };

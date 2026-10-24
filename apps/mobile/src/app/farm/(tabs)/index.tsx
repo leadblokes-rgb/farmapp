@@ -1,4 +1,4 @@
-import { jobRoleLabel } from '@croppr/shared';
+import { employmentTypeLabel, jobRoleLabel } from '@croppr/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
@@ -76,7 +76,7 @@ function JobCard({ job }: { job: JobWithCounts }) {
           {jobRoleLabel(job.role_type)} · {dateRangeLabel(job.start_date, job.end_date)}
         </Text>
         <Text variant="bodyLarge">
-          {pay.main} · {job.workers_needed} needed
+          {pay.main} · {employmentTypeLabel(job.employment_type)} · {job.workers_needed} needed
         </Text>
         <Text variant="titleMedium" style={styles.applicants}>
           {applicants} applicant{applicants === 1 ? '' : 's'}

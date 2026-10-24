@@ -1,7 +1,9 @@
 // ⚠️ SINGLE SOURCE for minimum pay checks. Review every July after the Fair Work Annual Wage Review.
 //
 // Croppr only WARNS farms when a job looks underpaid; it is not legal or payroll advice.
-// Source: Fair Work Ombudsman, Horticulture Award pay and piece rates
+// Source: Fair Work Ombudsman, Horticulture Award pay and piece rates (Level 1 adult, from the first full
+// pay period on or after 1 July 2026): full-time and part-time $25.74/hr; casual $32.18/hr, which is
+// $25.74 plus the 25% casual loading.
 // https://horticulture.fairwork.gov.au/pay-and-piece-rates
 
 export const payRules = {
@@ -9,8 +11,12 @@ export const payRules = {
   lastReviewed: '2026-10-21',
   effectiveFrom: '2026-07-01',
   award: 'Horticulture Award 2020 [MA000028]',
-  /** Level 1 adult casual hourly rate, including the 25% casual loading. */
-  awardMinHourlyCents: 3218,
+  /**
+   * Level 1 adult minimum hourly rate by employment type. Casual includes the 25% casual loading
+   * (paid instead of leave); part-time and full-time employees get the base rate plus paid leave.
+   */
+  awardMinHourlyCents: { casual: 3218, part_time: 2574, full_time: 2574 } as Record<EmploymentType, number>,
+  casualLoading: 0.25,
   /**
    * Since April 2022 the Horticulture Award requires piece-rate workers to earn at least the
    * minimum hourly rate for the hours they work. Jobs paid by piece rate must state the
@@ -21,6 +27,22 @@ export const payRules = {
 } as const;
 
 export type PayType = 'hourly' | 'piece_rate';
+export type EmploymentType = 'casual' | 'part_time' | 'full_time';
+
+export const EMPLOYMENT_TYPES = [
+  { key: 'casual', label: 'Casual', description: 'Paid the 25% casual loading instead of paid leave' },
+  { key: 'part_time', label: 'Part-time', description: 'Regular hours, with paid leave' },
+  { key: 'full_time', label: 'Full-time', description: '38 hours a week, with paid leave' },
+] as const satisfies readonly { key: EmploymentType; label: string; description: string }[];
+
+export function employmentTypeLabel(t: EmploymentType): string {
+  return EMPLOYMENT_TYPES.find((e) => e.key === t)?.label ?? t;
+}
+
+/** Award minimum hourly rate (Level 1 adult) for an employment type. */
+export function awardMinHourlyCents(employmentType: EmploymentType = 'casual'): number {
+  return payRules.awardMinHourlyCents[employmentType];
+}
 
 /** The hourly figure workers can rely on: the hourly rate, or a piece-rate job's guaranteed minimum. */
 export function effectiveHourlyCents(job: {
@@ -36,10 +58,13 @@ export function belowAwardWarning(job: {
   payType: PayType;
   payRateCents: number;
   minHourlyGuaranteeCents: number | null;
+  employmentType?: EmploymentType;
 }): string | null {
+  const type = job.employmentType ?? 'casual';
   const hourly = effectiveHourlyCents(job);
-  if (!hourly || hourly >= payRules.awardMinHourlyCents) return null;
-  const min = (payRules.awardMinHourlyCents / 100).toFixed(2);
+  const minCents = awardMinHourlyCents(type);
+  if (!hourly || hourly >= minCents) return null;
+  const min = (minCents / 100).toFixed(2);
   const what = job.payType === 'hourly' ? 'This hourly rate' : 'This guaranteed hourly minimum';
-  return `${what} is below the Horticulture Award casual minimum of $${min}/hr (from ${payRules.effectiveFrom}). Check your obligations with the Fair Work Ombudsman before posting.`;
+  return `${what} is below the Horticulture Award ${employmentTypeLabel(type).toLowerCase()} minimum of $${min}/hr (from ${payRules.effectiveFrom}). Check your obligations with the Fair Work Ombudsman before posting.`;
 }

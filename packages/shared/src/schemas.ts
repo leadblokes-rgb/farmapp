@@ -95,6 +95,9 @@ export const jobSchema = z
     startDate: isoDate,
     endDate: isoDate,
     workersNeeded: z.number().int().min(1).max(500),
+    employmentType: z.enum(['casual', 'part_time', 'full_time'], {
+      message: 'Choose casual, part-time or full-time',
+    }),
     payType: z.enum(['hourly', 'piece_rate']),
     payRateCents: z.number({ message: 'Enter the pay rate' }).int().positive('Enter the pay rate'),
     pieceRateUnit: z.string().trim().max(40),

@@ -7,7 +7,10 @@ const root = join(__dirname, '../../../..');
 
 describe('legal documents', () => {
   it('the app copy matches docs/legal (run npm run build:legal)', () => {
-    const generated = readFileSync(join(root, 'apps/mobile/src/features/legal/documents.generated.ts'), 'utf8');
+    const generated = readFileSync(
+      join(root, 'apps/mobile/src/features/legal/documents.generated.ts'),
+      'utf8',
+    );
     for (const f of ['terms.md', 'privacy-policy.md']) {
       expect(generated).toContain(JSON.stringify(readFileSync(join(root, 'docs/legal', f), 'utf8')));
     }
@@ -25,7 +28,9 @@ describe('legal documents', () => {
   });
 
   it('asks again when a version changes', () => {
-    expect(needsLegalConsent({ terms_version: legal.termsVersion, privacy_version: legal.privacyVersion })).toBe(false);
+    expect(
+      needsLegalConsent({ terms_version: legal.termsVersion, privacy_version: legal.privacyVersion }),
+    ).toBe(false);
     expect(needsLegalConsent({ terms_version: 'old', privacy_version: legal.privacyVersion })).toBe(true);
     expect(needsLegalConsent({ terms_version: null, privacy_version: null })).toBe(true);
   });

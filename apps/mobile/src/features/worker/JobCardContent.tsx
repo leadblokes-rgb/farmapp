@@ -1,4 +1,4 @@
-import { formatCents, jobRoleLabel } from '@croppr/shared';
+import { employmentTypeLabel, formatCents, jobRoleLabel } from '@croppr/shared';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';
 import { RatingSummary } from '@/components/Stars';
@@ -32,7 +32,7 @@ export function JobCardContent({ item, compact }: { item: RankedFeedJob; compact
   const tight = !!compact && height < 700;
   const roleLine = (
     <Text variant="bodyLarge" style={styles.muted}>
-      {jobRoleLabel(j.role_type)}
+      {jobRoleLabel(j.role_type)} · {employmentTypeLabel(j.employment_type)}
       {j.farm_is_labour_hire ? ' · via labour hire' : ''}
     </Text>
   );

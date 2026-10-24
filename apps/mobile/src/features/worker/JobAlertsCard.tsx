@@ -83,7 +83,7 @@ function Form({
   });
 
   return (
-    <Section title="Job alerts" note="Get a notification when a new job matches. At most 3 a day.">
+    <Section title="Job alerts" note="Get a notification when a new job matches.">
       <SwitchRow label="Tell me about new jobs" value={a.enabled} onChange={(v) => set('enabled', v)} />
       {a.enabled ? (
         <>

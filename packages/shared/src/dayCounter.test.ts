@@ -173,18 +173,36 @@ describe('estimateDays', () => {
     const r = estimateDays(
       [farm],
       [],
-      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 5, hoursTotal: 12 }],
+      [
+        {
+          employerId: 'farm',
+          periodStart: '2027-03-01',
+          periodEnd: '2027-03-07',
+          daysWorked: 5,
+          hoursTotal: 12,
+        },
+      ],
       opts,
     );
     expect(r.totalDays).toBe(1);
-    expect(r.notes.join(' ')).toMatch(/12 hours only covers 1 full day of 7\+ hours, so 1 of the 5 days worked is counted/);
+    expect(r.notes.join(' ')).toMatch(
+      /12 hours only covers 1 full day of 7\+ hours, so 1 of the 5 days worked is counted/,
+    );
   });
 
   it('counts nothing from a payslip with less than one full day of hours', () => {
     const r = estimateDays(
       [farm],
       [],
-      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 3, hoursTotal: 6 }],
+      [
+        {
+          employerId: 'farm',
+          periodStart: '2027-03-01',
+          periodEnd: '2027-03-07',
+          daysWorked: 3,
+          hoursTotal: 6,
+        },
+      ],
       opts,
     );
     expect(r.totalDays).toBe(0);
@@ -194,7 +212,15 @@ describe('estimateDays', () => {
     const r = estimateDays(
       [farm],
       [],
-      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-07', daysWorked: 5, hoursTotal: 38 }],
+      [
+        {
+          employerId: 'farm',
+          periodStart: '2027-03-01',
+          periodEnd: '2027-03-07',
+          daysWorked: 5,
+          hoursTotal: 38,
+        },
+      ],
       opts,
     );
     expect(r.totalDays).toBe(7);
@@ -206,7 +232,15 @@ describe('estimateDays', () => {
     const r = estimateDays(
       [farm],
       [],
-      [{ employerId: 'farm', periodStart: '2027-03-01', periodEnd: '2027-03-14', daysWorked: 5, hoursTotal: 21 }],
+      [
+        {
+          employerId: 'farm',
+          periodStart: '2027-03-01',
+          periodEnd: '2027-03-14',
+          daysWorked: 5,
+          hoursTotal: 21,
+        },
+      ],
       { rules, today },
     );
     expect(r.totalDays).toBe(3);
@@ -214,11 +248,21 @@ describe('estimateDays', () => {
 
   it('flags employers the database tagged as outside eligible postcodes', () => {
     const r = estimateDays(
-      [{ id: 'city', name: 'City packing', countsAsSpecified: true, postcode: '4000', postcodeEligible: false }],
+      [
+        {
+          id: 'city',
+          name: 'City packing',
+          countsAsSpecified: true,
+          postcode: '4000',
+          postcodeEligible: false,
+        },
+      ],
       [],
       [],
       { today, visaType: '417' },
     );
-    expect(r.notes.join(' ')).toMatch(/City packing \(4000\) isn’t an eligible postcode for 417 plant & animal cultivation/);
+    expect(r.notes.join(' ')).toMatch(
+      /City packing \(4000\) isn’t an eligible postcode for 417 plant & animal cultivation/,
+    );
   });
 });
