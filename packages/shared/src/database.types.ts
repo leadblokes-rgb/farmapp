@@ -162,6 +162,46 @@ export type Database = {
           },
         ];
       };
+      contact_share_attempts: {
+        Row: {
+          conversation_id: string;
+          created_at: string;
+          id: number;
+          original_body: string;
+          sender_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          conversation_id: string;
+          created_at?: string;
+          id?: never;
+          original_body: string;
+          sender_id: string;
+        };
+        Update: {
+          conversation_id?: string;
+          created_at?: string;
+          id?: never;
+          original_body?: string;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'contact_share_attempts_conversation_id_fkey';
+            columns: ['conversation_id'];
+            isOneToOne: false;
+            referencedRelation: 'conversations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'contact_share_attempts_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       conversations: {
         Row: {
           application_id: string;
@@ -617,6 +657,7 @@ export type Database = {
         Row: {
           body: string;
           broadcast_id: string | null;
+          contact_masked: boolean;
           conversation_id: string;
           created_at: string;
           id: string;
@@ -627,6 +668,7 @@ export type Database = {
         Insert: {
           body: string;
           broadcast_id?: string | null;
+          contact_masked?: boolean;
           conversation_id: string;
           created_at?: string;
           id?: string;
@@ -636,6 +678,7 @@ export type Database = {
         Update: {
           body?: string;
           broadcast_id?: string | null;
+          contact_masked?: boolean;
           conversation_id?: string;
           created_at?: string;
           id?: string;
@@ -1363,6 +1406,26 @@ export type Database = {
       };
     };
     Views: {
+      admin_contact_share_attempts: {
+        Row: {
+          attempts_30_days: number | null;
+          latest_attempt: string | null;
+          latest_original: string | null;
+          sender_email: string | null;
+          sender_id: string | null;
+          sender_role: Database['public']['Enums']['user_role'] | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: 'contact_share_attempts_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       admin_open_reports: {
         Row: {
           conversation_id: string | null;
@@ -1693,6 +1756,7 @@ export type Database = {
         Returns: number;
       };
       mark_conversation_read: { Args: { p_conversation_id: string }; Returns: undefined };
+      mask_contact_details: { Args: { p_body: string }; Returns: string };
       my_applications: {
         Args: Record<PropertyKey, never>;
         Returns: {

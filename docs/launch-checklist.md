@@ -47,6 +47,12 @@ All six MVP milestones are built and tested locally. This is what remains, rough
 - [ ] **Dev:** Load the full Australian postcode list. Right now only about 20 QLD postcodes exist, so distance ranking only works there.
 - [ ] **Dev:** Create the first admin account and walk through `docs/admin-runbook.md` with whoever will approve farms.
 
+## 4b. Charging (decided: farms pay $39 per accepted worker)
+- [x] **Dev:** Chat contact filter: contact details are hidden until a farm accepts a worker; repeat attempts are listed for admins.
+- [ ] **Dev:** Payments: charge the $39 at acceptance (Stripe), refund undisputed no-shows, and add a per-job cap and season pass if wanted. Workers are never charged.
+- [ ] **You:** Register for GST before charging; Stripe issues the tax invoices.
+- [ ] **You:** Add a non-circumvention clause to the terms in the legal review (hiring someone met on Croppr outside the app within 6 months still owes the fee).
+
 ## 5. App store release
 - [ ] **You:** Apple Developer account (paid yearly) and Google Play Console account (one-off fee), under the business name.
 - [ ] **You:** Store listing: screenshots, description, keywords, support URL, privacy policy URL. The app icon and splash are done from the Croppr logo.

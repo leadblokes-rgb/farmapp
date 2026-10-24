@@ -4,7 +4,7 @@ import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from 'reac
 import { IconButton, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LoadError, Loading } from '@/components/Loading';
-import { useUserId } from '@/providers/AuthProvider';
+import { useAuth, useUserId } from '@/providers/AuthProvider';
 import { MIN_TAP } from '@/theme';
 import { markRead, useConversations, useMessages, useSendMessage, type Message } from './api';
 import { ReportDialog } from './ReportDialog';
@@ -27,7 +27,10 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
   const [reporting, setReporting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const { profile } = useAuth();
   const convo = conversations.data?.find((c) => c.conversation_id === conversationId);
+  // Before a farm accepts the worker, contact details are hidden by the database (shown as #####).
+  const hired = convo?.application_status === 'accepted' || convo?.application_status === 'completed';
   const newest = messages.data?.[0]?.id;
 
   // Mark the other person's messages read whenever new ones arrive while the chat is open.
@@ -60,7 +63,15 @@ export function ChatScreen({ conversationId }: { conversationId: string }) {
       />
       {convo ? (
         <Text variant="bodyMedium" style={styles.context}>
-          {convo.job_title} · {convo.application_status === 'accepted' ? 'Accepted' : 'Applied'}
+          {convo.job_title} ·{' '}
+          {convo.application_status === 'completed' ? 'Completed' : hired ? 'Accepted' : 'Applied'}
+        </Text>
+      ) : null}
+      {convo && !hired ? (
+        <Text variant="bodySmall" style={styles.filterNote} accessibilityRole="text">
+          {profile?.role === 'farm'
+            ? `Phone numbers, emails, links and social handles are hidden (#####) until you accept ${convo.other_name.split(' ')[0]}.`
+            : 'Phone numbers, emails, links and social handles are hidden (#####) until the farm accepts you.'}
         </Text>
       ) : null}
       <KeyboardAvoidingView
@@ -130,6 +141,9 @@ function Bubble({ m, mine }: { m: Message; mine: boolean }) {
       <Text variant="bodyLarge" style={mine ? styles.mineText : undefined}>
         {m.body}
       </Text>
+      {m.contact_masked ? (
+        <Text style={[styles.meta, mine && styles.mineMeta]}>Contact details hidden until hired</Text>
+      ) : null}
       <Text style={[styles.meta, mine && styles.mineMeta]}>
         {time(m.created_at)}
         {mine && m.read_at ? ' · Seen' : ''}
@@ -142,6 +156,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1 },
   context: { textAlign: 'center', paddingVertical: 6, backgroundColor: '#F1F8E9' },
+  filterNote: {
+    textAlign: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFF4D6',
+    color: '#3B2600',
+  },
   list: { padding: 12, gap: 8 },
   empty: { textAlign: 'center', opacity: 0.6, padding: 24, transform: [{ scaleY: -1 }] },
   bubble: { maxWidth: '82%', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10 },

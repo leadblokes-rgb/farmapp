@@ -143,6 +143,16 @@ Every resolution is recorded in `admin_actions`.
 
 ---
 
+## 3b. People sharing contact details before a hire
+
+Until a farm accepts a worker, Croppr hides phone numbers, emails, links and social handles in their chat (shown as `#####`). The original text is kept for admins only:
+
+```sql
+select * from admin_contact_share_attempts;   -- per person, last 30 days, most attempts first
+```
+
+One or two attempts are usually innocent. A farm that keeps trying across many workers is trying to hire off Croppr: send a warning, and suspend it if it carries on (section 2). The filter catches most attempts but not all; tricks like writing digits as emoji get through, so treat this list as a signal rather than proof.
+
 ## 4. Make someone an admin
 
 App admins aren't needed for the MVP, because dashboard access is what matters. If you need one, for example for the future admin app:
